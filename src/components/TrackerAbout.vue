@@ -6,11 +6,13 @@ defineOptions({
 
 <template>
   <v-expansion-panels>
-    <v-expansion-panel color="black">
-      <v-expansion-panel-title>
+    <v-expansion-panel color="surface">
+      <v-expansion-panel-title class="bg-primary text-on-primary">
         About
         <template v-slot:actions="{ expanded }">
-          <v-icon :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"></v-icon>
+          <v-icon
+            :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
+          ></v-icon>
         </template>
       </v-expansion-panel-title>
 
@@ -35,39 +37,69 @@ defineOptions({
               app is running.
             </li>
             <li>
-              A confirm dialog was added to ensure that the user really means
-              to delete the transaction chosen for deletion.
+              A confirm dialog was added to ensure that the user really means to
+              delete the transaction chosen for deletion.
+            </li>
+            <li>
+              The AccountBalance and IncomeExpense components were merged into a
+              single new component called AccountSummary.
+            </li>
+            <li>
+              A new component called Money was created to display all instances
+              of money except where it is being input or edited.
             </li>
           </ul>
         </v-card>
 
         <v-card flat class="mx-auto maincard-width">
-          <v-card-title class="maincard-title">Major Packages Used</v-card-title>
+          <v-card-title class="maincard-title"
+            >Major Packages Used</v-card-title
+          >
           <v-row dense class="text-center">
             <v-col cols="4">
               <v-card class="pa-2 text-center h-100" elevation="2">
-                <div class="d-flex justify-center align-center mt-2 mx-auto logo-container">
+                <div
+                  class="d-flex justify-center align-center mt-2 mx-auto logo-container"
+                >
                   <img src="/vue3-logo.png" alt="Vue logo" class="logo-img" />
                 </div>
-                <v-card-text class="pa-0 pt-1 font-weight-medium">Vue 3</v-card-text>
+                <v-card-text class="pa-0 pt-1 font-weight-medium"
+                  >Vue 3</v-card-text
+                >
               </v-card>
             </v-col>
 
             <v-col cols="4">
               <v-card class="pa-2 text-center h-100" elevation="2">
-                <div class="d-flex justify-center align-center mt-2 mx-auto logo-container">
-                  <img src="/vuetify3-logo.png" alt="Vuetify logo" class="logo-img" />
+                <div
+                  class="d-flex justify-center align-center mt-2 mx-auto logo-container"
+                >
+                  <img
+                    src="/vuetify3-logo.png"
+                    alt="Vuetify logo"
+                    class="logo-img"
+                  />
                 </div>
-                <v-card-text class="pa-0 pt-1 font-weight-medium">Vuetify 3</v-card-text>
+                <v-card-text class="pa-0 pt-1 font-weight-medium"
+                  >Vuetify 3</v-card-text
+                >
               </v-card>
             </v-col>
 
             <v-col cols="4">
               <v-card class="pa-2 text-center h-100" elevation="2">
-                <div class="d-flex justify-center align-center mt-2 mx-auto logo-container">
-                  <img src="/pinia-logo.png" alt="Pinia logo" class="logo-img" />
+                <div
+                  class="d-flex justify-center align-center mt-2 mx-auto logo-container"
+                >
+                  <img
+                    src="/pinia-logo.png"
+                    alt="Pinia logo"
+                    class="logo-img"
+                  />
                 </div>
-                <v-card-text class="pa-0 pt-1 font-weight-medium">Pinia</v-card-text>
+                <v-card-text class="pa-0 pt-1 font-weight-medium"
+                  >Pinia</v-card-text
+                >
               </v-card>
             </v-col>
           </v-row>

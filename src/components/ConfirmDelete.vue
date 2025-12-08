@@ -1,17 +1,18 @@
 <script setup lang="ts">
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
-import { useTrackerStore } from "@/stores/Tracker";
+import { useTransactionStore } from "@/stores/TransactionStore.ts";
 import { computed } from "vue";
+import Money from "@/components/Money.vue";
+import type { TransactionType } from '@/types/Transaction.ts';
 
 //Call the composable function, which returns an object.
 //Destructure the 'displayMoney' property from that return
 const { displayMoney } = useCurrencyFormatter();
 
-
 type Item = {
   id: number;
   description: string;
-  transactionType: string;
+  transactionType: TransactionType;
   amount: number;
 };
 
@@ -27,13 +28,13 @@ const dialogOpen = computed({
 
 const deleteTransaction = () => {
   const item = model.value;
-  let storeTracker = useTrackerStore();
+  let storeTransaction = useTransactionStore();
   if (!item || !item.id) {
     console.log(
       "ConfirmDelete.deleteTransaction() - Transaction id was undefined so nothing was deleted"
     );
   } else {
-    storeTracker.deleteTransaction(item.id);
+    storeTransaction.deleteTransaction(item.id);
     console.log(
       "ConfirmDelete.deleteTransaction() - Transaction with id " +
         item.id +
@@ -45,80 +46,61 @@ const deleteTransaction = () => {
 </script>
 
 <template>
-  <v-container>
-    <v-dialog v-if="model" v-model="dialogOpen" max-width="500" persistent>
-      <template #default>
-        <v-card color="white" variant="elevated" class="mx-auto">
-          <v-card-title class="bg-red">Confirm or Cancel Delete</v-card-title>
-          <v-card-text>
-            <p>This is the transaction that you are about to delete:</p>
-            <v-row>
-              <v-col cols="3">
-                <v-text-field
-                  label="Id"
-                  readonly
-                  variant="outlined"
-                  :model-value="model.id"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="9">
-                <v-text-field
-                  label="Description"
-                  readonly
-                  variant="outlined"
-                  :model-value="model.description"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <v-row>
-              <v-col cols="6">
-                <v-text-field
-                  label="Transaction Type"
-                  readonly
-                  variant="outlined"
-                  :model-value="model.transactionType"
-                ></v-text-field>
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  label="Amount"
-                  readonly
-                  variant="outlined"
-                  :model-value="displayMoney(model.amount)"
-                ></v-text-field>
-              </v-col>
-            </v-row>
-            <p>
-              Press the DELETE TRANSACTION button to delete the transaction.
-              Press the CANCEL button to keep the transaction.
-            </p>
-          </v-card-text>
-          <v-card-actions>
-            <v-spacer></v-spacer>
-            <v-btn
-              text="Cancel"
-              variant="outlined"
-              elevated="16"
-              color="black"
-              class="mr-2"
-              @click="model = null"
-            ></v-btn>
-            <v-btn
-              text="Delete Transaction"
-              variant="elevated"
-              elevated="8"
-              color="red"
-              @click="deleteTransaction"
-            ></v-btn>
-          </v-card-actions>
-        </v-card>
-      </template>
-    </v-dialog>
-  </v-container>
+  <v-dialog v-if="model" v-model="dialogOpen" max-width="500" persistent>
+    <template #default>
+      <v-card color="surface" variant="elevated" class="mx-auto">
+        <v-card-title class="bg-primary text-on-primary"
+          >Confirm or Cancel Delete</v-card-title
+        >
+        <v-card-text>
+          <p class="mb-4">
+            This is the transaction that you are about to delete:
+          </p>
+          <v-row dense>
+            <v-col cols="6"><strong>Id:</strong></v-col>
+            <v-col cols="6">{{ model.id }} </v-col>
+          </v-row>
+          <v-row dense>
+            <v-col cols="6"><strong>Description:</strong></v-col>
+            <v-col cols="6">{{ model.description }} </v-col>
+          </v-row>
+          <v-row dense>
+            <v-col cols="6"><strong>Transaction Type:</strong></v-col>
+            <v-col cols="6">{{ model.transactionType }} </v-col>
+          </v-row>
+          <v-row dense>
+            <v-col cols="6"><strong>Amount:</strong></v-col>
+            <v-col cols="6"
+              ><Money
+                :amount="model.amount"
+                :type="model.transactionType"
+              />
+            </v-col>
+          </v-row>
+          <p class="mt-4">
+            Press the DELETE TRANSACTION button to delete the transaction. Press
+            the CANCEL button to keep the transaction.
+          </p>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer></v-spacer>
+          <v-btn
+            text="Cancel"
+            variant="outlined"
+            elevated="16"
+            color="secondary"
+            class="mr-2"
+            @click="model = null"
+          ></v-btn>
+          <v-btn
+            text="Delete Transaction"
+            variant="elevated"
+            elevated="8"
+            color="primary"
+            @click="deleteTransaction"
+          ></v-btn>
+        </v-card-actions>
+      </v-card>
+    </template>
+  </v-dialog>
 </template>
-
-<style scoped>
-p {
-  font-size: smaller;
-}
-</style>

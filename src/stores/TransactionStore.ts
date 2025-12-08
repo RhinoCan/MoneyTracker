@@ -3,20 +3,20 @@ import { useToast } from 'vue-toastification';
 import { Transaction } from '@/types/Transaction.ts';
 const toast = useToast();
 
- export const useTrackerStore = defineStore('storeTracker', {
+ export const useTransactionStore = defineStore('storeTransaction', {
     state: (): { transactions: Transaction[] } => ({
         transactions: [],
-    }), 
-    
+    }),
+
     actions: {
         addTransaction(newTransaction: Transaction): void {
 
             newTransaction.amount = parseFloat(String(newTransaction.amount)) || 0;
-            
+
             /* Add the new transaction to the array in this store. */
             this.transactions.push(newTransaction)
             toast.success("Successfully added the transaction with id " + newTransaction.id + ".", {timeout: 1000})
- 
+
             /* Update the array in local storage to reflect the added transaction. */
             localStorage.setItem('transactions', JSON.stringify(this.transactions));
         },
@@ -28,13 +28,13 @@ const toast = useToast();
             const originalId = updatedTransaction.id
             console.log("Tracker.updateTransaction(): originalId = " + originalId)
 
-            /* Find the "original" version of the transaction via its id. This statement examines the 
-               array of objects containing the transactions, looking for the one whose id matches the id of 
+            /* Find the "original" version of the transaction via its id. This statement examines the
+               array of objects containing the transactions, looking for the one whose id matches the id of
                of the updatedTransaction and returns the POSITION of that transaction within the array. */
             const foundIndex = this.transactions.findIndex(x => x.id == originalId)
             console.log("Tracker.updateTransaction(): foundIndex = " + foundIndex)
 
-            /* Replace the transaction that is at the position just determined with the updated transaction, 
+            /* Replace the transaction that is at the position just determined with the updated transaction,
                which always has the same id as the original version. */
             this.transactions[foundIndex] = updatedTransaction
             toast.success("Succesfully updated the transaction with id " + originalId + ".", {timeout: 1000})
@@ -43,11 +43,11 @@ const toast = useToast();
             localStorage.setItem('transactions', JSON.stringify(this.transactions));
         },
         deleteTransaction(idOfTransactionToBeDeleted: number): void {
- 
+
             /* Find the transaction which is to be deleted via its Id. */
             const transactionToBeDeleted = this.transactions.find(e => e.id == idOfTransactionToBeDeleted);
 
-            /* The value of transactionToBeDeleted will be undefined if no transaction exists with the 
+            /* The value of transactionToBeDeleted will be undefined if no transaction exists with the
                specified key. This could happen if another process deleted the transaction just before
                this user tried to do so. If that happens, notify the user. */
             if (typeof transactionToBeDeleted == 'undefined') {
@@ -64,7 +64,7 @@ const toast = useToast();
 
             /* Update the array in local storage to reflect the deleted transaction. */
             localStorage.setItem('transactions', JSON.stringify(this.transactions));
-        }     
+        }
     },
     getters: {
         getNewId(): number {
@@ -84,7 +84,7 @@ const toast = useToast();
         },
 
         getBalance(): number {
-          
+
             return Number((this.getIncome - this.getExpense).toFixed(2));
         },
 
@@ -95,7 +95,7 @@ const toast = useToast();
 
             /* Use reduce() to sum up the Income transactions. */
             const totalIncome = incomeTransactions.reduce((accumulator, currentValue) => accumulator + currentValue.amount, 0)
-            
+
             return Number(totalIncome.toFixed(2));
         },
 
@@ -103,10 +103,10 @@ const toast = useToast();
 
             /* Use filter() to make a new array containing only Expense transactions. */
             const expenseTransactions: Transaction[] = this.transactions.filter(transaction => transaction.transactionType === 'Expense')
-        
+
             /* Use reduce() to sum up the Expense transactions. */
             const totalExpense = expenseTransactions.reduce((accumulator, currentValue) => accumulator + currentValue.amount, 0)
-            
+
             return Number(totalExpense.toFixed(2));
         }
     }

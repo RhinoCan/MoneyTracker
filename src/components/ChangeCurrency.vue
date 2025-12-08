@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
 import { useCurrencyStore } from "@/stores/CurrencyStore.ts";
-import type { CurrencyDisplay, CurrencySign } from "@/types/CommonTypes";
+import type { CurrencyDisplay, CurrencySign } from "@/types/CommonTypes.ts";
 
 const emit = defineEmits(["saved", "cancel"]);
 
@@ -47,16 +47,17 @@ function saveChanges() {
 </script>
 
 <template>
-  <v-card>
-    <v-card-title>Currency Settings</v-card-title>
+  <v-card color="surface">
+    <v-card-title class="bg-primary text-on-primary">Currency Settings</v-card-title>
 
     <v-card-text>
-      <v-container>
+
         <v-row>
           <v-col cols="6">
             <v-text-field
               type="number"
               label="Min Precision"
+              variant="outlined"
               v-model.number="minPrecisionModel"
             />
           </v-col>
@@ -65,6 +66,7 @@ function saveChanges() {
             <v-text-field
               type="number"
               label="Max Precision"
+              variant="outlined"
               v-model.number="maxPrecisionModel"
             />
           </v-col>
@@ -72,6 +74,7 @@ function saveChanges() {
           <v-col cols="12">
             <v-text-field
               label="Currency Code (e.g. USD)"
+              variant="outlined"
               v-model="currencyModel"
             />
           </v-col>
@@ -79,6 +82,7 @@ function saveChanges() {
           <v-col cols="12">
             <v-select
               label="Currency Display"
+              variant="outlined"
               :items="['symbol', 'narrowSymbol', 'code', 'name']"
               v-model="currencyDisplayModel"
             />
@@ -87,6 +91,7 @@ function saveChanges() {
           <v-col cols="12">
             <v-select
               label="Currency Sign"
+              variant="outlined"
               :items="['standard', 'accounting']"
               v-model="currencySignModel"
             />
@@ -107,11 +112,11 @@ function saveChanges() {
             />
           </v-col>
         </v-row>
-      </v-container>
+      
     </v-card-text>
 
     <v-card-actions>
-      <v-btn color="grey" variant="outlined" @click="emit('cancel')">Cancel</v-btn>
+      <v-btn color="secondary" variant="outlined" @click="emit('cancel')">Cancel</v-btn>
       <v-btn color="primary" variant="elevated" @click="saveChanges">Save</v-btn>
     </v-card-actions>
   </v-card>

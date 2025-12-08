@@ -19,18 +19,18 @@ const baseConfig = defineConfig({
 
 // 2. Define the test-specific properties (the Vitest configuration block)
 const testProperties = {
-    globals: true, 
-    environment: 'jsdom', 
-    setupFiles: ['./tests/vitest.setup.js'], 
-    
-    logLevel: 'error', 
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: ['./tests/vitest.setup.js'],
+
+    logLevel: 'error',
 };
 
 // 3. Define the test configuration block
 const testConfig = {
     test: {
         ...testProperties, // Spreading the base test properties
-        
+
         // Use the moduleNameMapper property to mock assets
         moduleNameMapper: {
             // Target all CSS/SCSS files

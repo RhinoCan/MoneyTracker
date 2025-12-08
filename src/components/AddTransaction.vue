@@ -1,113 +1,110 @@
 <script lang="ts" setup>
 import { ref } from "vue";
 
-import { useTrackerStore } from "@/stores/Tracker";
-const storeTracker = useTrackerStore();
+import { useTransactionStore } from "@/stores/TransactionStore.ts";
+const storeTransaction = useTransactionStore();
 
-import { TransactionType, Transaction } from "@/types/Transaction";
-import { SubmitEventPromise } from "vuetify";
+import { TransactionType, Transaction } from "@/types/Transaction.ts";
+import type { SubmitEventPromise } from "vuetify";
 
+// Form models
 const descriptionModel = ref("");
-const transactionTypeModel = ref("");
-const amountModel = ref("");
+const transactionTypeModel = ref<TransactionType | null>(null);
+const amountModel = ref<number | null>(null);
+
 const newTransactionForm = ref();
 
+// Validation rules
 const rules = {
-  descriptionRequired: (value: string) => !!value || "Description is required",
-  transactionTypeRequired: (value: TransactionType) =>
-    !!value || "Transaction Type must be chosen",
-  amountValidations: (value: number) =>
-    (!!value && value > 0) ||
-    "Amount must be supplied and must be greater than zero",
+  descriptionRequired: (v: string) => !!v || "Description is required",
+
+  transactionTypeRequired: (v: TransactionType | null) =>
+    !!v || "Transaction Type must be chosen",
+
+  amountValidations: (v: number | null) =>
+    Number(v) > 0 || "Amount must be supplied and must be greater than zero",
 };
 
+// Submit handler
 async function onSubmit(event: SubmitEventPromise) {
   const { valid } = await event;
+  if (!valid) return;
 
-  if (valid) {
-    /* Get the Id for the new transaction. */
-    let newId: number = storeTracker.getNewId;
+  const newTransaction: Transaction = {
+    id: storeTransaction.getNewId,
+    description: descriptionModel.value,
+    transactionType: transactionTypeModel.value!,
+    amount: Number(amountModel.value),
+  };
 
-    /* Bundle the new Id and the data from the form into an object. */
-    const newTransaction: Transaction = {
-      id: newId,
-      description: descriptionModel.value,
-      transactionType: transactionTypeModel.value as TransactionType,
-      amount: parseFloat(amountModel.value),
-    };
-
-    /* Insert the transaction into the transactions array. */
-    storeTracker.addTransaction(newTransaction);
-
-    /* Blank out the form fields and clear the error messages. */
-    resetForm();
-  }
+  storeTransaction.addTransaction(newTransaction);
+  resetForm();
 }
 
+// Properly clears both models and v-form internal validation
 function resetForm() {
   newTransactionForm.value.reset();
+
+  // Ensure radio + fields get fully reset
+  descriptionModel.value = "";
+  transactionTypeModel.value = null;
+  amountModel.value = null;
 }
 </script>
 
-
 <template>
-  <v-container>
-    <v-row>
-      <v-col cols="12">
-        <v-toolbar
-          color="teal"
-          title="Add New Transaction"
-          density="compact"
-        ></v-toolbar>
-      </v-col>
-    </v-row>
-    <v-card elevation="8" class="mx-auto">
-      <v-form id="form" @submit.prevent="onSubmit" ref="newTransactionForm">
-        <v-text-field
-          class="mt-2"
-          label="Description"
-          v-model="descriptionModel"
-          placeholder="Enter description..."
-          variant="outlined"
-          :rules="[rules.descriptionRequired]"
-        ></v-text-field>
-        <v-chip variant="flat" color="white">Transaction Type?</v-chip>
-        <v-radio-group
-          v-model="transactionTypeModel"
-          inline
-          :rules="[rules.transactionTypeRequired]"
-        >
-          <v-radio label="Income" value="Income"></v-radio>
-          <v-radio label="Expense" value="Expense"></v-radio>
-        </v-radio-group>
-        <v-text-field
-          label="Amount"
-          v-model="amountModel"
-          placeholder="Enter amount..."
-          variant="outlined"
-          :rules="[rules.amountValidations]"
-        ></v-text-field>
-        <div class="text-end mb-2">
-          <v-btn
-            @click="resetForm"
-            color="black"
-            class="mr-2"
-            variant="outlined"
-            rounded="lg"
-            >Reset</v-btn
-          >
-          <v-btn
-            type="submit"
-            @click="onSubmit"
-            color="red"
-            elevation="8"
-            rounded="lg"
-            class="mr-2"
-            >Add transaction</v-btn
-          >
-        </div>
-      </v-form>
-    </v-card>
-  </v-container>
-</template>
+  <v-card elevation="8" color="surface" class="mx-auto">
+    <v-card-title class="bg-primary primary-with-text"
+      >Add New Transaction</v-card-title
+    >
+    <v-form id="form" ref="newTransactionForm" @submit.prevent="onSubmit">
+      <v-text-field
+        class="mt-2"
+        label="Description"
+        v-model="descriptionModel"
+        variant="outlined"
+        :rules="[rules.descriptionRequired]"
+      />
 
+      <v-radio-group
+        v-model="transactionTypeModel"
+        inline
+        label="Transaction Type"
+        :rules="[rules.transactionTypeRequired]"
+      >
+        <v-radio label="Income" value="Income" />
+        <v-radio label="Expense" value="Expense" />
+      </v-radio-group>
+
+      <v-text-field
+        label="Amount"
+        v-model="amountModel"
+        variant="outlined"
+        type="number"
+        :rules="[rules.amountValidations]"
+      />
+
+      <div class="text-end mb-2">
+        <v-btn
+          @click="resetForm"
+          color="secondary"
+          class="mr-2"
+          variant="outlined"
+          rounded="lg"
+        >
+          Reset
+        </v-btn>
+
+        <v-btn
+          type="submit"
+          color="primary"
+          elevation="8"
+          rounded="lg"
+          class="mr-2"
+        >
+          Add transaction
+        </v-btn>
+      </div>
+    </v-form>
+  </v-card>
+</template>
