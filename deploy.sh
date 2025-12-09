@@ -32,12 +32,17 @@ if [[ -n "$(git status --porcelain)" ]]; then
 fi
 
 ### 4. Validate vite.config.js base
-if ! grep -q 'base: "/MoneyTracker/"' vite.config.js; then
-  echo "❌ Error: vite.config.js does not contain base: \"/MoneyTracker/\""
+# Accepts: base: '/MoneyTracker/'   OR   base: "/MoneyTracker/"
+# Ensure Vite base path is correctly set
+if ! grep -q 'base: "/MoneyTracker/"' vite.config.js && \
+   ! grep -q "base: '/MoneyTracker/'" vite.config.js; then
+  echo "❌ Error: vite.config.js does NOT contain the required base path:"
+  echo "    base: '/MoneyTracker/',"
   echo "Please fix vite.config.js before deploying."
   exit 1
 fi
-echo "✔ Correct base found in vite.config.js."
+
+echo "✔ Correct base path found in vite.config.js."
 
 ### 5. Install & build
 echo "📦 Installing dependencies..."
