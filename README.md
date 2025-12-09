@@ -1,4 +1,4 @@
-# MoneyTracker
+# money-tracker
 
 Brad Traversy's Vue-Expense-Tracker app from https://www.youtube.com/watch?v=hNPwdOZ3qFU
 
