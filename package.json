@@ -1,5 +1,5 @@
 {
-  "name": "MoneyTracker",
+  "name": "money-tracker",
   "version": "0.0.0",
   "private": true,
   "type": "module",
@@ -11,7 +11,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "npx vitest run",
-    "test:debug": "node --inspect-brk ./node_modules/vitest/vitest/vitest.mjs run --no-threads"
+    "test:debug": "node --inspect-brk ./node_modules/vitest/vitest/vitest.mjs run --no-threads",
+    "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
     "@dnvgl/i18n": "^1.20.0",
