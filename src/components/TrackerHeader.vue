@@ -8,7 +8,7 @@ const showCurrencyDialog = ref(false)
 </script>
 
 <template>
-  <v-app-bar title="Income and Expense Tracker" color="primary">
+  <v-app-bar title="Money Tracker" color="primary">
     <v-btn id="showSettingsMenu" color="yellow" prepend-icon="mdi-cog">
       Settings
     </v-btn>

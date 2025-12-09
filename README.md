@@ -1,4 +1,4 @@
-# cash-tracker
+# MoneyTracker
 
 Brad Traversy's Vue-Expense-Tracker app from https://www.youtube.com/watch?v=hNPwdOZ3qFU
 
@@ -9,7 +9,7 @@ Brad Traversy's Vue-Expense-Tracker app from https://www.youtube.com/watch?v=hNP
 ## Recommended Browser Setup
 
 - Chromium-based browsers (Chrome, Edge, Brave, etc.):
-  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd) 
+  - [Vue.js devtools](https://chromewebstore.google.com/detail/vuejs-devtools/nhdogjmejiglipccpnnnanhbledajbpd)
   - [Turn on Custom Object Formatter in Chrome DevTools](http://bit.ly/object-formatters)
 - Firefox:
   - [Vue.js devtools](https://addons.mozilla.org/en-US/firefox/addon/vue-js-devtools/)
@@ -42,5 +42,5 @@ npm run build
 - replace local storage with Pinia
 - change AddTransaction to have Description, Amount, and Income/Expense radio button
 - reformat app to include title bar and put each component on a card; use better background colour or picture
-- add an About 
+- add an About
 - replace VUE GUI components with Vuetify components including table for Transaction List
