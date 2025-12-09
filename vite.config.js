@@ -5,6 +5,7 @@ import { fileURLToPath, URL } from 'node:url';
 
 // 1. Define the base Vite configuration
 const baseConfig = defineConfig({
+    base: '/MoneyTracker/',
     plugins: [
         vue(),
         tsconfigPaths(),
