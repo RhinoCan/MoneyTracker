@@ -16,12 +16,24 @@ export function generateLocaleList(): LocaleItem[] {
   } catch {
     // Fallback for unsupported environments
     localeCodes = [
-      "en-US", "fr-FR", "es-ES", "de-DE", "zh-CN",
-      "ja-JP", "ko-KR", "hi-IN", "ar-SA", "ru-RU"
+      "en-US",
+      "en-CA",
+      "fr-CA",
+      "en-GB",
+      "fr-CH",
+      "fr-FR",
+      "es-ES",
+      "de-DE",
+      "zh-CN",
+      "ja-JP",
+      "ko-KR",
+      "hi-IN",
+      "ar-SA",
+      "ru-RU",
     ];
   }
 
-  const items: LocaleItem[] = localeCodes.map(code => {
+  const items: LocaleItem[] = localeCodes.map((code) => {
     const name = display.of(code) || code;
     return { code: code.toLowerCase(), name };
   });
