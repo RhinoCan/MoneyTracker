@@ -52,7 +52,7 @@ function saveChanges() {
 
     <v-card-text>
 
-        <v-row>
+        <v-row dense>
           <v-col cols="6">
             <v-text-field
               type="number"
@@ -112,7 +112,7 @@ function saveChanges() {
             />
           </v-col>
         </v-row>
-      
+
     </v-card-text>
 
     <v-card-actions>

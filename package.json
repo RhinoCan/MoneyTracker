@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "VITE_APP_ENV=live vite build",
     "preview": "vite preview",
     "test": "npx vitest run",
     "test:debug": "node --inspect-brk ./node_modules/vitest/vitest/vitest.mjs run --no-threads",

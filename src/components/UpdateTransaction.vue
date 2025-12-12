@@ -3,7 +3,7 @@ import { ref, computed, watch } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
 import { parseCurrency } from "@/utils/currencyParser.ts";
-
+import type { VTextField } from 'vuetify/components';
 import { TransactionType, Transaction } from "@/types/Transaction.ts";
 import { SubmitEventPromise } from "vuetify";
 
@@ -13,6 +13,8 @@ const { displayMoney } = useCurrencyFormatter();
 // The component's v-model prop (The full Transaction object)
 type Item = Transaction | null;
 const model = defineModel<Item>({ required: true });
+
+const amountFieldRef = ref<VTextField | null>(null);
 
 // CRITICAL FIX: Local ref to hold a DEEP COPY of the transaction for editing.
 // This prevents direct mutation of the store's data until Update is pressed.
@@ -117,6 +119,42 @@ function closeDialog() {
 }
 
 async function onSubmit(event: SubmitEventPromise) {
+  // 1. Force the input to lose focus, which triggers the handleBlur() method.
+  //    Vuetify's VTextField component instance DOES have a public blur method.
+  if (amountFieldRef.value) {
+    amountFieldRef.value.blur();
+    // VTextField's blur method is synchronous, but we must wait for the handleBlur
+    // logic (which is NOT synchronous with the blur event) to finish updating our local data model.
+  }
+
+  // 2. We can try to explicitly call handleBlur() after a very small delay or before validation.
+  //    However, since handleBlur relies on the blur *event* firing and is complex,
+  //    the manual synchronization step is safer.
+
+  // --- REVERTING TO THE BEST KNOWN FIX (FORCING SYNC) ---
+  // The most reliable way to force synchronization in this race condition is to
+  // explicitly call the blur handler's logic.
+
+  // We are certain the Enter key is causing the race condition.
+  // Instead of relying on the browser to fire the blur event in time,
+  // let's manually synchronize the amount field before validation.
+
+  // NOTE: If the user changed the description and hit enter, the blur wouldn't fire on amount field.
+  // However, since the problem is specific to changing the AMOUNT and hitting enter,
+  // we focus on syncing the amount model.
+
+  // Re-run the critical logic of handleBlur just before validation:
+  const parsedAmountOnSubmit = parseCurrency(displayAmount.value);
+
+  if (localTransaction.value) {
+    if (parsedAmountOnSubmit !== null && parsedAmountOnSubmit > 0) {
+      localTransaction.value.amount = parsedAmountOnSubmit;
+    } else {
+      localTransaction.value.amount = 0; // Set to zero if invalid for validation check
+    }
+  }
+  // ----------------------------------------------------
+
   const { valid } = await event;
   if (!valid || !localTransaction.value) return;
 
@@ -190,6 +228,7 @@ async function onSubmit(event: SubmitEventPromise) {
                     :rules="[rules.amountValidations]"
                     placeholder="0.00"
                     style="cursor: pointer;"
+                    ref="amountFieldRef"
                   />
               </v-col>
             </v-row>
@@ -215,7 +254,6 @@ async function onSubmit(event: SubmitEventPromise) {
               elevated="8"
               color="primary"
               type="submit"
-              @click="onSubmit"
             ></v-btn>
           </v-card-actions>
         </v-form>

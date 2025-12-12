@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { ref } from "vue"
+import { ref, computed } from "vue"
 import ChangeLocale from "@/components/ChangeLocale.vue"
 import ChangeCurrency from "@/components/ChangeCurrency.vue"
+
+const appEnvironment = computed(() => {
+  if (import.meta.env.VITE_APP_ENV === 'live') {
+  return 'Live (GitHub Pages)';
+}
+  return 'Dev Server';
+});
 
 const showLocaleDialog = ref(false)
 const showCurrencyDialog = ref(false)
@@ -9,6 +16,11 @@ const showCurrencyDialog = ref(false)
 
 <template>
   <v-app-bar title="Money Tracker" color="primary">
+    <v-spacer></v-spacer>
+    <v-chip :color="appEnvironment.includes('Dev') ? 'warning' : 'success'" variant="elevated" class="mr-4">
+      {{ appEnvironment }}
+    </v-chip>
+    <v-spacer></v-spacer>
     <v-btn id="showSettingsMenu" color="yellow" prepend-icon="mdi-cog">
       Settings
     </v-btn>

@@ -1,29 +1,14 @@
 
-.money {
+/* .money {
   font-size: 20px;
   letter-spacing: 1px;
   margin: 5px 0;
-  /* We don't apply color here; the components will apply .plus/.minus */
 }
 
-/* Colors for the Money component AND the v-text-field (when we used it) */
 .plus {
   color: #2ecc71 !important;
 }
 
 .minus {
   color: #c0392b !important;
-}
-
-/* Remove spinners from number inputs */
-input[type="number"] {
-  appearance: textfield;      /* Standard property */
-  -moz-appearance: textfield; /* Firefox */
-}
-
-/* Remove Chrome, Safari, Edge spinners */
-input[type="number"]::-webkit-inner-spin-button,
-input[type="number"]::-webkit-outer-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
+} */

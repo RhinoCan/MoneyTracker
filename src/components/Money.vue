@@ -33,3 +33,19 @@ const colorClass = computed(() => {
 <template>
   <span class="money" :class="colorClass">{{ formattedAmount }}</span>
 </template>
+
+<style lang="css" scoped>
+.money {
+  font-size: 20px;
+  letter-spacing: 1px;
+  margin: 5px 0;
+}
+
+.plus {
+  color: #2ecc71 !important;
+}
+
+.minus {
+  color: #c0392b !important;
+} 
+</style>
