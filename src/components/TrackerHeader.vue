@@ -4,9 +4,21 @@ import ChangeLocale from "@/components/ChangeLocale.vue"
 import ChangeCurrency from "@/components/ChangeCurrency.vue"
 
 const appEnvironment = computed(() => {
-  if (import.meta.env.VITE_APP_ENV === 'live') {
-  return 'Live (GitHub Pages)';
-}
+  const envValue = import.meta.env.VITE_APP_ENV;
+
+  // The most reliable check: If the variable has *any* truthy value (i.e.,
+  // it was set by cross-env and is not undefined or an empty string),
+  // assume we are in the custom 'live' environment.
+  if (envValue) {
+    return 'Live (GitHub Pages)';
+  }
+
+  // You can also check the mode that Vite sets automatically,
+  // though checking the custom variable is usually better:
+  // if (import.meta.env.MODE === 'production') { return 'Live (GitHub Pages)'; }
+
+
+  // If the variable is falsy (undefined/empty string), we default to Dev Server
   return 'Dev Server';
 });
 
