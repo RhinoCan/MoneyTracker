@@ -28,11 +28,9 @@ const showCurrencyDialog = ref(false)
 
 <template>
   <v-app-bar title="Money Tracker" color="primary">
-    <v-spacer></v-spacer>
-    <v-chip :color="appEnvironment.includes('Dev') ? 'warning' : 'success'" variant="elevated">
+    <v-chip :color="appEnvironment.includes('Dev') ? 'warning' : 'success'" variant="elevated" class="mr-4">
       {{ appEnvironment }}
     </v-chip>
-    <v-spacer></v-spacer>
     <v-btn id="showSettingsMenu" color="yellow" prepend-icon="mdi-cog">
       Settings
     </v-btn>
