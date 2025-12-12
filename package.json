@@ -8,7 +8,7 @@
   },
   "scripts": {
     "dev": "vite",
-    "build": "VITE_APP_ENV=live vite build",
+    "build": "cross-env VITE_APP_ENV=live vite build",
     "preview": "vite preview",
     "test": "npx vitest run",
     "test:debug": "node --inspect-brk ./node_modules/vitest/vitest/vitest.mjs run --no-threads",
@@ -25,6 +25,7 @@
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.2",
     "@vue/test-utils": "^2.4.6",
+    "cross-env": "^10.1.0",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^27.2.0",
     "ts-node": "^10.9.2",
