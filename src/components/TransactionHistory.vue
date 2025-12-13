@@ -2,7 +2,7 @@
 import { ref, computed } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
-import ConfirmDelete from "@/components/ConfirmDelete.vue";
+import DeleteTransaction from "@/components/DeleteTransaction.vue";
 import UpdateTransaction from "@/components/UpdateTransaction.vue";
 import Money from "@/components/Money.vue";
 import { TransactionType } from '@/types/Transaction.ts';
@@ -97,7 +97,7 @@ const items = computed(() => storeTransaction.transactions);
         </template>
       </v-data-table>
 
-      <ConfirmDelete v-model="selectedItemDelete" />
+      <DeleteTransaction v-model="selectedItemDelete" />
       <UpdateTransaction v-model="selectedItemUpdate" />
     </v-card>
 </template>
