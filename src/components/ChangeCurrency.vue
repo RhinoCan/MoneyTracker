@@ -48,7 +48,7 @@ function saveChanges() {
 
 <template>
   <v-card color="surface">
-    <v-card-title class="bg-primary text-on-primary">Currency Settings</v-card-title>
+    <v-card-title class="bg-primary text-on-primary">Change Currency Settings</v-card-title>
 
     <v-card-text>
 
@@ -117,7 +117,7 @@ function saveChanges() {
 
     <v-card-actions>
       <v-btn color="secondary" variant="outlined" @click="emit('cancel')">Cancel</v-btn>
-      <v-btn color="primary" variant="elevated" @click="saveChanges">Save</v-btn>
+      <v-btn color="primary" variant="elevated" @click="saveChanges">Change Currency Settings</v-btn>
     </v-card-actions>
   </v-card>
 </template>

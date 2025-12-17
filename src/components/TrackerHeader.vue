@@ -2,6 +2,7 @@
 import { ref, computed } from "vue"
 import ChangeLocale from "@/components/ChangeLocale.vue"
 import ChangeCurrency from "@/components/ChangeCurrency.vue"
+import ChangeDateFormat from "@/components/ChangeDateFormat.vue"
 
 const appEnvironment = computed(() => {
   const envValue = import.meta.env.VITE_APP_ENV;
@@ -24,6 +25,7 @@ const appEnvironment = computed(() => {
 
 const showLocaleDialog = ref(false)
 const showCurrencyDialog = ref(false)
+const showDateFormatDialog = ref(false)
 </script>
 
 <template>
@@ -54,20 +56,34 @@ const showCurrencyDialog = ref(false)
             prepend-icon="mdi-currency-sign"
             @click="showCurrencyDialog = true"
           >
-            Change Currency and Currency Appearance
+            Change Currency Settings
+          </v-btn>
+        </v-list-item>
+
+        <v-list-item>
+          <v-btn
+          id="dateFormatDialog"
+          prepend-icon="mdi-calendar"
+          @click="showDateFormatDialog = true">
+          Change Date Format
           </v-btn>
         </v-list-item>
       </v-list>
     </v-menu>
 
     <!-- LOCALE DIALOG -->
-    <v-dialog v-model="showLocaleDialog" max-width="400">
+    <v-dialog v-model="showLocaleDialog" max-width="300">
       <ChangeLocale @saved="showLocaleDialog = false" @cancel="showLocaleDialog = false" />
     </v-dialog>
 
     <!-- CURRENCY DIALOG -->
     <v-dialog v-model="showCurrencyDialog" max-width="500">
       <ChangeCurrency @saved="showCurrencyDialog = false" @cancel="showCurrencyDialog = false" />
+    </v-dialog>
+
+    <!-- DATE FORMAT DIALOG -->
+    <v-dialog v-model="showDateFormatDialog" max-width="400">
+      <ChangeDateFormat @saved="showDateFormatDialog = false" @cancel="showDateFormatDialog = false" />
     </v-dialog>
   </v-app-bar>
 </template>

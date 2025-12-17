@@ -1,22 +1,16 @@
 <script setup lang="ts">
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
+import { useDateFormatter } from "@/composables/useDateFormatter.ts";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
 import { computed } from "vue";
 import Money from "@/components/Money.vue";
-import type { TransactionType } from '@/types/Transaction.ts';
+import type { TransactionType, Transaction } from '@/types/Transaction.ts';
 
 //Call the composable function, which returns an object.
 //Destructure the 'displayMoney' property from that return
 const { displayMoney } = useCurrencyFormatter();
 
-type Item = {
-  id: number;
-  description: string;
-  transactionType: TransactionType;
-  amount: number;
-};
-
-const model = defineModel<Item | null>();
+const model = defineModel<Transaction | null>();
 
 const dialogOpen = computed({
   get: () => !!model.value, // returns boolean
@@ -26,17 +20,27 @@ const dialogOpen = computed({
   },
 });
 
+const { formatDate } = useDateFormatter();
+
+const formattedDisplayDate = computed(() => {
+  const isoDate = model.value?.date;
+  if (!isoDate) {
+    return 'N/A';
+  }
+  return formatDate(isoDate);
+})
+
 const deleteTransaction = () => {
   const item = model.value;
   let storeTransaction = useTransactionStore();
   if (!item || !item.id) {
     console.log(
-      "ConfirmDelete.deleteTransaction() - Transaction id was undefined so nothing was deleted"
+      "DeleteTransaction.deleteTransaction() - Transaction id was undefined so nothing was deleted"
     );
   } else {
     storeTransaction.deleteTransaction(item.id);
     console.log(
-      "ConfirmDelete.deleteTransaction() - Transaction with id " +
+      "DeleteTransaction.deleteTransaction() - Transaction with id " +
         item.id +
         " deleted"
     );
@@ -63,6 +67,10 @@ const deleteTransaction = () => {
           <v-row dense>
             <v-col cols="6"><strong>Description:</strong></v-col>
             <v-col cols="6">{{ model.description }} </v-col>
+          </v-row>
+          <v-row dense>
+            <v-col cols="6"><strong>Date:</strong></v-col>
+            <v-col cols="6">{{ formattedDisplayDate }}</v-col>
           </v-row>
           <v-row dense>
             <v-col cols="6"><strong>Transaction Type:</strong></v-col>

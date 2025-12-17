@@ -23,7 +23,7 @@ function updateLocale() {
 
 <template>
   <v-card color="surface">
-    <v-card-title class="bg-primary text-on-primary">Update Current Locale</v-card-title>
+    <v-card-title class="bg-primary text-on-primary">Change Locale</v-card-title>
 
     <v-card-text>
       <v-form>
@@ -40,7 +40,7 @@ function updateLocale() {
 
     <v-card-actions>
       <v-btn color="secondary" variant="outlined" @click="$emit('cancel')"> Cancel </v-btn>
-      <v-btn color="primary" variant="elevated" @click="updateLocale"> Update Locale </v-btn>
+      <v-btn color="primary" variant="elevated" @click="updateLocale"> Change Locale </v-btn>
     </v-card-actions>
   </v-card>
 </template>

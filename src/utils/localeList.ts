@@ -35,7 +35,7 @@ export function generateLocaleList(): LocaleItem[] {
 
   const items: LocaleItem[] = localeCodes.map((code) => {
     const name = display.of(code) || code;
-    return { code: code.toLowerCase(), name };
+    return { code: code, name };
   });
 
   items.sort((a, b) => a.name.localeCompare(b.name));

@@ -1,11 +1,18 @@
 import { describe, it, expect } from 'vitest'
 import TrackerHeader from '@/components/TrackerHeader.vue'
 import { mountWithVuetify } from '../test-utils.js' // include the .js extension as required
+import { createVuetify } from 'vuetify';
+
+const vuetify = createVuetify();
 
 describe('TrackerHeader', () => {
   it('renders the app bar with the title and Settings button', () => {
     // Use your mountWithVuetify helper to wrap the component in Vuetify
-    const wrapper = mountWithVuetify(TrackerHeader)
+    const wrapper = mountWithVuetify(TrackerHeader, {
+      global: {
+        plugins: [vuetify],
+      }
+    })
 
     // Check that the app bar exists
     const appBar = wrapper.find('v-app-bar')

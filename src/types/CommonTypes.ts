@@ -25,3 +25,9 @@ export interface LocaleOption {
     /** The human-readable label (e.g., 'English (United States)'). */
     label: string;
 }
+
+export enum DateFormatTemplate {
+  ISO = 'yyyy-MM-dd',
+  USA = 'MM/dd/yyyy',
+  EUR = 'dd.MM.yyyy'
+}

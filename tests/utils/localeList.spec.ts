@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { localeList } from '@/utils/localeList.ts'
 
 describe('localeList Utility', () => {
@@ -40,3 +40,83 @@ describe('localeList Utility', () => {
     expect(lowerCaseCodes).toContain('es-es')
   })
 })
+
+// NEW TESTS FOR 100% COVERAGE
+describe('localeList - Edge Cases', () => {
+  let originalIntl: typeof Intl;
+
+  beforeEach(() => {
+    originalIntl = global.Intl;
+  });
+
+  afterEach(() => {
+    global.Intl = originalIntl;
+    vi.resetModules();
+  });
+
+  // COVERS LINE 37: The || code fallback when display.of() returns null/undefined
+  it('should use locale code as fallback when DisplayNames.of() returns null', async () => {
+    // Mock Intl.DisplayNames to return null for of()
+    const mockOf = vi.fn().mockReturnValue(null);
+
+    // Create a new Intl object with mocked DisplayNames
+    const MockedIntl = {
+      ...global.Intl,
+      DisplayNames: vi.fn().mockImplementation(() => ({
+        of: mockOf,
+      })),
+      supportedValuesOf: vi.fn().mockReturnValue(['test-LOCALE']),
+    };
+
+    global.Intl = MockedIntl as any;
+
+    // Re-import the module to trigger generateLocaleList with our mocks
+    const { generateLocaleList } = await import('@/utils/localeList');
+    const result = generateLocaleList();
+
+    // Should use the code as fallback when of() returns null
+    expect(result.some(item => item.code === 'test-LOCALE' && item.name === 'test-LOCALE')).toBe(true);
+    expect(mockOf).toHaveBeenCalledWith('test-LOCALE');
+  });
+
+  it('should use locale code as fallback when DisplayNames.of() returns undefined', async () => {
+    // Mock Intl.DisplayNames to return undefined for of()
+    const mockOf = vi.fn().mockReturnValue(undefined);
+
+    const MockedIntl = {
+      ...global.Intl,
+      DisplayNames: vi.fn().mockImplementation(() => ({
+        of: mockOf,
+      })),
+      supportedValuesOf: vi.fn().mockReturnValue(['xx-UNKNOWN']),
+    };
+
+    global.Intl = MockedIntl as any;
+
+    const { generateLocaleList } = await import('@/utils/localeList');
+    const result = generateLocaleList();
+
+    expect(result.some(item => item.code === 'xx-UNKNOWN' && item.name === 'xx-UNKNOWN')).toBe(true);
+  });
+
+  it('should handle empty string from DisplayNames.of()', async () => {
+    // Mock to return empty string (falsy)
+    const mockOf = vi.fn().mockReturnValue('');
+
+    const MockedIntl = {
+      ...global.Intl,
+      DisplayNames: vi.fn().mockImplementation(() => ({
+        of: mockOf,
+      })),
+      supportedValuesOf: vi.fn().mockReturnValue(['zz-ZZ']),
+    };
+
+    global.Intl = MockedIntl as any;
+
+    const { generateLocaleList } = await import('@/utils/localeList');
+    const result = generateLocaleList();
+
+    // Empty string is falsy, so should use code as fallback
+    expect(result.some(item => item.code === 'zz-ZZ' && item.name === 'zz-ZZ')).toBe(true);
+  });
+});

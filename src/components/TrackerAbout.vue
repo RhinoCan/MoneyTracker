@@ -26,6 +26,7 @@ defineOptions({
             >. I then made a number of upgrades which are summarized below:
           </p>
           <ul class="custom-list">
+            <li>Tests were written and executed for the original Vue components.</li>
             <li>
               The props were replaced by a Pinia store, with one exception.
             </li>
@@ -47,6 +48,13 @@ defineOptions({
             <li>
               A new component called Money was created to display all instances
               of money except where it is being input or edited.
+            </li>
+            <li>
+              A transaction date was added to the Transaction definition so that
+              users could record when the income was made or the expense
+              incurred. The date is now input in AddTransaction, displayed in
+              TransactionHistory and DeleteTransaction, and both displayed and
+              changed in UpdateTransaction.
             </li>
           </ul>
         </v-card>

@@ -1,103 +1,96 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
-import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
+import { useDateFormatter } from "@/composables/useDateFormatter.ts";
+import { useAppValidationRules } from "@/composables/useAppValidationRules";
+import { useTransactionFormFields } from "@/composables/useTransactionFormFields";
 import { parseCurrency } from "@/utils/currencyParser.ts";
-
-import Money from "@/components/Money.vue"; // <-- Ensure this is imported
 import { TransactionType, Transaction } from "@/types/Transaction.ts";
 import type { SubmitEventPromise } from "vuetify";
+import { formatISO, parseISO } from "date-fns";
 
 const storeTransaction = useTransactionStore();
-const { displayMoney } = useCurrencyFormatter();
+const { required, transactionTypeRequired, dateRangeRule, amountValidations } =
+  useAppValidationRules();
+
+const {
+  displayAmount,
+  isFocused,
+  colorClass,
+  handleFocus,
+  handleBlur,
+  dateMenu,
+  closeDatePicker,
+} = useTransactionFormFields();
 
 // Form models
 const descriptionModel = ref("");
+const dateModel = ref<string | null>(null);
 const transactionTypeModel = ref<TransactionType | null>(null);
 
-// String ref for the raw/formatted input field
-const displayAmount = ref("");
-// State to track focus, used to switch content in the #default slot
-const isFocused = ref(false);
+const { formatDate } = useDateFormatter();
+
+const formattedDisplayDate = computed({
+  get() {
+  const isoDate = dateModel.value;
+  if (!isoDate) {
+    return '';
+  }
+  return formatDate(isoDate);
+},
+set(newValue) {
+  //Do nothing. The date is updated directly via the v-date-picker binding to dateModel.value, not through
+  //this text field. This setter exists purely to prevent the "Write operation failed" error.
+}
+})
+
+const dateError = ref<string | null>(null);
+
+function resetState() {
+  dateError.value = null;
+}
 
 const newTransactionForm = ref();
-// const amountFieldRef = ref(null); // Not strictly needed for this version, but harmless if kept
-
-// ------------------------------------
-// Computed property to determine the display color class
-// ------------------------------------
-const colorClass = computed(() => {
-  // Apply color ONLY when NOT focused AND a type is selected
-  if (isFocused.value || !transactionTypeModel.value) return "";
-
-  // Returns the custom CSS classes defined in <style scoped>
-  return transactionTypeModel.value === "Income" ? "money-plus" : "money-minus";
-});
-
-// ------------------------------------
-// ADDED: Computed property to derive the number needed by Money.vue
-// ------------------------------------
-const currentAmount = computed(() => {
-  // Parse the current display string into a number
-  const parsedAmount = parseCurrency(displayAmount.value);
-  return {
-    parsedAmount: parsedAmount,
-  };
-});
-
-// ------------------------------------
-// FOCUS/BLUR Handlers (from the last working logic)
-// ------------------------------------
-const handleFocus = () => {
-  isFocused.value = true;
-
-  // On focus: parse the current display string (which might be formatted)
-  const numericAmount = parseCurrency(displayAmount.value);
-
-  if (numericAmount !== null && numericAmount !== undefined) {
-    // Show raw number string (2 decimal places)
-    displayAmount.value = numericAmount.toFixed(2);
-  } else {
-    displayAmount.value = "";
-  }
-};
-
-const handleBlur = () => {
-  isFocused.value = false;
-
-  // 1. Attempt to parse the raw string input
-  const parsedAmount = parseCurrency(displayAmount.value);
-
-  // Check if the input value resulted in a valid, positive number
-  if (parsedAmount !== null && parsedAmount > 0) {
-    // If valid, apply formatting
-    displayAmount.value = displayMoney(parsedAmount);
-  } else {
-    // If parsing fails (e.g., empty, zero, or only invalid chars), clear the field
-    displayAmount.value = "";
-  }
-};
 
 // ------------------------------------
 // Validation rules
 // ------------------------------------
 const rules = {
-  descriptionRequired: (v: string) => !!v || "Description is required",
-  transactionTypeRequired: (v: TransactionType | null) =>
-    !!v || "Transaction Type must be chosen",
-  amountValidations: (v: string) => {
-    const parsed = parseCurrency(v);
-    return (
-      (!!parsed && parsed > 0) ||
-      "Amount must be supplied and must be greater than zero"
-    );
-  },
+  required,
+  descriptionRequired: required,
+  dateRequired: dateRangeRule,
+  transactionTypeRequired: transactionTypeRequired,
+  amountValidations: amountValidations,
 };
 
 // ------------------------------------
 // Submit handler
 // ------------------------------------
 async function onSubmit(event: SubmitEventPromise) {
+
+  dateError.value = null;
+
+  if (!dateModel.value) {
+    return;
+  }
+
+  const dateValue = dateModel.value;
+  let dateObject: Date;
+
+  if (typeof dateValue === 'string') {
+    dateObject = parseISO(dateValue);
+  } else {
+    dateObject = dateValue as Date;
+  }
+
+  const cleanIsoDate = formatISO(dateObject, { representation: 'date' });
+
+  const validationResult = rules.dateRequired(cleanIsoDate);
+  if (validationResult !== true) {
+    //Validation failed: capture the error message and stop submission.
+    dateError.value = validationResult as string;
+    return;
+  }
 
   const { valid } = await event;
   if (!valid) return;
@@ -107,6 +100,7 @@ async function onSubmit(event: SubmitEventPromise) {
   const newTransaction: Transaction = {
     id: storeTransaction.getNewId,
     description: descriptionModel.value,
+    date: dateModel.value!,
     transactionType: transactionTypeModel.value!,
     amount: finalAmount || 0,
   };
@@ -121,12 +115,14 @@ async function onSubmit(event: SubmitEventPromise) {
 function resetForm() {
   newTransactionForm.value.reset();
   descriptionModel.value = "";
+  dateMenu.value = false;
+  dateModel.value = null;
   transactionTypeModel.value = null;
   displayAmount.value = "";
   isFocused.value = false;
+  dateError.value = "";
 }
 </script>
-
 
 <template>
   <v-card elevation="8" color="surface" class="mx-auto">
@@ -141,6 +137,34 @@ function resetForm() {
         :rules="[rules.descriptionRequired]"
         class="mt-2"
       />
+
+      <v-menu
+        v-model="dateMenu"
+        :close-on-content-click="false"
+        location="bottom center"
+      >
+        <template v-slot:activator="{ props }">
+          <v-text-field
+            label="Transaction Date"
+            :key="dateModel || ''"
+            v-model="formattedDisplayDate"
+            variant="outlined"
+            readonly
+            v-bind="props"
+            validate-on="submit"
+            :rules="[rules.required]"
+            :error-messages="dateError"
+            class="mt-2"
+            prepend-inner-icon="mdi-calendar"
+          />
+        </template>
+
+        <v-date-picker
+          v-model="dateModel"
+          @update:model-value="closeDatePicker"
+          color="primary"
+        ></v-date-picker>
+      </v-menu>
 
       <v-radio-group
         v-model="transactionTypeModel"

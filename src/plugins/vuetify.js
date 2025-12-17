@@ -2,9 +2,13 @@ import { createVuetify } from 'vuetify'
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
+import { VDateInput } from 'vuetify/labs/VDateInput'
 
 export default createVuetify({
-  components,
+  components: {
+    ...components, //all standard components
+    VDateInput, //the lab component(s) that are also needed
+  },
   directives,
   icons: {
     defaultSet: 'mdi',
@@ -26,7 +30,7 @@ export default createVuetify({
       light: {
         colors: {
           primary: '#00897B',     // soft teal
-          secondary: '#455A64',   // blue-grey - was #455A64
+          secondary: '#455A64',   // blue-grey
           surface: '#F5F5F5',     // light grey panels/cards
           background: '#FAFAFA',
           info: '#26A69A',        // lighter teal

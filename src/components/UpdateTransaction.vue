@@ -1,159 +1,155 @@
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
+import { Ref, ref, computed, watch } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
-import { parseCurrency } from "@/utils/currencyParser.ts";
-import type { VTextField } from 'vuetify/components';
-import { TransactionType, Transaction } from "@/types/Transaction.ts";
+import { useDateFormatter } from "@/composables/useDateFormatter.ts";
+import { useAppValidationRules } from "@/composables/useAppValidationRules";
+import { useTransactionFormFields } from "@/composables/useTransactionFormFields";
+import type { VTextField } from "vuetify/components";
+import { Transaction } from "@/types/Transaction.ts";
 import { SubmitEventPromise } from "vuetify";
+import { parseISO, formatISO } from "date-fns";
 
 const storeTransaction = useTransactionStore();
 const { displayMoney } = useCurrencyFormatter();
+const { required, transactionTypeRequired, dateRangeRule, amountValidations } =
+  useAppValidationRules();
 
 // The component's v-model prop (The full Transaction object)
-type Item = Transaction | null;
-const model = defineModel<Item>({ required: true });
+const model = defineModel<Transaction>();
 
 const amountFieldRef = ref<VTextField | null>(null);
+
+const { formatDate } = useDateFormatter();
+
+// Writable Computed Property to handle display formatting (get) and raw data updates (set)
+const dateDisplayModel = computed({
+  // GETTER: Formats the ISO string (YYYY-MM-DD) for display in the text field
+  get() {
+    const isoDate = localTransaction.value?.date;
+    if (!isoDate) {
+      return "";
+    }
+    // Use your new reactive formatter!
+    return formatDate(isoDate);
+  },
+
+  // SETTER: This is called when the date picker changes the v-model on the date picker
+  set(newValue: string) {
+    // We update the localTransaction copy's date property.
+    if (localTransaction.value) {
+      localTransaction.value.date = newValue;
+    }
+  },
+});
+
+// Add this in UpdateTransaction.vue's script setup:
+const rawDateForValidation = computed(() => {
+  const dateValue = localTransaction.value?.date;
+  if (!dateValue) return null;
+  let dateObject: Date;
+  if (typeof dateValue === 'string') {
+    dateObject = parseISO(dateValue);
+  } else {
+    dateObject = dateValue as Date;
+  }
+
+  //Always return the clean ISO string (YYYY-MM-DD).
+  return formatISO(dateObject, {representation: 'date'});
+});
+
+const dateError = ref<string | null>(null);
 
 // CRITICAL FIX: Local ref to hold a DEEP COPY of the transaction for editing.
 // This prevents direct mutation of the store's data until Update is pressed.
 const localTransaction = ref<Transaction | null>(null);
 
-// Local state for the input field's display value and focus state
-const displayAmount = ref('');
-const isFocused = ref(false);
+const {
+  displayAmount,
+  isFocused,
+  colorClass,
+  handleFocus,
+  handleBlur,
+  dateMenu,
+  closeDatePicker,
+} = useTransactionFormFields(localTransaction);
 
 // ------------------------------------
 // Initialization Watcher - Creates a Deep Copy
 // ------------------------------------
-watch(model, (newModel) => {
+watch(
+  model,
+  (newModel) => {
     if (newModel) {
-        // Create a deep copy to edit the local data.
-        localTransaction.value = JSON.parse(JSON.stringify(newModel));
+      // Create a deep copy to edit the local data.
+      localTransaction.value = JSON.parse(JSON.stringify(newModel));
 
-        // CHECK ADDED: Only proceed if the copy was successfully created
-        if (localTransaction.value) {
-            // Initialize the display field with the formatted currency string from the copy
-            displayAmount.value = displayMoney(localTransaction.value.amount);
-        }
+      dateError.value = null;
+      
+      // CHECK ADDED: Only proceed if the copy was successfully created
+      if (localTransaction.value) {
+        // Initialize the display field with the formatted currency string from the copy
+        displayAmount.value = displayMoney(localTransaction.value.amount);
+      }
     } else {
-        // Clear local state when the dialog closes
-        localTransaction.value = null;
-        displayAmount.value = '';
-        isFocused.value = false;
+      // Clear local state when the dialog closes
+      localTransaction.value = null;
+      displayAmount.value = "";
+      isFocused.value = false;
     }
-}, { immediate: true });
-
-// ------------------------------------
-// Computed property to determine the display color class
-// ------------------------------------
-const colorClass = computed(() => {
-    // Apply color ONLY when NOT focused AND a type is selected
-    if (isFocused.value || !localTransaction.value) return '';
-
-    return localTransaction.value.transactionType === "Income" ? "money-plus" : "money-minus";
-});
-
-
-// ------------------------------------
-// FOCUS/BLUR Handlers
-// ------------------------------------
-const handleFocus = () => {
-    isFocused.value = true;
-
-    // On focus: use the local transaction's amount and show it as a raw string
-    const numericAmount = localTransaction.value ? localTransaction.value.amount : parseCurrency(displayAmount.value);
-
-    if (numericAmount !== null && numericAmount !== undefined) {
-        // Show raw number string (2 decimal places)
-        displayAmount.value = numericAmount.toFixed(2);
-    } else {
-        displayAmount.value = '';
-    }
-};
-
-const handleBlur = () => {
-    isFocused.value = false;
-
-    // 1. Attempt to parse the raw string input
-    const parsedAmount = parseCurrency(displayAmount.value);
-
-    // 2. Update the underlying LOCAL copy object with the newly parsed number
-    if (localTransaction.value) {
-        if (parsedAmount !== null && parsedAmount > 0) {
-             localTransaction.value.amount = parsedAmount;
-        } else {
-             // If invalid/empty, set amount to 0 in the local copy (for validation)
-             localTransaction.value.amount = 0;
-        }
-    }
-
-    // 3. Re-format the numeric value back to the currency string for display
-    if (parsedAmount !== null && parsedAmount > 0) {
-        displayAmount.value = displayMoney(parsedAmount);
-    } else {
-        // Clear the field display if invalid
-        displayAmount.value = '';
-    }
-};
-
+  },
+  { immediate: true }
+);
 
 // ------------------------------------
 // Validation Rules
 // ------------------------------------
 const rules = {
-  descriptionRequired: (value: string) => !!value || "Description is required",
-  transactionTypeRequired: (value: TransactionType | null) =>
-    !!value || "Transaction Type must be chosen",
-  amountValidations: (v: string) => {
-    const parsed = parseCurrency(v);
-    return (!!parsed && parsed > 0) || "Amount must be supplied and must be greater than zero";
-  },
+  required,
+  descriptionRequired: required,
+  dateRequired: dateRangeRule,
+  transactionTypeRequired: transactionTypeRequired,
+  amountValidations: amountValidations,
 };
 
 function closeDialog() {
   // Setting the model to null closes the dialog.
   // If we press Cancel, the localTransaction copy is simply abandoned.
-  model.value = null;
+  const modelRef = model as Ref<Transaction | null>;
+  modelRef.value = null;
 }
 
 async function onSubmit(event: SubmitEventPromise) {
-  // 1. Force the input to lose focus, which triggers the handleBlur() method.
-  //    Vuetify's VTextField component instance DOES have a public blur method.
-  if (amountFieldRef.value) {
-    amountFieldRef.value.blur();
-    // VTextField's blur method is synchronous, but we must wait for the handleBlur
-    // logic (which is NOT synchronous with the blur event) to finish updating our local data model.
+
+  handleBlur();
+
+  dateError.value = null;
+
+  //Manual validation of date
+  if (!localTransaction.value || !localTransaction.value.date) {
+    console.error("Missing local transaction or date on submit");
   }
 
-  // 2. We can try to explicitly call handleBlur() after a very small delay or before validation.
-  //    However, since handleBlur relies on the blur *event* firing and is complex,
-  //    the manual synchronization step is safer.
+  const dateValue = localTransaction.value!.date;
 
-  // --- REVERTING TO THE BEST KNOWN FIX (FORCING SYNC) ---
-  // The most reliable way to force synchronization in this race condition is to
-  // explicitly call the blur handler's logic.
+  let dateObject: Date;
 
-  // We are certain the Enter key is causing the race condition.
-  // Instead of relying on the browser to fire the blur event in time,
-  // let's manually synchronize the amount field before validation.
-
-  // NOTE: If the user changed the description and hit enter, the blur wouldn't fire on amount field.
-  // However, since the problem is specific to changing the AMOUNT and hitting enter,
-  // we focus on syncing the amount model.
-
-  // Re-run the critical logic of handleBlur just before validation:
-  const parsedAmountOnSubmit = parseCurrency(displayAmount.value);
-
-  if (localTransaction.value) {
-    if (parsedAmountOnSubmit !== null && parsedAmountOnSubmit > 0) {
-      localTransaction.value.amount = parsedAmountOnSubmit;
-    } else {
-      localTransaction.value.amount = 0; // Set to zero if invalid for validation check
-    }
+  //Check the actual type of the date field.
+  if (typeof dateValue === 'string') {
+    dateObject = parseISO(dateValue);
+  } else {
+    dateObject = dateValue as Date;
   }
-  // ----------------------------------------------------
+
+  const cleanIsoDate = formatISO(dateObject, { representation: 'date'});
+
+  const validationResult = rules.dateRequired(cleanIsoDate);
+
+  if (validationResult !== true) {
+    //Validation failed. Capture the error and stop submission.
+    dateError.value = validationResult as string;
+    return;
+  }
 
   const { valid } = await event;
   if (!valid || !localTransaction.value) return;
@@ -184,7 +180,7 @@ async function onSubmit(event: SubmitEventPromise) {
               Change any part of the transaction you like, apart from the key
               (which is the ID):
             </p>
-            <v-row>
+            <v-row dense>
               <v-col cols="3">
                 <v-text-field
                   label="Id"
@@ -193,7 +189,9 @@ async function onSubmit(event: SubmitEventPromise) {
                   variant="outlined"
                 ></v-text-field>
               </v-col>
-              <v-col cols="9">
+            </v-row>
+            <v-row dense>
+              <v-col cols="6">
                 <v-text-field
                   label="Description"
                   v-model="localTransaction!.description"
@@ -201,14 +199,44 @@ async function onSubmit(event: SubmitEventPromise) {
                   :rules="[rules.descriptionRequired]"
                 ></v-text-field>
               </v-col>
+              <v-col cols="6">
+                <v-menu
+                  v-model="dateMenu"
+                  :close-on-content-click="false"
+                  location="bottom center"
+                >
+                  <template v-slot:activator="{ props }">
+                    <v-text-field
+                      label="Transaction Date"
+                      v-model="dateDisplayModel"
+                      variant="outlined"
+                      readonly
+                      v-bind="props"
+                      validate-on="input"
+                      :key="localTransaction?.date || ''"
+                      :rules="[rules.required]"
+                      class="mt-2"
+                      prepend-inner-icon="mdi-calendar"
+                      :error-messages="dateError"
+                    />
+                  </template>
+
+                  <v-date-picker
+                    v-model="dateDisplayModel"
+                    @update:model-value="closeDatePicker"
+                    color="primary"
+                  ></v-date-picker>
+                </v-menu>
+              </v-col>
             </v-row>
-            <v-row>
+
+            <v-row dense>
               <v-col cols="6">
                 <v-radio-group
                   v-model="localTransaction!.transactionType"
                   inline
                   label="Transaction Type"
-                  :rules="[rules.transactionTypeRequired]"
+
                 >
                   <v-radio label="Income" value="Income" />
                   <v-radio label="Expense" value="Expense" />
@@ -216,20 +244,20 @@ async function onSubmit(event: SubmitEventPromise) {
               </v-col>
 
               <v-col cols="6">
-                  <v-text-field
-                    label="Amount"
-                    v-model="displayAmount"
-                    variant="outlined"
-                    type="text"
-                    :class="[isFocused ? '' : colorClass, 'money-field']"
-                    :readonly="!isFocused && !!displayAmount"
-                    @focus="handleFocus"
-                    @blur="handleBlur"
-                    :rules="[rules.amountValidations]"
-                    placeholder="0.00"
-                    style="cursor: pointer;"
-                    ref="amountFieldRef"
-                  />
+                <v-text-field
+                  label="Amount"
+                  v-model="displayAmount"
+                  variant="outlined"
+                  type="text"
+                  :class="[isFocused ? '' : colorClass, 'money-field']"
+                  :readonly="!isFocused && !!displayAmount"
+                  @focus="handleFocus"
+                  @blur="handleBlur"
+                  :rules="[rules.amountValidations]"
+                  placeholder="0.00"
+                  style="cursor: pointer"
+                  ref="amountFieldRef"
+                />
               </v-col>
             </v-row>
             <p>
@@ -265,18 +293,18 @@ async function onSubmit(event: SubmitEventPromise) {
 <style scoped>
 /* 1. Base style for the input element (font size) */
 .money-field :deep(.v-field__input) {
-    font-size: 20px !important; /* Force larger font size */
-    letter-spacing: 1px;
-    padding-top: 5px;
+  font-size: 20px !important; /* Force larger font size */
+  letter-spacing: 1px;
+  padding-top: 5px;
 }
 
 /* 2. Color classes: We use the dynamic class (money-plus/minus) on the outer component
       to style the inner input element. */
 .money-field.money-plus :deep(.v-field__input) {
-    color: #2ecc71 !important; /* Green */
+  color: #2ecc71 !important; /* Green */
 }
 
 .money-field.money-minus :deep(.v-field__input) {
-    color: #c0392b !important; /* Red */
+  color: #c0392b !important; /* Red */
 }
 </style>

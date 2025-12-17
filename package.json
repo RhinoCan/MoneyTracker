@@ -15,8 +15,8 @@
     "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
-    "@dnvgl/i18n": "^1.20.0",
     "@fontsource/roboto": "^5.2.9",
+    "date-fns": "^4.1.0",
     "pinia": "^3.0.4",
     "vue": "^3.5.22",
     "vue-toastification": "^2.0.0-rc.5",
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.2",
+    "@vitest/coverage-v8": "^1.6.1",
     "@vue/test-utils": "^2.4.6",
     "cross-env": "^10.1.0",
     "identity-obj-proxy": "^3.0.0",
