@@ -2,9 +2,9 @@
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
 import { useDateFormatter } from "@/composables/useDateFormatter.ts";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
-import { computed } from "vue";
+import { ref, computed } from "vue";
 import Money from "@/components/Money.vue";
-import type { TransactionType, Transaction } from '@/types/Transaction.ts';
+import type { Transaction } from "@/types/Transaction.ts";
 
 //Call the composable function, which returns an object.
 //Destructure the 'displayMoney' property from that return
@@ -25,10 +25,10 @@ const { formatDate } = useDateFormatter();
 const formattedDisplayDate = computed(() => {
   const isoDate = model.value?.date;
   if (!isoDate) {
-    return 'N/A';
+    return "N/A";
   }
   return formatDate(isoDate);
-})
+});
 
 const deleteTransaction = () => {
   const item = model.value;
@@ -54,8 +54,17 @@ const deleteTransaction = () => {
     <template #default>
       <v-card color="surface" variant="elevated" class="mx-auto">
         <v-card-title class="bg-primary text-on-primary"
-          >Confirm or Cancel Delete</v-card-title
-        >
+          >Confirm or Cancel Delete
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            color="white"
+            aria-label="Close dialog"
+            position="absolute"
+            style="top: 8px; right: 8px"
+            @click="model = null"
+          ></v-btn>
+        </v-card-title>
         <v-card-text>
           <p class="mb-4">
             This is the transaction that you are about to delete:
@@ -79,10 +88,7 @@ const deleteTransaction = () => {
           <v-row dense>
             <v-col cols="6"><strong>Amount:</strong></v-col>
             <v-col cols="6"
-              ><Money
-                :amount="model.amount"
-                :type="model.transactionType"
-              />
+              ><Money :amount="model.amount" :type="model.transactionType" />
             </v-col>
           </v-row>
           <p class="mt-4">

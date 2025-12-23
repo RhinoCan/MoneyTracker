@@ -9,14 +9,18 @@ import type { VTextField } from "vuetify/components";
 import { Transaction } from "@/types/Transaction.ts";
 import { SubmitEventPromise } from "vuetify";
 import { parseISO, formatISO } from "date-fns";
+import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+
 
 const storeTransaction = useTransactionStore();
 const { displayMoney } = useCurrencyFormatter();
 const { required, transactionTypeRequired, dateRangeRule, amountValidations } =
   useAppValidationRules();
 
+const showKeyboardShortcuts = ref(false);
+
 // The component's v-model prop (The full Transaction object)
-const model = defineModel<Transaction>();
+const model = defineModel<Transaction | null>();
 
 const amountFieldRef = ref<VTextField | null>(null);
 
@@ -48,14 +52,14 @@ const rawDateForValidation = computed(() => {
   const dateValue = localTransaction.value?.date;
   if (!dateValue) return null;
   let dateObject: Date;
-  if (typeof dateValue === 'string') {
+  if (typeof dateValue === "string") {
     dateObject = parseISO(dateValue);
   } else {
     dateObject = dateValue as Date;
   }
 
   //Always return the clean ISO string (YYYY-MM-DD).
-  return formatISO(dateObject, {representation: 'date'});
+  return formatISO(dateObject, { representation: "date" });
 });
 
 const dateError = ref<string | null>(null);
@@ -85,7 +89,7 @@ watch(
       localTransaction.value = JSON.parse(JSON.stringify(newModel));
 
       dateError.value = null;
-      
+
       // CHECK ADDED: Only proceed if the copy was successfully created
       if (localTransaction.value) {
         // Initialize the display field with the formatted currency string from the copy
@@ -120,7 +124,6 @@ function closeDialog() {
 }
 
 async function onSubmit(event: SubmitEventPromise) {
-
   handleBlur();
 
   dateError.value = null;
@@ -135,13 +138,13 @@ async function onSubmit(event: SubmitEventPromise) {
   let dateObject: Date;
 
   //Check the actual type of the date field.
-  if (typeof dateValue === 'string') {
+  if (typeof dateValue === "string") {
     dateObject = parseISO(dateValue);
   } else {
     dateObject = dateValue as Date;
   }
 
-  const cleanIsoDate = formatISO(dateObject, { representation: 'date'});
+  const cleanIsoDate = formatISO(dateObject, { representation: "date" });
 
   const validationResult = rules.dateRequired(cleanIsoDate);
 
@@ -161,19 +164,44 @@ async function onSubmit(event: SubmitEventPromise) {
 }
 </script>
 
+<!-- <v-btn
+  icon="mdi-close"
+  variant="text"
+  position="absolute"
+  style="top: 8px; right: 8px"
+  @click="closeDialog"
+></v-btn> -->
+
 <template>
   <v-dialog
     v-if="localTransaction"
     :model-value="!!model"
     @update:model-value="closeDialog"
     max-width="500"
-    persistent
   >
     <template #default>
       <v-card color="surface" variant="elevated" class="mx-auto">
         <v-card-title class="bg-primary text-on-primary"
-          >Update Transaction</v-card-title
-        >
+          >Update Transaction
+          <v-btn
+            icon="mdi-help"
+            variant="text"
+            color="white"
+            aria-label="Help"
+            position="absolute"
+            style="top: 0px; right: 48px"
+            @click="showKeyboardShortcuts = true"
+          />
+          <v-btn
+            icon="mdi-close"
+            variant="text"
+            color="white"
+            aria-label="Close dialog"
+            position="absolute"
+            style="top: 0px; right: 8px"
+            @click="closeDialog"
+          ></v-btn>
+        </v-card-title>
         <v-form @submit.prevent="onSubmit">
           <v-card-text>
             <p class="mb-4">
@@ -236,7 +264,6 @@ async function onSubmit(event: SubmitEventPromise) {
                   v-model="localTransaction!.transactionType"
                   inline
                   label="Transaction Type"
-
                 >
                   <v-radio label="Income" value="Income" />
                   <v-radio label="Expense" value="Expense" />
@@ -288,6 +315,10 @@ async function onSubmit(event: SubmitEventPromise) {
       </v-card>
     </template>
   </v-dialog>
+    <!--KEYBOARD SHORTCUTS DIALOG-->
+    <v-dialog v-model="showKeyboardShortcuts" max-width="300">
+      <KeyboardShortcutsDialog @close="showKeyboardShortcuts = false" />
+    </v-dialog>
 </template>
 
 <style scoped>

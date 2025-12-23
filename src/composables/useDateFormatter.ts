@@ -15,7 +15,7 @@ export function useDateFormatter() {
     const dateFormatStore = useDateFormatStore();
 
     // 2. The activeTemplate IS the final format string itself!
-    const activeTemplate = computed(() => dateFormatStore.activeDateFormat);
+    const activeTemplate = computed(() => dateFormatStore.currentDateFormat);
 
     /**
      * Formats a date value using the currently selected user preference.

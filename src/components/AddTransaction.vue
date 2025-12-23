@@ -8,6 +8,9 @@ import { parseCurrency } from "@/utils/currencyParser.ts";
 import { TransactionType, Transaction } from "@/types/Transaction.ts";
 import type { SubmitEventPromise } from "vuetify";
 import { formatISO, parseISO } from "date-fns";
+import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+
+const showKeyboardShortcuts = ref(false);
 
 const storeTransaction = useTransactionStore();
 const { required, transactionTypeRequired, dateRangeRule, amountValidations } =
@@ -127,7 +130,17 @@ function resetForm() {
 <template>
   <v-card elevation="8" color="surface" class="mx-auto">
     <v-card-title class="bg-primary primary-with-text"
-      >Add New Transaction</v-card-title
+      >Add New Transaction
+          <v-btn
+            icon="mdi-help"
+            variant="text"
+            color="white"
+            aria-label="Help"
+            position="absolute"
+            style="top: 0px; right: 8px"
+            @click="showKeyboardShortcuts = true"
+          />
+      </v-card-title
     >
     <v-form id="form" ref="newTransactionForm" @submit.prevent="onSubmit">
       <v-text-field
@@ -212,6 +225,10 @@ function resetForm() {
       </div>
     </v-form>
   </v-card>
+    <!--KEYBOARD SHORTCUTS DIALOG-->
+    <v-dialog v-model="showKeyboardShortcuts" max-width="300">
+      <KeyboardShortcutsDialog @close="showKeyboardShortcuts = false" />
+    </v-dialog>
 </template>
 
 <style scoped>

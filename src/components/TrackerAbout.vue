@@ -26,7 +26,9 @@ defineOptions({
             >. I then made a number of upgrades which are summarized below:
           </p>
           <ul class="custom-list">
-            <li>Tests were written and executed for the original Vue components.</li>
+            <li>
+              Tests were written and executed for the original Vue components.
+            </li>
             <li>
               The props were replaced by a Pinia store, with one exception.
             </li>
@@ -55,6 +57,10 @@ defineOptions({
               incurred. The date is now input in AddTransaction, displayed in
               TransactionHistory and DeleteTransaction, and both displayed and
               changed in UpdateTransaction.
+            </li>
+            <li>
+              Merged the various individual Settings dialogs into a single
+              tabbed Settings Dialog.
             </li>
           </ul>
         </v-card>

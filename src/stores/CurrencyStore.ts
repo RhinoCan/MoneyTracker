@@ -14,26 +14,46 @@ import {
   defaultNegativeZero,
   defaultCurrencyDisplay,
   defaultCurrencySign,
+  appName
 } from "@/utils/SystemDefaults.ts";
 
-export const useCurrencyStore = defineStore("currency", () => {
-  // ------------------------------
-  // Reactive state - Initialized with system defaults
-  // ------------------------------
-  const minPrecision = ref<number | undefined>(defaultMinPrecision);
-  const maxPrecision = ref<number>(defaultMaxPrecision);
-  const thousandsSeparator = ref<boolean>(defaultThousandsSeparator);
-  const useBankersRounding = ref<boolean>(defaultUseBankersRounding);
-  const negativeZero = ref<boolean>(defaultNegativeZero);
-  const currency = ref<string>(defaultCurrencyCode);
-  const currencyDisplay = ref<CurrencyDisplay>(
-    defaultCurrencyDisplay as CurrencyDisplay
-  );
-  const currencySign = ref<CurrencySign>(defaultCurrencySign as CurrencySign);
+// 1. Define the storage interface to match your numberFormat computed
+interface CurrencySettings {
+  format: NumberFormat;
+}
 
-  // ------------------------------
-  // Computed: Current number format object
-  // ------------------------------
+export const useCurrencyStore = defineStore("storeCurrency", () => {
+  const getStorageKey = (storeName: string) => `${appName}.${storeName}`;
+  const getKey = getStorageKey("Currency");
+
+  // 2. HYDRATION LOGIC: Try to load all settings at once
+  const savedJSON = localStorage.getItem(getKey);
+  let initial: NumberFormat;
+
+  if (savedJSON) {
+    try {
+      const parsed = JSON.parse(savedJSON) as CurrencySettings;
+      initial = parsed.format ?? {} as NumberFormat;
+    } catch (e) {
+      console.error("Failed to parse Currency storage", e);
+      // Fallback object if parsing fails
+      initial = {} as NumberFormat;
+    }
+  } else {
+    initial = {} as NumberFormat;
+  }
+
+  // 3. Reactive state - Use saved value OR system default
+  const minPrecision = ref<number | undefined>(initial.minPrecision ?? defaultMinPrecision);
+  const maxPrecision = ref<number>(initial.maxPrecision ?? defaultMaxPrecision);
+  const thousandsSeparator = ref<boolean>(initial.thousandsSeparator ?? defaultThousandsSeparator);
+  const useBankersRounding = ref<boolean>(initial.useBankersRounding ?? defaultUseBankersRounding);
+  const negativeZero = ref<boolean>(initial.negativeZero ?? defaultNegativeZero);
+  const currency = ref<string>(initial.currency ?? defaultCurrencyCode);
+  const currencyDisplay = ref<CurrencyDisplay>((initial.currencyDisplay ?? defaultCurrencyDisplay) as CurrencyDisplay);
+  const currencySign = ref<CurrencySign>((initial.currencySign ?? defaultCurrencySign) as CurrencySign);
+
+  // 4. Computed: Current number format object
   const numberFormat = computed<NumberFormat>(() => ({
     minPrecision: minPrecision.value,
     maxPrecision: maxPrecision.value,
@@ -45,30 +65,22 @@ export const useCurrencyStore = defineStore("currency", () => {
     currencySign: currencySign.value,
   }));
 
-  // ------------------------------
-  // Action: Update number format
-  // ------------------------------
+  // 5. Action: Update and Sync
   function updateNumberFormat(payload: Partial<NumberFormat>) {
-    if (payload.minPrecision !== undefined)
-      minPrecision.value = payload.minPrecision;
-    if (payload.maxPrecision !== undefined)
-      maxPrecision.value = payload.maxPrecision;
-    if (payload.thousandsSeparator !== undefined)
-      thousandsSeparator.value = payload.thousandsSeparator;
-    if (payload.useBankersRounding !== undefined)
-      useBankersRounding.value = payload.useBankersRounding;
-    if (payload.negativeZero !== undefined)
-      negativeZero.value = payload.negativeZero;
+    if (payload.minPrecision !== undefined) minPrecision.value = payload.minPrecision;
+    if (payload.maxPrecision !== undefined) maxPrecision.value = payload.maxPrecision;
+    if (payload.thousandsSeparator !== undefined) thousandsSeparator.value = payload.thousandsSeparator;
+    if (payload.useBankersRounding !== undefined) useBankersRounding.value = payload.useBankersRounding;
+    if (payload.negativeZero !== undefined) negativeZero.value = payload.negativeZero;
     if (payload.currency !== undefined) currency.value = payload.currency;
-    if (payload.currencyDisplay !== undefined)
-      currencyDisplay.value = payload.currencyDisplay;
-    if (payload.currencySign !== undefined)
-      currencySign.value = payload.currencySign;
+    if (payload.currencyDisplay !== undefined) currencyDisplay.value = payload.currencyDisplay;
+    if (payload.currencySign !== undefined) currencySign.value = payload.currencySign;
+
+    // Save the entire resulting format object to localStorage
+    const objOutput: CurrencySettings = { format: numberFormat.value };
+    localStorage.setItem(getKey, JSON.stringify(objOutput));
   }
 
-  // ------------------------------
-  // Expose state, computed, actions
-  // ------------------------------
   return {
     minPrecision,
     maxPrecision,

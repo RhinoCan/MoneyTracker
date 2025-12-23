@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
-import ChangeLocale from "@/components/ChangeLocale.vue"
-import ChangeCurrency from "@/components/ChangeCurrency.vue"
-import ChangeDateFormat from "@/components/ChangeDateFormat.vue"
+import SettingsDialog from "@/components/SettingsDialog.vue"
 
 const appEnvironment = computed(() => {
   const envValue = import.meta.env.VITE_APP_ENV;
@@ -23,9 +21,8 @@ const appEnvironment = computed(() => {
   return 'Dev Server';
 });
 
-const showLocaleDialog = ref(false)
-const showCurrencyDialog = ref(false)
-const showDateFormatDialog = ref(false)
+const showSettings = ref(false);
+
 </script>
 
 <template>
@@ -34,56 +31,12 @@ const showDateFormatDialog = ref(false)
     <v-chip :color="appEnvironment.includes('Dev') ? 'warning' : 'success'" variant="elevated" class="mr-4">
       {{ appEnvironment }}
     </v-chip>
-    <v-btn id="showSettingsMenu" color="yellow" prepend-icon="mdi-cog">
-      Settings
-    </v-btn>
+    <v-btn id="showSettings" color="yellow" @click="showSettings = true"><v-icon>mdi-cog</v-icon>Settings</v-btn>
 
-    <v-menu activator="#showSettingsMenu" :close-on-content-click="false">
-      <v-list>
-        <v-list-item>
-          <v-btn
-            id="localeDialog"
-            prepend-icon="mdi-map-marker-outline"
-            @click="showLocaleDialog = true"
-          >
-            Change Locale
-          </v-btn>
-        </v-list-item>
-
-        <v-list-item>
-          <v-btn
-            id="currencyDialog"
-            prepend-icon="mdi-currency-sign"
-            @click="showCurrencyDialog = true"
-          >
-            Change Currency Settings
-          </v-btn>
-        </v-list-item>
-
-        <v-list-item>
-          <v-btn
-          id="dateFormatDialog"
-          prepend-icon="mdi-calendar"
-          @click="showDateFormatDialog = true">
-          Change Date Format
-          </v-btn>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-
-    <!-- LOCALE DIALOG -->
-    <v-dialog v-model="showLocaleDialog" max-width="300">
-      <ChangeLocale @saved="showLocaleDialog = false" @cancel="showLocaleDialog = false" />
+    <!--SETTINGS DIALOG-->
+    <v-dialog v-model="showSettings" max-width="550">
+      <SettingsDialog @close="showSettings = false" />
     </v-dialog>
 
-    <!-- CURRENCY DIALOG -->
-    <v-dialog v-model="showCurrencyDialog" max-width="500">
-      <ChangeCurrency @saved="showCurrencyDialog = false" @cancel="showCurrencyDialog = false" />
-    </v-dialog>
-
-    <!-- DATE FORMAT DIALOG -->
-    <v-dialog v-model="showDateFormatDialog" max-width="400">
-      <ChangeDateFormat @saved="showDateFormatDialog = false" @cancel="showDateFormatDialog = false" />
-    </v-dialog>
   </v-app-bar>
 </template>

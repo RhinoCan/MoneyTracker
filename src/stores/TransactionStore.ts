@@ -1,15 +1,17 @@
 // src/stores/TransactionStore.ts
 
-import { defineStore } from 'pinia'
-import { ref, computed } from 'vue' // <-- Composition API imports needed here
+import { defineStore, storeToRefs } from 'pinia';
+import { ref, computed } from 'vue';
 import { useToast } from 'vue-toastification';
 import { Transaction } from '@/types/Transaction.ts';
+import { useOtherStore } from '@/stores/OtherStore.ts';
+import { appName } from '@/utils/SystemDefaults.ts';
 
 const toast = useToast();
 
 // Use the Setup Store syntax: defineStore returns a function that defines the store.
 export const useTransactionStore = defineStore('storeTransaction', () => {
- 
+
     // ------------------------------------
     // 1. STATE (Formerly in state: {})
     // Use 'ref' to define reactive state properties.
@@ -17,7 +19,10 @@ export const useTransactionStore = defineStore('storeTransaction', () => {
 
     // Initialize state, often loading from local storage first.
     // Since this store is focused on CRUD, let's add initial loading logic here.
-    const savedTransactions = localStorage.getItem('transactions');
+    const getStorageKey = (storeName: string) => `${appName}.${storeName}`;
+    const getKey = getStorageKey("Transaction");
+    const savedTransactions = localStorage.getItem(getKey);
+
     let initialTransactions: Transaction[] = [];
     if (savedTransactions) {
         try {
@@ -28,6 +33,9 @@ export const useTransactionStore = defineStore('storeTransaction', () => {
     }
 
     const transactions = ref<Transaction[]>(initialTransactions);
+
+    const otherStore = useOtherStore();
+    const { getTimeout } = storeToRefs(otherStore);
 
 
     // ------------------------------------
@@ -84,7 +92,6 @@ export const useTransactionStore = defineStore('storeTransaction', () => {
         return transactionWithHighestId.id + 1;
     });
 
-
     // ------------------------------------
     // 3. ACTIONS (Formerly in actions: {})
     // Define them as regular functions. They access state via .value.
@@ -92,7 +99,7 @@ export const useTransactionStore = defineStore('storeTransaction', () => {
 
     // Helper function to save state to localStorage
     const saveToLocalStorage = () => {
-        localStorage.setItem('transactions', JSON.stringify(transactions.value));
+        localStorage.setItem(getKey, JSON.stringify(transactions.value));
     };
 
     function addTransaction(newTransaction: Transaction): void {
@@ -100,7 +107,7 @@ export const useTransactionStore = defineStore('storeTransaction', () => {
 
         /* Add the new transaction to the array in this store. */
         transactions.value.push(newTransaction);
-        toast.success("Successfully added the transaction with id " + newTransaction.id + ".", { timeout: 1000 });
+        toast.success("Successfully added the transaction with id " + newTransaction.id + ".", { timeout: getTimeout.value });
 
         /* Update the array in local storage. */
         saveToLocalStorage();
@@ -112,17 +119,13 @@ export const useTransactionStore = defineStore('storeTransaction', () => {
         /* Find the "original" version of the transaction via its id. */
         const foundIndex = transactions.value.findIndex(x => x.id == updatedTransaction.id);
 
-        // Log output removed for cleaner code
-        // console.log("Tracker.updateTransaction(): originalId = " + updatedTransaction.id);
-        // console.log("Tracker.updateTransaction(): foundIndex = " + foundIndex);
-
         if (foundIndex !== -1) {
              /* Replace the transaction at the determined position with the updated transaction. */
             transactions.value[foundIndex] = updatedTransaction;
-            toast.success("Succesfully updated the transaction with id " + updatedTransaction.id + ".", { timeout: 1000 });
+            toast.success("Succesfully updated the transaction with id " + updatedTransaction.id + ".", { timeout: getTimeout.value });
         } else {
              // Optional: Handle case where transaction wasn't found
-            toast.error("Error: Could not find transaction to update.", { timeout: 1000 });
+            toast.error("Error: Could not find transaction to update.", { timeout: getTimeout.value });
         }
 
         // Update the array in local storage.
@@ -141,7 +144,7 @@ export const useTransactionStore = defineStore('storeTransaction', () => {
 
         /* Delete the indicated transaction from the array. */
         transactions.value.splice(foundIndex, 1);
-        toast.success("Successfully deleted the transaction with ID " + idOfTransactionToBeDeleted + ".", { timeout: 1000 });
+        toast.success("Successfully deleted the transaction with ID " + idOfTransactionToBeDeleted + ".", { timeout: getTimeout.value });
 
         /* Update the array in local storage. */
         saveToLocalStorage();
