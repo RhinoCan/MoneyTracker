@@ -5,8 +5,6 @@ import AccountSummary from "@/components/AccountSummary.vue";
 import TransactionHistory from "@/components/TransactionHistory.vue";
 import AddTransaction from "@/components/AddTransaction.vue";
 
-import { useToast } from "vue-toastification";
-
 import { ref, onMounted } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
 

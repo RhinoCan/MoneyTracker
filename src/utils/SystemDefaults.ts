@@ -1,6 +1,8 @@
 // src/utils/SystemDefaults.ts - Initialization logic relying on native browser Intl API.
 // Exports default values for Pinia store initialization AND common application types.
 
+export const appName = import.meta.env.VITE_APP_NAME || 'money-tracker';
+
 // --- Type Definitions (Merged from former Common.ts) ---
 export type CurrencyDisplay = 'symbol' | 'code' | 'name' | 'narrowSymbol';
 export type CurrencySign = 'standard' | 'accounting';
@@ -55,6 +57,8 @@ try {
     console.warn("[SystemDefaults] Failed to determine default currency. Falling back to USD.", e);
     defaultCurrencyUndefined = true; // <-- Set flag on error
 }
+
+export const defaultToastTimeout = 3000; //3000 milliseconds = 3 seconds
 
 export const defaultCurrencyCode = currencyCode;
 

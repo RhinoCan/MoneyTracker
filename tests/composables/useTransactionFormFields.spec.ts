@@ -230,7 +230,8 @@ describe('useTransactionFormFields', () => {
         expect(formFields.transaction.value.description).toBe("");
         expect(formFields.displayAmount.value).toBe("");
 
-        const diff = new Date().getTime() - formFields.transaction.value.date.getTime();
+        const savedDate = new Date(formFields.transaction.value.date);
+        const diff = new Date().getTime() - savedDate.getTime();
         expect(diff).toBeLessThan(1000);
     });
 });
