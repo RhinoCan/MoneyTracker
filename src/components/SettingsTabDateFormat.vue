@@ -3,6 +3,8 @@ import { ref } from "vue";
 import { useDateFormatStore } from "@/stores/DateFormatStore.ts";
 import { DateFormatTemplate } from "@/types/CommonTypes.ts";
 
+const formValid = ref(true);
+
 const dateFormatStore = useDateFormatStore();
 
 // This is your single source of truth for the "buffer"
@@ -22,11 +24,16 @@ function saveChanges() {
 }
 
 // Crucial for the Parent-Child "Save" coordination
-defineExpose({ saveChanges });
+defineExpose({
+  saveChanges,
+  get isValid() {
+    return formValid.value;
+  }
+});
 </script>
 
 <template>
-  <v-form ref="dateForm">
+  <v-form ref="dateForm" v-model="formValid">
     <v-container>
       <p>
         This is the date format currently being used. If you would like to have a

@@ -2,6 +2,8 @@
 import { ref, computed } from "vue";
 import { useLocaleStore } from "@/stores/LocaleStore.ts";
 
+const formValid = ref(true);
+
 const localeStore = useLocaleStore();
 
 // Initialize the buffer directly
@@ -18,11 +20,16 @@ function saveChanges() {
   localeStore.updateLocale(selectedLocale.value);
 }
 
-defineExpose({ saveChanges });
+defineExpose({
+  saveChanges,
+  get isValid() {
+    return formValid.value;
+  }
+});
 </script>
 
 <template>
-  <v-form @submit.prevent>
+  <v-form v-model="formValid" @submit.prevent>
     <v-container>
       <p>
         This is the current value of the locale. If you would like to have a

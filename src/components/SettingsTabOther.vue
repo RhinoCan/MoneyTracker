@@ -5,6 +5,8 @@ import InfoIcon from "@/components/InfoIcon.vue";
 
 const otherStore = useOtherStore();
 
+const formValid = ref(true); //Default to true if no rules exist yet
+
 // Initialize directly from the store's current state
 const timeoutModel = ref<number>(otherStore.currentTimeout);
 
@@ -15,16 +17,20 @@ const timeoutRules = [
 ];
 
 function saveChanges() {
-  // Only save if the value is valid (Vuetify's internal check)
-  // Note: Parent will likely call this.
   otherStore.setTimeout(timeoutModel.value);
 }
 
-defineExpose({ saveChanges });
+defineExpose({
+  saveChanges,
+  get isValid() {
+    return formValid.value;
+  }
+});
 </script>
 
+
 <template>
-  <v-form ref="otherForm">
+  <v-form ref="otherForm" v-model="formValid">
     <v-container>
       <p>
         This is the current value of the timeout for the Toast messages. If you would like to have a
