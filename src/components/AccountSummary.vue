@@ -19,12 +19,15 @@ const balance = computed(() => storeTransaction.getBalance);
     <v-card-title class="bg-primary text-on-primary"
       >Account Summary</v-card-title
     >
+
+    <v-fade-transition mode="out-in">
+      <div v-if="storeTransaction.transactions.length <= 0" key="empty">
       <v-alert type="info" variant="tonal" v-if="storeTransaction.transactions.length <= 0">
         You won't see anything but zeroes here until you add at least one Transaction via the <strong>Add New Transaction</strong> form below.
       </v-alert>
+</div>
 
-
-    <table class="summary-table mt-4 mb-4">
+    <table v-else key="table" class="summary-table mt-4 mb-4">
       <tbody>
         <tr>
           <td class="amount">
@@ -56,6 +59,7 @@ const balance = computed(() => storeTransaction.getBalance);
         </tr>
       </tbody>
     </table>
+    </v-fade-transition>
   </v-card>
 </template>
 

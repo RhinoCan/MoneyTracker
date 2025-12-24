@@ -4,6 +4,11 @@ defineProps<{
   text: string;
   maxWidth?: string | number;
 }>();
+
+function handleClick(event: Event) {
+  event.stopPropagation();
+  event.preventDefault();
+}
 </script>
 
 <template>
@@ -15,11 +20,11 @@ defineProps<{
         size="small"
         color="info"
         class="ml-2 cursor-pointer"
-        @click.stop
+        @click="handleClick"
       />
     </template>
 
-    <v-card :max-width="maxWidth || 300" class="pa-3">
+    <v-card :max-width="maxWidth || 300" class="pa-3" @click.stop>
       <div v-if="title" class="text-subtitle-2 mb-1">{{ title }}</div>
       <div class="text-caption" style="line-height: 1.4">
         {{ text }}

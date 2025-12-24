@@ -1,10 +1,12 @@
 <script setup lang="ts">
-import { reactive, computed } from "vue";
+import { reactive, computed, ref } from "vue";
 import { useCurrencyStore } from "@/stores/CurrencyStore";
 import { CurrencyDisplay, CurrencySign } from "@/types/CommonTypes";
 import InfoIcon from "@/components/InfoIcon.vue";
 
 const currencyStore = useCurrencyStore();
+
+const formValid = ref(true); //Default to true if no rules exist yet
 
 // 1. Create the buffer using the correct properties from your interface
 const localFormat = reactive({ ...currencyStore.numberFormat });
@@ -45,11 +47,16 @@ function saveChanges() {
   currencyStore.updateNumberFormat({ ...localFormat });
 }
 
-defineExpose({ saveChanges });
+defineExpose({
+  saveChanges,
+  get isValid() {
+    return formValid.value;
+  }
+});
 </script>
 
 <template>
-  <v-form>
+  <v-form v-model="formValid">
     <v-container>
       <p>
         These are the current values that control the appearance of money
@@ -119,7 +126,6 @@ defineExpose({ saveChanges });
           <v-switch
             v-model="localFormat.useBankersRounding"
             color="primary"
-            @click.prevent.stop
           >
             <template v-slot:label>
               Use Banker's Rounding

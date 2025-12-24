@@ -164,14 +164,6 @@ async function onSubmit(event: SubmitEventPromise) {
 }
 </script>
 
-<!-- <v-btn
-  icon="mdi-close"
-  variant="text"
-  position="absolute"
-  style="top: 8px; right: 8px"
-  @click="closeDialog"
-></v-btn> -->
-
 <template>
   <v-dialog
     v-if="localTransaction"

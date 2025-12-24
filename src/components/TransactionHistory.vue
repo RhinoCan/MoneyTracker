@@ -32,7 +32,9 @@ const items = computed(() => storeTransaction.transactions);
 
 <template>
   <v-card color="surface" elevation="8">
-    <v-card-title class="bg-primary primary-on-text">Transaction History</v-card-title>
+    <v-card-title class="bg-primary primary-on-text"
+      >Transaction History</v-card-title
+    >
 
     <v-text-field
       v-model="search"
@@ -43,13 +45,6 @@ const items = computed(() => storeTransaction.transactions);
       single-line
     />
 
-    <v-card color="surface" elevation="8" v-if="items.length <= 0">
-      <v-alert type="info" variant="tonal">
-        You won't see any transactions here until you add some via the
-        <strong>Add New Transaction</strong> form below.
-      </v-alert>
-    </v-card>
-
     <v-data-table
       :headers="headers"
       :items="items"
@@ -57,6 +52,16 @@ const items = computed(() => storeTransaction.transactions);
       items-per-page="10"
       :search="search"
     >
+      <!-- NO DATA SLOT -->
+      <template v-slot:no-data>
+        <v-card color="surface" elevation="8" v-if="items.length <= 0">
+          <v-alert type="info" variant="tonal">
+            You won't see any transactions here until you add some via the
+            <strong>Add New Transaction</strong> form below.
+          </v-alert>
+        </v-card>
+      </template>
+
       <!-- ONE SLOT FOR ALL HEADERS -->
       <template
         v-for="h in headers"

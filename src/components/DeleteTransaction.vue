@@ -110,7 +110,7 @@ const deleteTransaction = () => {
             text="Delete Transaction"
             variant="elevated"
             elevated="8"
-            color="primary"
+            color="red"
             @click="deleteTransaction"
           ></v-btn>
         </v-card-actions>
