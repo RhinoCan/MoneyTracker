@@ -1,5 +1,7 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
+import { logException } from "@/utils/Logger.ts";
+
 import type {
   NumberFormat,
   CurrencyDisplay,
@@ -23,6 +25,7 @@ interface CurrencySettings {
 }
 
 export const useCurrencyStore = defineStore("storeCurrency", () => {
+
   const getStorageKey = (storeName: string) => `${appName}.${storeName}`;
   const getKey = getStorageKey("Currency");
 
@@ -35,7 +38,7 @@ export const useCurrencyStore = defineStore("storeCurrency", () => {
       const parsed = JSON.parse(savedJSON) as CurrencySettings;
       initial = parsed.format ?? {} as NumberFormat;
     } catch (e) {
-      console.error("Failed to parse Currency storage", e);
+      logException(e, { module: "Currency", action: "Read from localStorage", data: savedJSON});
       // Fallback object if parsing fails
       initial = {} as NumberFormat;
     }
@@ -67,18 +70,22 @@ export const useCurrencyStore = defineStore("storeCurrency", () => {
 
   // 5. Action: Update and Sync
   function updateNumberFormat(payload: Partial<NumberFormat>) {
-    if (payload.minPrecision !== undefined) minPrecision.value = payload.minPrecision;
-    if (payload.maxPrecision !== undefined) maxPrecision.value = payload.maxPrecision;
-    if (payload.thousandsSeparator !== undefined) thousandsSeparator.value = payload.thousandsSeparator;
-    if (payload.useBankersRounding !== undefined) useBankersRounding.value = payload.useBankersRounding;
-    if (payload.negativeZero !== undefined) negativeZero.value = payload.negativeZero;
-    if (payload.currency !== undefined) currency.value = payload.currency;
-    if (payload.currencyDisplay !== undefined) currencyDisplay.value = payload.currencyDisplay;
-    if (payload.currencySign !== undefined) currencySign.value = payload.currencySign;
+    try {
+      if (payload.minPrecision !== undefined) minPrecision.value = payload.minPrecision;
+      if (payload.maxPrecision !== undefined) maxPrecision.value = payload.maxPrecision;
+      if (payload.thousandsSeparator !== undefined) thousandsSeparator.value = payload.thousandsSeparator;
+      if (payload.useBankersRounding !== undefined) useBankersRounding.value = payload.useBankersRounding;
+      if (payload.negativeZero !== undefined) negativeZero.value = payload.negativeZero;
+      if (payload.currency !== undefined) currency.value = payload.currency;
+      if (payload.currencyDisplay !== undefined) currencyDisplay.value = payload.currencyDisplay;
+      if (payload.currencySign !== undefined) currencySign.value = payload.currencySign;
 
-    // Save the entire resulting format object to localStorage
-    const objOutput: CurrencySettings = { format: numberFormat.value };
-    localStorage.setItem(getKey, JSON.stringify(objOutput));
+      // Save the entire resulting format object to localStorage
+      const objOutput: CurrencySettings = { format: numberFormat.value };
+      localStorage.setItem(getKey, JSON.stringify(objOutput));
+    } catch (e) {
+      logException(e, { module: "Currency", action: "Update", data: payload});
+    }
   }
 
   return {

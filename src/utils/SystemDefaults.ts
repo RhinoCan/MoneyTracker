@@ -1,4 +1,5 @@
 // src/utils/SystemDefaults.ts - Initialization logic relying on native browser Intl API.
+
 // Exports default values for Pinia store initialization AND common application types.
 
 export const appName = import.meta.env.VITE_APP_NAME || 'money-tracker';
@@ -41,7 +42,6 @@ export const defaultCountry = parts.length > 1 ? parts[parts.length - 1].toUpper
 
 // --- 3. Determine Default Currency Code ---
 let currencyCode = 'USD'; // Fallback value
-export let defaultCurrencyUndefined = false; // <-- RE-ADDED for testing
 
 try {
     // Create a dummy NumberFormat object for the detected locale and read the resolved currency.
@@ -54,11 +54,13 @@ try {
     // Use nullish coalescing (??) for type safety.
     currencyCode = formatter.resolvedOptions().currency ?? currencyCode;
 } catch (e) {
-    console.warn("[SystemDefaults] Failed to determine default currency. Falling back to USD.", e);
-    defaultCurrencyUndefined = true; // <-- Set flag on error
+       // DYNAMIC IMPORT: We load the logger on-the-fly here
+    import("@/utils/Logger").then(m =>
+      m.logException(e, { module: "SystemDefaults", action: "fallback currency", data: currencyCode })
+    );
 }
 
-export const defaultToastTimeout = 3000; //3000 milliseconds = 3 seconds
+export const defaultToastTimeout = 0; //0 milliseconds means to leave the message displayed until the user closes it
 
 export const defaultCurrencyCode = currencyCode;
 

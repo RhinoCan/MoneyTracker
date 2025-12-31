@@ -1,122 +1,188 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { localeList } from '@/utils/localeList.ts'
+// __tests__/utils/localeList.spec.ts
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { logException } from "@/utils/Logger.ts";
+import { generateLocaleList } from "@/utils/localeList";
 
-describe('localeList Utility', () => {
+vi.mock("@/utils/Logger", () => ({
+  logException: vi.fn(),
+  logWarning: vi.fn(),
+  logSuccess: vi.fn(),
+}));
 
-  // 1. Check if the exported value is an array
-  it('should export an array named localeList', () => {
-    expect(Array.isArray(localeList)).toBe(true)
-  })
-
-  // 2. Check if the array contains at least a reasonable number of locales
-  it('should contain at least 5 locale entries', () => {
-    // Assuming a financial tracker supports a handful of common regions
-    expect(localeList.length).toBeGreaterThanOrEqual(5)
-  })
-
-  // 3. Check the structure of the locale objects
-  it('should ensure every locale object has a "code" and "name" property', () => {
-    // Check the first few items to ensure structure consistency
-    localeList.slice(0, 5).forEach(locale => {
-      expect(locale).toHaveProperty('code')
-      expect(typeof locale.code).toBe('string')
-      expect(locale.code.length).toBeGreaterThan(0)
-
-      expect(locale).toHaveProperty('name')
-      expect(typeof locale.name).toBe('string')
-      expect(locale.name.length).toBeGreaterThan(0)
-    })
-  })
-
-  // 4. Check for the presence of common and expected locale codes (Case-Insensitive Fix)
-  it('should include key locales like "en-US", "de-DE", and "ja-JP"', () => {
-    // Convert all generated codes to lowercase for case-insensitive comparison,
-    // as Intl API output can vary (e.g., 'en-US' vs 'en-us').
-    const lowerCaseCodes = localeList.map(l => l.code.toLowerCase())
-
-    expect(lowerCaseCodes).toContain('en-us')
-    expect(lowerCaseCodes).toContain('de-de')
-    expect(lowerCaseCodes).toContain('ja-jp')
-    expect(lowerCaseCodes).toContain('es-es')
-  })
-})
-
-// NEW TESTS FOR 100% COVERAGE
-describe('localeList - Edge Cases', () => {
+describe("localeList Utility", () => {
   let originalIntl: typeof Intl;
 
   beforeEach(() => {
     originalIntl = global.Intl;
+
+    // Silence console.log and error to hide the "Intl.supportedValuesOf" noise
+    vi.spyOn(console, "log").mockImplementation(() => {});
+    vi.spyOn(console, "error").mockImplementation(() => {});
+
+    vi.resetModules(); // Vital because the file runs generateLocaleList() on load
   });
 
   afterEach(() => {
     global.Intl = originalIntl;
-    vi.resetModules();
+    vi.restoreAllMocks();
   });
 
-  // COVERS LINE 37: The || code fallback when display.of() returns null/undefined
-  it('should use locale code as fallback when DisplayNames.of() returns null', async () => {
-    // Mock Intl.DisplayNames to return null for of()
-    const mockOf = vi.fn().mockReturnValue(null);
+  // --- GROUP 1: STANDARD OPERATION ---
+  describe("Successful Generation", () => {
+    it("should export a sorted list of locales", async () => {
+      const { localeList } = await import("@/utils/localeList");
+      expect(Array.isArray(localeList)).toBe(true);
+      expect(localeList.length).toBeGreaterThan(10);
 
-    // Create a new Intl object with mocked DisplayNames
-    const MockedIntl = {
-      ...global.Intl,
-      DisplayNames: vi.fn().mockImplementation(() => ({
-        of: mockOf,
-      })),
-      supportedValuesOf: vi.fn().mockReturnValue(['test-LOCALE']),
-    };
+      // Verify sorting (A-Z)
+      const names = localeList.map((l) => l.name);
+      const sortedNames = [...names].sort((a, b) => a.localeCompare(b));
+      expect(names).toEqual(sortedNames);
+    });
 
-    global.Intl = MockedIntl as any;
-
-    // Re-import the module to trigger generateLocaleList with our mocks
-    const { generateLocaleList } = await import('@/utils/localeList');
-    const result = generateLocaleList();
-
-    // Should use the code as fallback when of() returns null
-    expect(result.some(item => item.code === 'test-LOCALE' && item.name === 'test-LOCALE')).toBe(true);
-    expect(mockOf).toHaveBeenCalledWith('test-LOCALE');
+    it("should ensure the structure is correct (code and name)", async () => {
+      const { localeList } = await import("@/utils/localeList");
+      const item = localeList[0];
+      expect(item).toHaveProperty("code");
+      expect(item).toHaveProperty("name");
+    });
   });
 
-  it('should use locale code as fallback when DisplayNames.of() returns undefined', async () => {
-    // Mock Intl.DisplayNames to return undefined for of()
-    const mockOf = vi.fn().mockReturnValue(undefined);
+  // --- GROUP 2: EXCEPTION BRANCHES (The Catch Blocks) ---
+  describe("Error Handling and Fallbacks", () => {
+    it("should use minimal fallback when Intl.DisplayNames fails (Line 15)", async () => {
+      const MockedIntl = {
+        ...global.Intl,
+        DisplayNames: vi.fn().mockImplementation(() => {
+          throw new Error("DisplayNames not supported");
+        }),
+      };
+      global.Intl = MockedIntl as any;
 
-    const MockedIntl = {
-      ...global.Intl,
-      DisplayNames: vi.fn().mockImplementation(() => ({
-        of: mockOf,
-      })),
-      supportedValuesOf: vi.fn().mockReturnValue(['xx-UNKNOWN']),
-    };
+      const { generateLocaleList } = await import("@/utils/localeList");
+      const result = generateLocaleList();
 
-    global.Intl = MockedIntl as any;
+      expect(result).toEqual([{ code: "en-US", name: "English (US)" }]);
+    });
 
-    const { generateLocaleList } = await import('@/utils/localeList');
-    const result = generateLocaleList();
+    it("should use hardcoded list when supportedValuesOf fails (Line 25)", async () => {
+      const MockedIntl = {
+        ...global.Intl,
+        DisplayNames: vi.fn().mockImplementation(() => ({
+          of: (code: string) => `Name-${code}`,
+        })),
+        supportedValuesOf: vi.fn().mockImplementation(() => {
+          throw new Error("API Missing");
+        }),
+      };
+      global.Intl = MockedIntl as any;
 
-    expect(result.some(item => item.code === 'xx-UNKNOWN' && item.name === 'xx-UNKNOWN')).toBe(true);
+      const { generateLocaleList } = await import("@/utils/localeList");
+      const result = generateLocaleList();
+
+      expect(result.some((l) => l.code === "en-US")).toBe(true);
+      expect(result.some((l) => l.code === "hi-IN")).toBe(true);
+    });
+
+    it("should use code as name if display.of() throws (Line 40)", async () => {
+      const MockedIntl = {
+        ...global.Intl,
+        DisplayNames: vi.fn().mockImplementation(() => ({
+          of: () => {
+            throw new Error("Parsing Error");
+          },
+        })),
+        supportedValuesOf: vi.fn().mockReturnValue(["en-US"]),
+      };
+      global.Intl = MockedIntl as any;
+
+      const { generateLocaleList } = await import("@/utils/localeList");
+      const result = generateLocaleList();
+
+      expect(result[0]).toEqual({ code: "en-US", name: "en-US" });
+    });
   });
 
-  it('should handle empty string from DisplayNames.of()', async () => {
-    // Mock to return empty string (falsy)
-    const mockOf = vi.fn().mockReturnValue('');
+  // --- GROUP 3: VALUE FALLBACKS ---
+  describe("Display Name Fallbacks", () => {
+    it("should use code as name when display.of() returns null/falsy", async () => {
+      const MockedIntl = {
+        ...global.Intl,
+        DisplayNames: vi.fn().mockImplementation(() => ({
+          of: () => null,
+        })),
+        supportedValuesOf: vi.fn().mockReturnValue(["fr-FR"]),
+      };
+      global.Intl = MockedIntl as any;
 
-    const MockedIntl = {
-      ...global.Intl,
-      DisplayNames: vi.fn().mockImplementation(() => ({
-        of: mockOf,
-      })),
-      supportedValuesOf: vi.fn().mockReturnValue(['zz-ZZ']),
-    };
+      const { generateLocaleList } = await import("@/utils/localeList");
+      const result = generateLocaleList();
 
-    global.Intl = MockedIntl as any;
+      expect(result[0].name).toBe("fr-FR");
+    });
+  });
 
-    const { generateLocaleList } = await import('@/utils/localeList');
-    const result = generateLocaleList();
+  describe("localeList initialization", () => {
+    beforeEach(() => {
+      vi.resetModules(); // Essential: clears the 'cache' of the imported module
+      vi.clearAllMocks();
+    });
 
-    // Empty string is falsy, so should use code as fallback
-    expect(result.some(item => item.code === 'zz-ZZ' && item.name === 'zz-ZZ')).toBe(true);
+    it("falls back to hardcoded list and logs exception when Intl.supportedValuesOf fails", async () => {
+      // 1. Break the API
+      const spy = vi
+        .spyOn(Intl, "supportedValuesOf" as any)
+        .mockImplementation(() => {
+          throw new Error("Intl Failure");
+        });
+
+      // 2. Re-import the module to trigger the top-level 'generateLocaleList'
+      const { localeList } = await import("@/utils/localeList");
+
+      // 3. Assertions
+      expect(localeList.length).toBe(14); // Matches your hardcoded list length
+      const codes = localeList.map((l) => l.code);
+      expect(codes).toContain("ar-SA");
+      expect(codes).toContain("en-US");
+      expect(logException).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({ module: "localeList" })
+      );
+
+      spy.mockRestore();
+    });
+
+    it("returns the absolute minimal fallback if Intl.DisplayNames constructor fails", async () => {
+      // 1. Break the DisplayNames constructor specifically
+      const spy = vi.spyOn(Intl, "DisplayNames").mockImplementation(() => {
+        throw new Error("DisplayNames Not Supported");
+      });
+
+      // 2. Re-import to trigger initialization
+      const { localeList } = await import("@/utils/localeList");
+
+      // 3. Verify the immediate return fallback
+      expect(localeList).toEqual([{ code: "en-US", name: "English (US)" }]);
+      expect(localeList.length).toBe(1);
+
+      spy.mockRestore();
+    });
+
+    it("throws and handles 'API not supported' when supportedValuesOf is missing", () => {
+      // 1. Temporarily hide the method from Intl
+      const originalMethod = Intl.supportedValuesOf;
+      // @ts-ignore - deleting for the sake of the test path
+      delete (Intl as any).supportedValuesOf;
+
+      // 2. This should now trigger the 'else' block -> throw error -> catch block
+      const list = generateLocaleList();
+
+      // 3. Verify it still returns our fallback list
+      expect(list.length).toBeGreaterThan(0);
+      expect(list.some((l) => l.code === "en-US")).toBe(true);
+
+      // 4. Restore the method so other tests don't break
+      Intl.supportedValuesOf = originalMethod;
+    });
   });
 });

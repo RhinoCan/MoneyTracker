@@ -9,12 +9,15 @@ import { TransactionType, Transaction } from "@/types/Transaction.ts";
 import type { SubmitEventPromise } from "vuetify";
 import { formatISO, parseISO } from "date-fns";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+import { useLocaleStore } from "@/stores/LocaleStore";
+
+const localeStore = useLocaleStore();
 
 const showKeyboardShortcuts = ref(false);
 
 const storeTransaction = useTransactionStore();
 const { required, transactionTypeRequired, dateRangeRule, amountValidations } =
-  useAppValidationRules();
+  useAppValidationRules(localeStore.currentLocale);
 
 const {
   displayAmount,
@@ -98,7 +101,7 @@ async function onSubmit(event: SubmitEventPromise) {
   const { valid } = await event;
   if (!valid) return;
 
-  const finalAmount = parseCurrency(displayAmount.value);
+  const finalAmount = parseCurrency(displayAmount.value, localeStore.currentLocale);
 
   const newTransaction: Transaction = {
     id: storeTransaction.getNewId,

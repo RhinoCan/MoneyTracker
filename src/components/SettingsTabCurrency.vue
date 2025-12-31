@@ -42,6 +42,13 @@ const previewAmount = computed(() => {
   }
 });
 
+ const tickLabels = {
+    0: '0',
+    1: '1',
+    2: '2',
+    3: '3',
+    4: '4',
+  }
 function saveChanges() {
   // Pass the buffered object back to the store
   currencyStore.updateNumberFormat({ ...localFormat });
@@ -82,9 +89,12 @@ defineExpose({
             v-model="localFormat.minPrecision"
             label="Min Decimals"
             min="0"
-            max="2"
+            :max="4"
             step="1"
             thumb-label
+            show-ticks="always"
+            :ticks="tickLabels"
+            :rules="[v => v <= localFormat.maxPrecision || 'Minimum precision cannot exceed maximum precision']"
           />
         </v-col>
         <v-col cols="12" sm="6">
@@ -95,6 +105,9 @@ defineExpose({
             max="4"
             step="1"
             thumb-label
+            show-ticks="always"
+            :ticks="tickLabels"
+            :rules="[v => v >= (localFormat.minPrecision ?? 0) || 'Maximum precision cannot be less than minimum precision']"
           />
         </v-col>
 

@@ -62,6 +62,11 @@ defineOptions({
               Merged the various individual Settings dialogs into a single
               tabbed Settings Dialog.
             </li>
+            <li>
+              Added Sentry so that errors and warnings would be properly logged,
+              reassuring users and bringing issues to the attention of
+              administrators.
+            </li>
           </ul>
         </v-card>
 

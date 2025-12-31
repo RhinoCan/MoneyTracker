@@ -2,9 +2,10 @@
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
 import { useDateFormatter } from "@/composables/useDateFormatter.ts";
 import { useTransactionStore } from "@/stores/TransactionStore.ts";
-import { ref, computed } from "vue";
+import { computed } from "vue";
 import Money from "@/components/Money.vue";
 import type { Transaction } from "@/types/Transaction.ts";
+import { logWarning, logInfo } from "@/utils/Logger";
 
 //Call the composable function, which returns an object.
 //Destructure the 'displayMoney' property from that return
@@ -34,16 +35,10 @@ const deleteTransaction = () => {
   const item = model.value;
   let storeTransaction = useTransactionStore();
   if (!item || !item.id) {
-    console.log(
-      "DeleteTransaction.deleteTransaction() - Transaction id was undefined so nothing was deleted"
-    );
+      logWarning(`There was no transaction with the specified ID to delete so nothing was deleted`, { module: "DeleteTransaction", action: "attempted delete of missing transaction", data: item?.id });
   } else {
     storeTransaction.deleteTransaction(item.id);
-    console.log(
-      "DeleteTransaction.deleteTransaction() - Transaction with id " +
-        item.id +
-        " deleted"
-    );
+    logInfo(`Transaction with id ${item.id} was deleted`, { module: "DeleteTransaction", action: "deleted existing transaction", data: item.id });
   }
   model.value = null;
 };
