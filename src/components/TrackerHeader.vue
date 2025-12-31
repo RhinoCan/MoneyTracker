@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ref, computed } from "vue"
 import SettingsDialog from "@/components/SettingsDialog.vue"
+import * as Sentry from "@sentry/vue";
+
 
 const appEnvironment = computed(() => {
   const envValue = import.meta.env.VITE_APP_ENV;

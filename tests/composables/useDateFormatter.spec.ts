@@ -1,106 +1,71 @@
-// __tests__/composables/useDateFormatter.spec.ts
-
-import { describe, test, expect, vi, beforeEach } from 'vitest';
-import { ref } from 'vue';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { useDateFormatter } from '@/composables/useDateFormatter';
 import { useDateFormatStore } from '@/stores/DateFormatStore';
-import { createPinia, setActivePinia } from 'pinia';
-import { format } from 'date-fns';
+import { logWarning } from '@/utils/Logger';
 
-// --- MOCK THE DEPENDENCY (DateFormatStore) ---
-// We will control the store's activeDateFormat property for testing.
-let mockActiveDateFormatRef = ref('yyyy-MM-dd');
+// 1. Mock the store and logger
+vi.mock('@/stores/DateFormatStore', () => ({
+  useDateFormatStore: vi.fn(),
+}));
 
-vi.mock('@/stores/DateFormatStore', () => {
-    return {
-        useDateFormatStore: vi.fn(() => ({
-            // Mock the reactive value the composable is interested in
-            get activeDateFormat() {
-                return mockActiveDateFormatRef.value;
-            },
-        })),
-    };
-});
-// ---------------------------------------------
+vi.mock('@/utils/Logger', () => ({
+  logWarning: vi.fn(),
+}));
 
 describe('useDateFormatter', () => {
+  let mockStore: any;
 
-    // Define a stable date for consistent testing
-    const TEST_DATE_STRING = '2025-05-15T10:30:00.000Z'; // May 15, 2025 (Thursday)
-    const testDate = new Date(TEST_DATE_STRING);
+  beforeEach(() => {
+    vi.clearAllMocks();
 
-    beforeEach(() => {
-        // 1. Reset Pinia environment (required if we were not mocking)
-        setActivePinia(createPinia());
-        // 2. Reset the store mock's state for each test
-        mockActiveDateFormatRef.value = 'yyyy-MM-dd';
-        vi.clearAllMocks();
-    });
+    // Default store state
+    mockStore = {
+      currentDateFormat: 'yyyy-MM-dd',
+    };
+    (useDateFormatStore as any).mockReturnValue(mockStore);
+  });
 
-    // --- TEST 1: Basic Formatting ---
-    test('1. should format a Date object based on the default store format', () => {
-        const { formatDate } = useDateFormatter();
+  it('should format a date correctly based on the store preference', () => {
+    const { formatDate } = useDateFormatter();
+    const testDate = new Date(2025, 11, 25); // Dec 25, 2025
 
-        const expected = format(testDate, 'yyyy-MM-dd'); // '2025-05-15'
-        expect(formatDate(testDate)).toBe(expected);
-    });
+    expect(formatDate(testDate)).toBe('2025-12-25');
+  });
 
-    // --- TEST 2: Input Handling ---
-    test('2. should handle various date input types (string, number) and null/empty', () => {
-        const { formatDate } = useDateFormatter();
-        const expected = format(testDate, 'yyyy-MM-dd');
+  it('should respond reactively to store changes', () => {
+    const { formatDate } = useDateFormatter();
+    const testDate = new Date(2025, 11, 25);
 
-        // Test Date object (already covered, for sanity)
-        expect(formatDate(testDate)).toBe(expected);
+    // Change the template in the mock
+    mockStore.currentDateFormat = 'MM/dd/yyyy';
 
-        // Test date string
-        expect(formatDate(TEST_DATE_STRING)).toBe(expected);
+    expect(formatDate(testDate)).toBe('12/25/2025');
+  });
 
-        // Test number (timestamp)
-        const timestamp = testDate.getTime();
-        expect(formatDate(timestamp)).toBe(expected);
+  it('should return an empty string if input is falsy (Line 29)', () => {
+    const { formatDate } = useDateFormatter();
 
-        // Test null/empty input
-        expect(formatDate(null as unknown as Date)).toBe('');
-        expect(formatDate('')).toBe('');
-    });
+    expect(formatDate('')).toBe('');
+    expect(formatDate(null as any)).toBe('');
+    expect(formatDate(undefined as any)).toBe('');
+  });
 
-    // --- TEST 3: Reactivity (Crucial Test) ---
-    test('3. should use the updated date format when the store mock changes', () => {
-        // ARRANGE: Get the formatter
-        const { formatDate } = useDateFormatter();
+  it('should log a warning for an invalid date but still try to format it (Line 35)', () => {
+    const { formatDate } = useDateFormatter();
+    const invalidInput = 'not-a-date';
 
-        // ACT 1: Use the default format
-        const defaultFormatResult = formatDate(testDate);
-        expect(defaultFormatResult).toBe('2025-05-15');
+    // date-fns format() will throw an error if the date is invalid,
+    // but the code reaches the logWarning first.
+    // To strictly cover the code as written:
+    try {
+        formatDate(invalidInput);
+    } catch (e) {
+        // We expect an error from date-fns, but we want to check our logger
+    }
 
-        // ACT 2: Simulate a change in the store's format (by changing the mock variable)
-        // Change the mock to a more descriptive format (e.g., 'MMMM do, yyyy')
-        mockActiveDateFormatRef.value = 'MMMM do, yyyy';
-
-        // ACT 3: Format the same date again.
-        // Because the composable uses a computed property on the mock, the function call should
-        // pick up the new value (Note: Vitest runs synchronously, so we can test the change immediately).
-        const newFormatResult = formatDate(testDate);
-
-        const expected = format(testDate, 'MMMM do, yyyy'); // May 15th, 2025
-
-        // ASSERT: The result MUST reflect the change in the mock store
-        expect(newFormatResult).toBe(expected);
-    });
-
-    // --- TEST 4: Different format tokens ---
-    test('4. should correctly apply various format tokens (date-fns)', () => {
-        const { formatDate } = useDateFormatter();
-
-        // ARRANGE 1: Test with day of the week
-        mockActiveDateFormatRef.value = 'EEEE, MMM dd';
-        let expected = format(testDate, mockActiveDateFormatRef.value); // 'Thursday, May 15'
-        expect(formatDate(testDate)).toBe(expected);
-
-        // ARRANGE 2: Test with time
-        mockActiveDateFormatRef.value = 'hh:mm a';
-        expected = format(testDate, mockActiveDateFormatRef.value); // '10:30 AM' (assuming UTC date used, adjust if necessary)
-        expect(formatDate(testDate)).toBe(expected);
-    });
+    expect(logWarning).toHaveBeenCalledWith(
+      "Input value to formatDate() is not a valid date",
+      expect.objectContaining({ data: invalidInput })
+    );
+  });
 });

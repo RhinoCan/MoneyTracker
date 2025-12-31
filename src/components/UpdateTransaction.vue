@@ -10,12 +10,14 @@ import { Transaction } from "@/types/Transaction.ts";
 import { SubmitEventPromise } from "vuetify";
 import { parseISO, formatISO } from "date-fns";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+import { useLocaleStore } from "@/stores/LocaleStore"
 
 
 const storeTransaction = useTransactionStore();
+const localeStore = useLocaleStore();
 const { displayMoney } = useCurrencyFormatter();
 const { required, transactionTypeRequired, dateRangeRule, amountValidations } =
-  useAppValidationRules();
+  useAppValidationRules(localeStore.currentLocale);
 
 const showKeyboardShortcuts = ref(false);
 

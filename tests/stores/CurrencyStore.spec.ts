@@ -4,6 +4,21 @@ import { useCurrencyStore } from "@/stores/CurrencyStore";
 import type { NumberFormat } from "@/types/CommonTypes";
 import { appName } from "@/utils/SystemDefaults";
 
+// Hoist the mock functions so they're available to the mock factory
+const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoisted(() => ({
+  mockLogException: vi.fn(),
+  mockLogWarning: vi.fn(),
+  mockLogInfo: vi.fn(),
+  mockLogSuccess: vi.fn(),
+}));
+
+// Mock the Logger module using the hoisted functions
+vi.mock('@/utils/Logger', () => ({
+  logException: mockLogException,
+  logWarning: mockLogWarning,
+  logInfo: mockLogInfo,
+  logSuccess: mockLogSuccess,
+}));
 // Mock SystemDefaults
 vi.mock('@/utils/SystemDefaults.ts', () => ({
   defaultCurrencyCode: 'USD',
@@ -75,22 +90,23 @@ describe("CurrencyStore", () => {
       const storageKey = `${appName}.Currency`;
       localStorage.setItem(storageKey, 'invalid json {');
 
-      const consoleErrorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
-
       vi.resetModules();
       setActivePinia(createPinia());
 
       const store = useCurrencyStore();
 
-      // Should use defaults
+      // Should revert to safe defaults.
       expect(store.currency).toBe('USD');
       expect(store.maxPrecision).toBe(2);
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        expect.stringContaining('Failed to parse Currency storage'),
-        expect.any(Error)
-      );
 
-      consoleErrorSpy.mockRestore();
+      expect(mockLogException).toHaveBeenCalledWith(
+        expect.any(SyntaxError), //JSON.parse throws a SyntaxError
+        expect.objectContaining({
+          module: 'Currency',
+          action: 'Read from localStorage',
+          data: 'invalid json {'
+        })
+      );
     });
 
     it("should use correct storage key format", () => {
@@ -362,16 +378,22 @@ describe("CurrencyStore", () => {
     it("should handle localStorage quota exceeded gracefully", () => {
       const store = useCurrencyStore();
 
-      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem');
-      setItemSpy.mockImplementation(() => {
-        throw new DOMException('QuotaExceededError');
+      const setItemSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+        throw new DOMException('QuotaExceededError', 'QuotaExceededError');
       });
 
-      expect(() => {
-        store.updateNumberFormat({ currency: 'EUR' });
-      }).toThrow();
+      store.updateNumberFormat({ currency: 'EUR'});
 
+      expect(mockLogException).toHaveBeenCalledWith(
+        expect.any(DOMException), //JSON.parse throws a SyntaxError
+        expect.objectContaining({
+          module: 'Currency',
+          action: 'Update',
+          data: { "currency": "EUR" },
+        })
+      );
       setItemSpy.mockRestore();
+
     });
 
     it("should handle missing format property in localStorage object", () => {

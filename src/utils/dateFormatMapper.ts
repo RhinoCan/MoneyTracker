@@ -3,6 +3,8 @@ import { DateFormatTemplate } from "@/types/CommonTypes";
 
 export function determineDateFormatFromCountry(countryCode: string) {
 
+if (!countryCode) return DateFormatTemplate.ISO;
+
 //Get the country code, e.g. the US portion of 'en-US', from the current locale.
 const code = countryCode.toUpperCase();
 

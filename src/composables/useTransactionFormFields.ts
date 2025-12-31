@@ -4,6 +4,8 @@ import { useDateFormatter } from "@/composables/useDateFormatter";
 import { useAppValidationRules } from "@/composables/useAppValidationRules";
 import { parseCurrency } from "@/utils/currencyParser";
 import { TransactionTypeValues, type Transaction } from "@/types/Transaction";
+import { useLocaleStore } from "@/stores/LocaleStore"
+import { logException } from "@/utils/Logger";
 
 // Updated the interface to acknowledge the transaction can be null
 interface FormFields {
@@ -26,9 +28,10 @@ interface FormFields {
 }
 
 export function useTransactionFormFields(externalTransaction?: Ref<Transaction | null>): FormFields {
+  const localeStore = useLocaleStore();
   const { displayMoney } = useCurrencyFormatter();
   const { formatDate } = useDateFormatter();
-  const { required, dateRangeRule, amountValidations } = useAppValidationRules();
+  const { required, dateRangeRule, amountValidations } = useAppValidationRules(localeStore.currentLocale);
 
   // --- Data Model State ---
   // If an external Ref is provided, use it. Otherwise, create a default internal one.
@@ -100,13 +103,22 @@ export function useTransactionFormFields(externalTransaction?: Ref<Transaction |
 
   function handleBlur() {
     isFocused.value = false;
-    const parsedAmount = parseCurrency(displayAmount.value);
+    const rawValue = displayAmount.value;
+    const parsedAmount = parseCurrency(rawValue, localeStore.currentLocale);
+    //const localeStore = useLocaleStore();
+    const validationResult = amountValidations(rawValue);
+    const isValidAccordingToRules = validationResult === true;
 
     if (transaction.value) {
       if (parsedAmount !== null && parsedAmount > 0) {
         transaction.value.amount = parsedAmount;
       } else {
         transaction.value.amount = 0;
+        if (isValidAccordingToRules && rawValue !== "" && rawValue !== "0") {
+          logException(new Error("Parse/Validator Mismatch"), {
+            module: "useTransactionFormFields", action: "handleBlur", data: {rawValue, locale: localeStore.currentLocale }
+          })
+        }
       }
     }
 

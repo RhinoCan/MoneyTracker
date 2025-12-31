@@ -1,33 +1,44 @@
 import { computed, type ComputedRef } from "vue";
 import { useLocaleStore } from "@/stores/LocaleStore.ts";
 import { useCurrencyStore } from "@/stores/CurrencyStore.ts";
+import { logException } from "@/utils/Logger"
 
 type DisplayMoneyFunction = (amount: number | null | undefined) => string;
 
 const LOCALE_TO_CURRENCY_MAP: Record<string, string> = {
-  "en-US": "USD",
-  "en-CA": "CAD",
-  "fr-CA": "CAD",
+  // North America
+  "en-US": "USD", "en": "USD",
+  "en-CA": "CAD", "fr-CA": "CAD",
   "es-MX": "MXN",
-  "fr-FR": "EUR",
-  "de-DE": "EUR",
-  "es-ES": "EUR",
-  "it-IT": "EUR",
-  "nl-NL": "EUR",
+
+  // Europe (Eurozone)
+  "fr-FR": "EUR", "fr": "EUR",
+  "de-DE": "EUR", "de": "EUR",
+  "es-ES": "EUR", "es": "EUR",
+  "it-IT": "EUR", "it": "EUR",
+  "nl-NL": "EUR", "nl": "EUR",
+
+  // Europe (Non-Euro)
   "en-GB": "GBP",
-  "ru-RU": "RUB",
-  "ja-JP": "JPY",
-  "zh-CN": "CNY",
-  "ko-KR": "KRW",
-  "en-IN": "INR",
-  "hi-IN": "INR",
-  "id-ID": "IDR",
-  "en-AU": "AUD",
+  "ru-RU": "RUB", "ru": "RUB",
+
+  // Asia
+  "ja-JP": "JPY", "ja": "JPY",
+  "zh-CN": "CNY", "zh": "CNY",
+  "ko-KR": "KRW", "ko": "KRW",
+  "en-IN": "INR", "hi-IN": "INR", "hi": "INR",
+  "id-ID": "IDR", "id": "IDR",
   "zh-TW": "TWD",
-  "th-TH": "THB",
-  "ar-SA": "SAR",
-  "ar-EG": "EGP",
-  "pt-BR": "BRL",
+  "th-TH": "THB", "th": "THB",
+
+  // Middle East & Africa
+  "ar-SA": "SAR", "ar-EG": "EGP", "ar": "SAR", // Default Arabic to SAR
+
+  // Oceania
+  "en-AU": "AUD",
+
+  // South America
+  "pt-BR": "BRL", "pt": "BRL",
   "es-AR": "ARS",
 };
 
@@ -63,14 +74,14 @@ export function useCurrencyFormatter() {
     };
 
     try {
-      const formatter = new Intl.NumberFormat(locale, options);
+      const formatter = new Intl.NumberFormat(canonicalLocale, options);
 
       return (amount: number | null | undefined) => {
         if (amount == null) return "";
         return formatter.format(amount);
       };
     } catch (e) {
-      console.error(`[Currency Formatter] Failed to create formatter for locale ${locale}:`, e);
+      logException(e, { module: "useCurrencyFormatter", action: "create formatter for locale", data: {locale, effectiveCurrency, options}});
       return (amount: number | null | undefined) => {
         if (amount == null) return "";
         return `${effectiveCurrency} ${amount.toFixed(formatOptions.maxPrecision)}`;

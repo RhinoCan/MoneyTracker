@@ -3,6 +3,22 @@ import { setActivePinia, createPinia } from "pinia";
 import { useOtherStore } from "@/stores/OtherStore";
 import { defaultToastTimeout, appName } from "@/utils/SystemDefaults";
 
+// Hoist the mock functions so they're available to the mock factory
+const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoisted(() => ({
+  mockLogException: vi.fn(),
+  mockLogWarning: vi.fn(),
+  mockLogInfo: vi.fn(),
+  mockLogSuccess: vi.fn(),
+}));
+
+// Mock the Logger module using the hoisted functions
+vi.mock('@/utils/Logger', () => ({
+  logException: mockLogException,
+  logWarning: mockLogWarning,
+  logInfo: mockLogInfo,
+  logSuccess: mockLogSuccess,
+}));
+
 describe("OtherStore", () => {
   beforeEach(() => {
     // Create a fresh pinia instance for each test
@@ -16,14 +32,14 @@ describe("OtherStore", () => {
   });
 
   describe("Initialization", () => {
-    it("should initialize with default timeout when no localStorage value exists", () => {
+    it("Init > when no localStorage value exists, then initialize with default timeout", () => {
       const store = useOtherStore();
 
       expect(store.currentTimeout).toBe(defaultToastTimeout);
       expect(store.getTimeout).toBe(defaultToastTimeout);
     });
 
-    it("should initialize with saved timeout from localStorage", () => {
+    it("Init > when there is a saved timeout from localStorage, then initialize with that value", () => {
       const savedTimeout = 5000;
       const storageKey = `${appName}.Other`;
       const savedData = { timeout: savedTimeout };
@@ -36,18 +52,30 @@ describe("OtherStore", () => {
       expect(store.getTimeout).toBe(savedTimeout);
     });
 
-    it("should handle malformed localStorage data gracefully", () => {
+    it("Init > when the localStorage data is malformed, then use the default timeout and log an exception", async () => {
       const storageKey = `${appName}.Other`;
       localStorage.setItem(storageKey, "invalid json {");
 
-      // Should either throw or fall back to defaults
-      // Depending on your error handling preference
-      expect(() => {
-        useOtherStore();
-      }).toThrow();
+      vi.resetModules();
+      setActivePinia(createPinia());
+
+      const store = useOtherStore();
+
+      await vi.dynamicImportSettled();
+
+      expect(store.currentTimeout).toBe(defaultToastTimeout);
+
+      expect(mockLogException).toHaveBeenCalledWith(
+        expect.any(SyntaxError), //JSON.parse throws a SyntaxError
+        expect.objectContaining({
+          module: "Other",
+          action: "Hydration",
+          data: "invalid json {",
+        })
+      );
     });
 
-    it("should use correct storage key format", () => {
+    it("Init > when the correct storage key format is used, then a valid value should be found in localStorage", () => {
       const store = useOtherStore();
       store.setTimeout(4000);
 
@@ -60,7 +88,7 @@ describe("OtherStore", () => {
   });
 
   describe("setTimeout", () => {
-    it("should update currentTimeout when setTimeout is called", () => {
+    it("Set > when setTimeout is invoked, then the current value should be that new value", () => {
       const store = useOtherStore();
       const newTimeout = 8000;
 
@@ -70,7 +98,7 @@ describe("OtherStore", () => {
       expect(store.getTimeout).toBe(newTimeout);
     });
 
-    it("should persist timeout to localStorage when setTimeout is called", () => {
+    it("Set > when setTimeout is invoked, the new value should be saved to localStorage", () => {
       const store = useOtherStore();
       const newTimeout = 7500;
       const storageKey = `${appName}.Other`;
@@ -84,7 +112,7 @@ describe("OtherStore", () => {
       expect(parsed).toEqual({ timeout: newTimeout });
     });
 
-    it("should overwrite previous localStorage values", () => {
+    it("Set > when there was a previous value for the timeout, the the previous value should be overwritten", () => {
       const store = useOtherStore();
       const storageKey = `${appName}.Other`;
 
@@ -95,7 +123,7 @@ describe("OtherStore", () => {
       expect(JSON.parse(localStorage.getItem(storageKey)!).timeout).toBe(6000);
     });
 
-    it("should handle zero timeout", () => {
+    it("Set > when the timeout is 0, it should still be written to localStorage", () => {
       const store = useOtherStore();
 
       store.setTimeout(0);
@@ -108,7 +136,8 @@ describe("OtherStore", () => {
       expect(saved.timeout).toBe(0);
     });
 
-    it("should handle large timeout values", () => {
+    it("Set > when the timeout is very large, it should still be accepted", () => {
+    //The app does not allow values this large at present; this is only testing that localStorage can accomodate such a large value
       const store = useOtherStore();
       const largeTimeout = 999999;
 
@@ -118,7 +147,8 @@ describe("OtherStore", () => {
       expect(store.getTimeout).toBe(largeTimeout);
     });
 
-    it("should handle negative timeout values (if allowed)", () => {
+    it("Set > when the timeout is negative, it should still be accepted", () => {
+    //The app does not allow negative values and really shouldn't because a negative timeout is meaningless; this only tests that localStorage can accomodate a negative value
       const store = useOtherStore();
       const negativeTimeout = -1000;
 
@@ -130,7 +160,7 @@ describe("OtherStore", () => {
   });
 
   describe("getTimeout computed property", () => {
-    it("should reactively return current timeout value", () => {
+    it("Get > when the current timeout is desired, then return the current value", () => {
       const store = useOtherStore();
 
       expect(store.getTimeout).toBe(defaultToastTimeout);
@@ -144,7 +174,7 @@ describe("OtherStore", () => {
   });
 
   describe("Multiple store instances", () => {
-    it("should share state across multiple store instances", () => {
+    it("Multi > when multiple instances of the store request the data, then they should get the same data", () => {
       const store1 = useOtherStore();
       store1.setTimeout(4500);
 
@@ -157,7 +187,7 @@ describe("OtherStore", () => {
   });
 
   describe("localStorage persistence across sessions", () => {
-    it("should restore timeout from localStorage in new session", () => {
+    it("Sync > when a new session begins, then the data should be the same as the previous session", () => {
       // Simulate first session
       let store = useOtherStore();
       store.setTimeout(6500);
@@ -170,7 +200,7 @@ describe("OtherStore", () => {
       expect(store.getTimeout).toBe(6500);
     });
 
-    it("should handle cleared localStorage gracefully", () => {
+    it("Sync > when localStorage is cleared, then the default timeout should be found", () => {
       const store = useOtherStore();
       store.setTimeout(5000);
 
@@ -187,7 +217,8 @@ describe("OtherStore", () => {
   });
 
   describe("Edge cases", () => {
-    it("should handle decimal timeout values", () => {
+    it("Edge > when the timeout value is decimal, it should be properly handled", () => {
+      //Decimal values are not currently permitted because a portion of a millisecond is not perceivable to a human user
       const store = useOtherStore();
       const decimalTimeout = 3500.75;
 
@@ -201,7 +232,7 @@ describe("OtherStore", () => {
       expect(newStore.currentTimeout).toBe(decimalTimeout);
     });
 
-    it("should handle localStorage quota exceeded gracefully", () => {
+    it("Edge > when the localStorage quota is exceeded, then a valid timeout should be used as a default and the exception should be logged", async () => {
       const store = useOtherStore();
 
       // Mock localStorage.setItem to throw quota exceeded error
@@ -210,16 +241,23 @@ describe("OtherStore", () => {
         throw new DOMException("QuotaExceededError");
       });
 
-      // Depending on your error handling, this might throw or fail silently
-      // Adjust this test based on your desired behavior
-      expect(() => {
-        store.setTimeout(5000);
-      }).toThrow();
+      store.setTimeout(3.14159);
+
+      await vi.dynamicImportSettled();
+
+      expect(mockLogException).toHaveBeenCalledWith(
+        expect.any(DOMException),
+        expect.objectContaining({
+          module: "Other",
+          action: "Save",
+          data: 3.14159,
+        })
+      );
 
       setItemSpy.mockRestore();
     });
 
-    it("should handle localStorage being unavailable", () => {
+    it("Edge > when localStorage is unavailable, an exception should be thrown", () => {
       // Mock localStorage.getItem to throw
       const getItemSpy = vi.spyOn(Storage.prototype, "getItem");
       getItemSpy.mockImplementation(() => {
@@ -233,5 +271,4 @@ describe("OtherStore", () => {
       getItemSpy.mockRestore();
     });
   });
-
 });

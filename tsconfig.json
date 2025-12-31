@@ -1,23 +1,30 @@
 {
   "compilerOptions": {
     "target": "ESNext",
-    "module": "ESNext", //was "NodeNext",
-    "moduleResolution": "node", //was "NodeNext",
-    "esModuleInterop": true,
-    "allowSyntheticDefaultImports": true,
-    "strict": true,
-    "forceConsistentCasingInFileNames": true,
+    "useDefineForClassFields": true,
+    "module": "ESNext",
+    "lib": ["ESNext", "DOM", "DOM.Iterable"],
     "skipLibCheck": true,
+
+    /* Bundler mode - This is the fix for the 'computed' export error */
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
     "isolatedModules": true,
-    "types": ["vitest/globals"],
-    "allowImportingTsExtensions": true,
     "noEmit": true,
-    "lib": ["ES2024", "DOM"],
-    "baseUrl": "./",
+    "jsx": "preserve",
+
+    /* Linting */
+    "strict": true,
+    "noUnusedLocals": false,
+    "noUnusedParameters": false,
+
+    /* Paths */
+    "baseUrl": ".",
     "paths": {
       "@/*": ["src/*"]
-    }
+    },
+    "types": ["vitest/globals", "vite/client"]
   },
-  "include": ["src", "tests", "vite.config.js", "vitest.config.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests/**/*.ts"]
 }

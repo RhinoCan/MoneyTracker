@@ -1,6 +1,5 @@
 // src/utils/currencyParser.ts
-
-import { useLocaleStore } from "@/stores/LocaleStore.ts";
+import { logException } from "@/utils/Logger";
 
 /**
  * Takes a raw or formatted string from a user input field and converts it back to a number.
@@ -9,11 +8,8 @@ import { useLocaleStore } from "@/stores/LocaleStore.ts";
  * @param {string} formattedString - The string value from the input field (e.g., "1.234,56" or "1,234.56").
  * @returns {number | null} - The numeric amount (e.g., 1234.56), or null if parsing fails.
  */
-export function parseCurrency(formattedString: string): number | null {
+export function parseCurrency(formattedString: string, locale: string): number | null {
   if (typeof formattedString !== 'string' || !formattedString) return null;
-
-  const localeStore = useLocaleStore();
-  const locale = localeStore.currentLocale;
 
   try {
     // 1. Get the locale's separators by formatting a dummy number
@@ -72,7 +68,7 @@ export function parseCurrency(formattedString: string): number | null {
 
   } catch (e) {
     // This catch block handles internal formatting errors, unlikely for simple inputs.
-    console.error("Failed to parse currency string:", e);
+    // logException(e, { store: "currencyParser", action: "Parse currency string", data: {formattedString, locale}});
     return null;
   }
 }

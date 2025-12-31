@@ -11,7 +11,7 @@ const selectedLocale = ref(localeStore.currentLocale);
 
 const locales = computed(() =>
   localeStore.availableLocales.map((loc) => ({
-    label: loc.label,
+    label: loc.name,
     value: loc.code,
   }))
 );

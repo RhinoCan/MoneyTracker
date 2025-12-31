@@ -3,6 +3,8 @@
 import { computed } from 'vue';
 import { format } from 'date-fns';
 import { useDateFormatStore } from '@/stores/DateFormatStore';
+import { logWarning } from '@/utils/Logger';
+
 // You still need to import DateFormatTemplate, but only for the store's type checking
 
 /**
@@ -28,6 +30,10 @@ export function useDateFormatter() {
         }
 
         const dateObject = new Date(dateInput);
+
+        if (isNaN(dateObject.getTime())) {
+          logWarning("Input value to formatDate() is not a valid date", { module: "useDateFormatter", action: "formatDate()", data: dateInput})
+        }
 
         // USE THE STORE'S VALUE DIRECTLY, as it is already the token string.
         const formatString = activeTemplate.value; // <--- The Fix!

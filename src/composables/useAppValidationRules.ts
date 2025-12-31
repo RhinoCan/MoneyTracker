@@ -1,9 +1,11 @@
 import { isAfter, isBefore, startOfYear, startOfDay, endOfYesterday, parseISO } from 'date-fns';
+import { logWarning } from '@/utils/Logger';
+import { parseCurrency } from "@/utils/currencyParser"
 
 /**
  * Provides a set of reusable validation rules for Vuetify form components.
  */
-export function useAppValidationRules() {
+export function useAppValidationRules(locale: string) {
     // ----------------------------------------------------
     // --- Date Checks (Calculated once per component load) ---
     // ----------------------------------------------------
@@ -17,8 +19,11 @@ export function useAppValidationRules() {
     // --- 1. Basic Rules ---
     // ----------------------------------------------------
 
-    const required = (v: string | number | null | undefined) =>
-        (!!v && v !== '') || 'This field is required.';
+    const required = (v: any) =>
+        !!v || 'This field is required. Zero is not allowed.';
+
+    const requiredZeroOk = (v: any) =>
+      (v !== null && v !== undefined && v !== '') || 'This field is required. Zero is allowed.'
 
     // Rule for Transaction Type Radio Group
     const transactionTypeRequired = (v: string | null) =>
@@ -43,6 +48,11 @@ export function useAppValidationRules() {
 
         // parseISO handles the YYYY-MM-DD format correctly.
         const parsedDate = parseISO(v);
+
+        if(isNaN(parsedDate.getTime())) {
+          logWarning("parse(ISO) returned a date that is in the wrong format.", { module: "useAppValidationRules", action: "parseISO", data: v })
+          return 'Invalid date format.';
+        }
 
         //Normalize the input date to start of its day for clean comparison
         const inputDateStart = startOfDay(parsedDate);
@@ -76,17 +86,17 @@ export function useAppValidationRules() {
     const amountValidations = (v: string) => {
         // We use a basic scrubbing to get a number here, but your component's logic is the source of truth.
         // This is mainly to validate the string as a number > 0.
-        const scrubbedValue = v.replace(/[^0-9.]/g, '');
-        const parsedAmount = parseFloat(scrubbedValue);
+        const parsedAmount = parseCurrency(v, locale);
 
         return (
-            (!!parsedAmount && parsedAmount > 0) ||
+            (parsedAmount !== null && parsedAmount > 0) ||
             "Amount must be supplied and must be greater than zero"
         );
     };
 
     return {
         required: required,
+        requiredZeroOk,
         transactionTypeRequired,
         dateRangeRule,
         amountValidations,

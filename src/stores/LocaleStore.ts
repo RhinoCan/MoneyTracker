@@ -1,7 +1,8 @@
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
 import { defaultLocale, LocaleOption, appName } from "@/utils/SystemDefaults.ts";
-import { localeList } from "@/utils/localeList.ts";
+import { localeList, type LocaleItem } from "@/utils/localeList.ts";
+import { logException } from "@/utils/Logger";
 
 interface LocaleSettings {
   locale: string;
@@ -20,7 +21,7 @@ export const useLocaleStore = defineStore("storeLocale", () => {
       const parsed = JSON.parse(savedJSON) as LocaleSettings;
       initialLocaleValue = parsed.locale;
     } catch (e) {
-      console.error("Failed to parse Locale storage, falling back to default", e);
+      logException(e, { module: "Locale", action: "Read from localStorage", data: savedJSON});
       initialLocaleValue = defaultLocale;
     }
   } else {
@@ -29,43 +30,37 @@ export const useLocaleStore = defineStore("storeLocale", () => {
 
   // 2. STATE
   const currentLocale = ref(initialLocaleValue);
-  const isLocaleReady = ref(!!savedJSON); // Ready if we loaded from disk, otherwise false until updated
 
   // 3. COMPUTED & HELPERS
-  const availableLocales = ref<LocaleOption[]>(
-    localeList.map((item) => ({
-      code: item.code,
-      label: (item as any).name,
-    }))
-  );
-
-  const currentLocaleOption = computed<LocaleOption | undefined>(() => {
-    const canonicalizeCode = (code: string): string => {
-      const parts = code.split("-");
-      if (parts.length > 1) {
-        return `${parts[0].toLowerCase()}-${parts[1].toUpperCase()}`;
-      }
-      return code.toLowerCase();
-    };
-
-    const lookupCode = canonicalizeCode(currentLocale.value);
-    return availableLocales.value.find((loc) => loc.code === lookupCode);
-  });
+  const canonicalizeCode = (code: string): string => {
+    if (!code) return "";
+    const parts = code.split("-");
+    if (parts.length > 1) {
+      return `${parts[0].toLowerCase()}-${parts[1].toUpperCase()}`;
+    }
+    return code.toLowerCase();
+  }
+  const availableLocales = ref<LocaleItem[]>(localeList);
 
   // 4. ACTIONS
   function updateLocale(newLocale: string) {
-    currentLocale.value = newLocale;
-    isLocaleReady.value = true;
+    try {
+      const cleanCode = canonicalizeCode(newLocale);
+      const exists = availableLocales.value.some(loc => loc.code === cleanCode);
+      const finalValue = exists ? cleanCode : defaultLocale;
 
-    // Persist as a JSON object to match your other stores
-    const objOutput: LocaleSettings = { locale: newLocale };
-    localStorage.setItem(getKey, JSON.stringify(objOutput));
+      currentLocale.value = finalValue;
+
+      // Persist as a JSON object to match your other stores
+      const objOutput: LocaleSettings = { locale: finalValue };
+      localStorage.setItem(getKey, JSON.stringify(objOutput));
+    } catch (e) {
+      logException(e, { module: "Locale", action: "Update Locale", data: newLocale });
+    }
   }
 
   return {
     currentLocale,
-    isLocaleReady,
-    currentLocaleOption,
     availableLocales,
     updateLocale,
   };
