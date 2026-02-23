@@ -16,9 +16,9 @@ const { t } = useI18n();
 const storeTransaction = useTransactionStore();
 const { displayMoney } = useCurrencyFormatter();
 const { formatForUI, toISODateString } = useDateFormatter();
-const { required, transactionTypeRequired, dateRules, amountRules } =
-  useAppValidationRules();
-const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
+const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
+const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } =
+  useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
 
@@ -31,27 +31,20 @@ const localTransaction = ref<Transaction | null>(null);
 // Date picker needs a Date object
 const pickerDate = ref<Date>(new Date());
 
-const {
-  displayAmount,
-  isFocused,
-  colorClass,
-  handleFocus,
-  handleBlur,
-  dateMenu,
-  closeDatePicker,
-} = useTransactionFormFields(localTransaction);
+const { displayAmount, isFocused, colorClass, handleFocus, handleBlur, dateMenu, closeDatePicker } =
+  useTransactionFormFields(localTransaction);
 
 // Amount format hint
 const amountHint = computed(() => {
   if (!isFocused.value || !displayAmount.value) {
-    return t('common.format', { example: amountExample.value });
+    return t("common.format", { example: amountExample.value });
   }
 
   if (!hasCorrectSeparator(displayAmount.value)) {
-    return t('common.wrongSeparator', { separator: decimalSeparator.value });
+    return t("common.wrongSeparator", { separator: decimalSeparator.value });
   }
 
-  return t('common.format', { example: amountExample.value });
+  return t("common.format", { example: amountExample.value });
 });
 
 /**
@@ -81,7 +74,7 @@ watch(
       }
     }
   },
-  { immediate: true },
+  { immediate: true }
 );
 
 function closeDialog() {
@@ -107,9 +100,9 @@ async function onSubmit(event: SubmitEventPromise) {
   handleBlur();
   const { valid } = await event;
   if (!valid || !localTransaction.value || !model.value) {
-    logValidation(t('common.invalidAmount'), {
+    logValidation(t("common.invalidAmount"), {
       module: "UpdateTransaction",
-      action: "onSubmit"
+      action: "onSubmit",
     });
     return;
   }
@@ -120,9 +113,7 @@ async function onSubmit(event: SubmitEventPromise) {
   if (localTransaction.value.description !== model.value.description) {
     changes.description = localTransaction.value.description;
   }
-  if (
-    localTransaction.value.transaction_type !== model.value.transaction_type
-  ) {
+  if (localTransaction.value.transaction_type !== model.value.transaction_type) {
     changes.transaction_type = localTransaction.value.transaction_type;
   }
   if (localTransaction.value.amount !== model.value.amount) {
@@ -147,18 +138,15 @@ async function onSubmit(event: SubmitEventPromise) {
 
   // 3. Change Detection Guard
   if (Object.keys(changes).length === 0) {
-    storeTransaction.error = t('updateDialog.noChanges');
+    storeTransaction.error = t("updateDialog.noChanges");
     closeDialog();
     return;
   }
 
   try {
-    await storeTransaction.updateTransaction(
-      localTransaction.value.id,
-      changes,
-    );
+    await storeTransaction.updateTransaction(localTransaction.value.id, changes);
 
-    logSuccess(t('updateDialog.success'), {
+    logSuccess(t("updateDialog.success"), {
       module: "UpdateTransaction",
       action: "onSubmit",
       data: {
@@ -189,20 +177,30 @@ async function onSubmit(event: SubmitEventPromise) {
     <v-card color="surface" elevation="12" class="rounded-lg">
       <v-card-title class="bg-primary text-on-primary d-flex align-center pr-2">
         <v-icon start icon="mdi-pencil-box-outline" />
-        {{ t('updateDialog.title') }}
+        {{ t("updateDialog.title") }}
         <v-spacer />
         <v-tooltip :text="t('common.help')">
           <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" :aria-label="t('common.help')"
-            icon="mdi-help"
-            variant="text" size="small" @click="showKeyboardShortcuts =true"/>
+            <v-btn
+              v-bind="props"
+              :aria-label="t('common.help')"
+              icon="mdi-help"
+              variant="text"
+              size="small"
+              @click="showKeyboardShortcuts = true"
+            />
           </template>
         </v-tooltip>
         <v-tooltip :text="t('common.close')">
           <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" aria-lable="t('common.close')"
-            icon="mdi-close"
-            variant="text" size="small" @click="closeDialog"/>
+            <v-btn
+              v-bind="props"
+              aria-lable="t('common.close')"
+              icon="mdi-close"
+              variant="text"
+              size="small"
+              @click="closeDialog"
+            />
           </template>
         </v-tooltip>
       </v-card-title>
@@ -254,16 +252,8 @@ async function onSubmit(event: SubmitEventPromise) {
                 :label="t('common.type')"
                 hide-details
               >
-                <v-radio
-                  :label="t('common.Income')"
-                  value="Income"
-                  color="success"
-                />
-                <v-radio
-                  :label="t('common.Expense')"
-                  value="Expense"
-                  color="error"
-                />
+                <v-radio :label="t('common.Income')" value="Income" color="success" />
+                <v-radio :label="t('common.Expense')" value="Expense" color="error" />
               </v-radio-group>
             </v-col>
 
@@ -288,12 +278,7 @@ async function onSubmit(event: SubmitEventPromise) {
         <v-divider />
 
         <v-card-actions class="pa-4">
-          <v-btn
-            :text="t('common.cancel')"
-            variant="text"
-            color="secondary"
-            @click="closeDialog"
-          />
+          <v-btn :text="t('common.cancel')" variant="text" color="secondary" @click="closeDialog" />
           <v-spacer />
           <v-btn
             :text="t('updateDialog.btnUpdate')"

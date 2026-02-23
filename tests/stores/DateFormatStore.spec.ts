@@ -13,7 +13,7 @@ const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoi
 }));
 
 // Mock the Logger module using the hoisted functions
-vi.mock('@/utils/Logger', () => ({
+vi.mock("@/utils/Logger", () => ({
   logException: mockLogException,
   logWarning: mockLogWarning,
   logInfo: mockLogInfo,
@@ -67,9 +67,7 @@ describe("DateFormatStore", () => {
 
     it("Init > when determineDateFormatFromCountry returns null, then use ISO fallback", async () => {
       // Mock the function to return null
-      const { determineDateFormatFromCountry } = await import(
-        "@/utils/dateFormatMapper.ts"
-      );
+      const { determineDateFormatFromCountry } = await import("@/utils/dateFormatMapper.ts");
       vi.mocked(determineDateFormatFromCountry).mockReturnValue(null as any);
 
       vi.resetModules();
@@ -82,9 +80,7 @@ describe("DateFormatStore", () => {
 
     it("Init > when determineDateFormatFromCountry throws an error, then log exception and use ISO fallback", async () => {
       // 1. Arrange: Make the mapper THROW an error instead of returning a value
-      const { determineDateFormatFromCountry } = await import(
-        "@/utils/dateFormatMapper.ts"
-      );
+      const { determineDateFormatFromCountry } = await import("@/utils/dateFormatMapper.ts");
       vi.mocked(determineDateFormatFromCountry).mockImplementation(() => {
         throw new Error("Mapper Crash");
       });
@@ -167,24 +163,16 @@ describe("DateFormatStore", () => {
       const storageKey = `${appName}.DateFormat`;
 
       store.setDateFormat(DateFormatTemplate.USA);
-      expect(JSON.parse(localStorage.getItem(storageKey)!).dateFormat).toBe(
-        DateFormatTemplate.USA
-      );
+      expect(JSON.parse(localStorage.getItem(storageKey)!).dateFormat).toBe(DateFormatTemplate.USA);
 
       store.setDateFormat(DateFormatTemplate.EUR);
-      expect(JSON.parse(localStorage.getItem(storageKey)!).dateFormat).toBe(
-        DateFormatTemplate.EUR
-      );
+      expect(JSON.parse(localStorage.getItem(storageKey)!).dateFormat).toBe(DateFormatTemplate.EUR);
     });
 
     it("Set > when setDateFormat is called, then store all DateFormatTemplate values correctly", () => {
       const store = useDateFormatStore();
 
-      const formats = [
-        DateFormatTemplate.ISO,
-        DateFormatTemplate.USA,
-        DateFormatTemplate.EUR,
-      ];
+      const formats = [DateFormatTemplate.ISO, DateFormatTemplate.USA, DateFormatTemplate.EUR];
 
       formats.forEach((format) => {
         store.setDateFormat(format);
@@ -238,12 +226,8 @@ describe("DateFormatStore", () => {
       setActivePinia(createPinia());
 
       // Need to re-import the mocked module after resetModules
-      const { determineDateFormatFromCountry } = await import(
-        "@/utils/dateFormatMapper.ts"
-      );
-      vi.mocked(determineDateFormatFromCountry).mockReturnValue(
-        DateFormatTemplate.USA
-      );
+      const { determineDateFormatFromCountry } = await import("@/utils/dateFormatMapper.ts");
+      vi.mocked(determineDateFormatFromCountry).mockReturnValue(DateFormatTemplate.USA);
 
       const newStore = useDateFormatStore();
 
@@ -254,9 +238,7 @@ describe("DateFormatStore", () => {
 
   describe("Integration with determineDateFormatFromCountry", () => {
     it("Integration > when there is no stored value in localStorage, then the store should call determineDateFormatFromCountry with defaultCountry on initialization", async () => {
-      const { determineDateFormatFromCountry } = await import(
-        "@/utils/dateFormatMapper.ts"
-      );
+      const { determineDateFormatFromCountry } = await import("@/utils/dateFormatMapper.ts");
 
       vi.resetModules();
       setActivePinia(createPinia());
@@ -270,9 +252,7 @@ describe("DateFormatStore", () => {
       const savedData = { dateFormat: DateFormatTemplate.EUR };
       localStorage.setItem(storageKey, JSON.stringify(savedData));
 
-      const { determineDateFormatFromCountry } = await import(
-        "@/utils/dateFormatMapper.ts"
-      );
+      const { determineDateFormatFromCountry } = await import("@/utils/dateFormatMapper.ts");
       vi.mocked(determineDateFormatFromCountry).mockClear();
 
       vi.resetModules();
@@ -331,7 +311,9 @@ describe("DateFormatStore", () => {
       const store = useDateFormatStore();
 
       expect(mockLogInfo).toHaveBeenCalledWith(
-        expect.stringContaining("There was no saved date format; initializing with a default. The date format can be changed in the Settings dialog."),
+        expect.stringContaining(
+          "There was no saved date format; initializing with a default. The date format can be changed in the Settings dialog."
+        ),
         expect.objectContaining({
           module: "DateFormat",
           action: "Initialize date format (1)",
@@ -369,9 +351,7 @@ describe("DateFormatStore", () => {
 
       // Change to a different format
       const newFormat =
-        initialFormat === DateFormatTemplate.ISO
-          ? DateFormatTemplate.EUR
-          : DateFormatTemplate.ISO;
+        initialFormat === DateFormatTemplate.ISO ? DateFormatTemplate.EUR : DateFormatTemplate.ISO;
 
       store.setDateFormat(newFormat);
 

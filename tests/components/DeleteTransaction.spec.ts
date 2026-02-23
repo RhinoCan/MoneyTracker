@@ -8,13 +8,12 @@ import type { Transaction } from "@/types/Transaction";
 import { logInfo } from "@/utils/Logger";
 
 // Hoist the mock functions so they're available to the mock factory
-const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } =
-  vi.hoisted(() => ({
-    mockLogException: vi.fn(),
-    mockLogWarning: vi.fn(),
-    mockLogInfo: vi.fn(),
-    mockLogSuccess: vi.fn(),
-  }));
+const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoisted(() => ({
+  mockLogException: vi.fn(),
+  mockLogWarning: vi.fn(),
+  mockLogInfo: vi.fn(),
+  mockLogSuccess: vi.fn(),
+}));
 
 // Mock the Logger module using the hoisted functions
 vi.mock("@/utils/Logger", () => ({
@@ -96,9 +95,7 @@ describe("DeleteTransaction.vue", () => {
     });
 
     const buttons = wrapper.findAll("button");
-    const deleteBtn = buttons.find((b) =>
-      b.text().includes("Delete Transaction")
-    );
+    const deleteBtn = buttons.find((b) => b.text().includes("Delete Transaction"));
 
     await deleteBtn?.trigger("click");
 
@@ -139,8 +136,7 @@ describe("DeleteTransaction.vue", () => {
     const wrapper = mount(DeleteTransaction, {
       props: {
         modelValue: mockTransaction,
-        "onUpdate:modelValue": (val: any) =>
-          wrapper.setProps({ modelValue: val }),
+        "onUpdate:modelValue": (val: any) => wrapper.setProps({ modelValue: val }),
       },
       ...globalMountOptions,
     });
@@ -163,8 +159,7 @@ describe("DeleteTransaction.vue", () => {
     const wrapper = mount(DeleteTransaction, {
       props: {
         modelValue: mockTransaction,
-        "onUpdate:modelValue": (val: any) =>
-          wrapper.setProps({ modelValue: val }),
+        "onUpdate:modelValue": (val: any) => wrapper.setProps({ modelValue: val }),
       },
       ...globalMountOptions,
     });

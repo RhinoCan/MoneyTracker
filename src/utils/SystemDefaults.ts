@@ -38,9 +38,7 @@ export const defaultLocale = navigator.language || "en-US";
 
 const localeParts = defaultLocale.split("-");
 export const defaultCountry =
-  localeParts.length > 1
-    ? localeParts[localeParts.length - 1].toUpperCase()
-    : "US";
+  localeParts.length > 1 ? localeParts[localeParts.length - 1].toUpperCase() : "US";
 
 // --- 2. Determine Default Currency Code ---
 let detectedCurrency = "USD";
@@ -62,25 +60,19 @@ try {
       action: "detectCurrency",
       slug: t("defaults.currency_detection_failed"),
       data: { locale: defaultLocale },
-    }),
+    })
   );
 }
 
 export const defaultCurrencyCode = detectedCurrency;
 
-export function getCurrencyDisplayNames(
-  currency: string,
-  locale: string
-) {
+export function getCurrencyDisplayNames(currency: string, locale: string) {
   const english = new Intl.DisplayNames("en", { type: "currency" });
   const local = new Intl.DisplayNames(locale, { type: "currency" });
 
   return {
     code: currency,
     english: english.of(currency) ?? currency,
-    local: local.of(currency) ?? currency
+    local: local.of(currency) ?? currency,
   };
 }
-
-
-

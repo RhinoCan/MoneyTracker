@@ -15,8 +15,8 @@ const { displayMoney } = useCurrencyFormatter();
  * Ensures we always have a valid number even if the prop is messy.
  */
 const numericAmount = computed(() => {
-  const val = typeof props.amount === 'string' ? parseFloat(props.amount) : props.amount;
-  return (val !== null && !isNaN(val as number)) ? (val as number) : 0;
+  const val = typeof props.amount === "string" ? parseFloat(props.amount) : props.amount;
+  return val !== null && !isNaN(val as number) ? (val as number) : 0;
 });
 
 /**

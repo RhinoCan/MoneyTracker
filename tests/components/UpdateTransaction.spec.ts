@@ -231,9 +231,7 @@ describe("UpdateTransaction", () => {
     it("closes dialog when X button is clicked", async () => {
       // Find buttons more carefully
       const buttons = wrapper.findAllComponents({ name: "VBtn" });
-      const closeBtn = buttons.find(
-        (btn) => btn.attributes("aria-label") === "Close dialog"
-      );
+      const closeBtn = buttons.find((btn) => btn.attributes("aria-label") === "Close dialog");
 
       if (closeBtn) {
         await closeBtn.trigger("click");
@@ -247,9 +245,7 @@ describe("UpdateTransaction", () => {
 
     it("opens keyboard shortcuts dialog", async () => {
       const buttons = wrapper.findAllComponents({ name: "VBtn" });
-      const helpBtn = buttons.find(
-        (btn) => btn.attributes("aria-label") === "Help"
-      );
+      const helpBtn = buttons.find((btn) => btn.attributes("aria-label") === "Help");
 
       if (helpBtn) {
         await helpBtn.trigger("click");
@@ -470,9 +466,7 @@ describe("UpdateTransaction", () => {
       // Now localTransaction definitely exists
       (wrapper.vm as any).localTransaction.date = null as any;
 
-      const consoleErrorSpy = vi
-        .spyOn(console, "error")
-        .mockImplementation(() => {});
+      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
 
       const mockEvent = {
         then: (cb: any) => {
@@ -483,9 +477,7 @@ describe("UpdateTransaction", () => {
 
       await wrapper.vm.onSubmit(mockEvent);
 
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        "Missing local transaction or date on submit"
-      );
+      expect(consoleErrorSpy).toHaveBeenCalledWith("Missing local transaction or date on submit");
 
       consoleErrorSpy.mockRestore();
     });
@@ -767,12 +759,10 @@ describe("UpdateTransaction", () => {
 
       // Trigger the radio group and dialog bridges one last time
       const radioGroup = wrapper.findComponent({ name: "VRadioGroup" });
-      if (radioGroup.exists())
-        await radioGroup.vm.$emit("update:modelValue", "Income");
+      if (radioGroup.exists()) await radioGroup.vm.$emit("update:modelValue", "Income");
 
       const rootDialog = wrapper.findComponent({ name: "VDialog" });
-      if (rootDialog.exists())
-        await rootDialog.vm.$emit("update:modelValue", false);
+      if (rootDialog.exists()) await rootDialog.vm.$emit("update:modelValue", false);
 
       await nextTick();
       expect(true).toBe(true);

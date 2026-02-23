@@ -13,9 +13,9 @@ export type Transaction = {
 };
 
 // New transaction without database-generated fields
-export type NewTransaction = Omit<Transaction, 'id' | 'user_id' | 'created_at'>;
+export type NewTransaction = Omit<Transaction, "id" | "user_id" | "created_at">;
 
 export const TransactionTypeValues = {
-  Income: 'Income' as const,
-  Expense: 'Expense' as const,
+  Income: "Income" as const,
+  Expense: "Expense" as const,
 };

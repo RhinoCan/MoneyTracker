@@ -49,8 +49,7 @@ describe("TransactionHistory.vue", () => {
           props: ["icon"],
         },
         VBtn: {
-          template:
-            '<button class="v-btn-stub" @click="$emit(\'click\')"><slot /></button>',
+          template: '<button class="v-btn-stub" @click="$emit(\'click\')"><slot /></button>',
         },
         VAlert: { template: "<div><slot /></div>" },
         VDataTable: {
@@ -142,45 +141,41 @@ describe("TransactionHistory.vue", () => {
     // Verify the stub in globalOptions has: VIcon: { template: '<i class="v-icon-stub" :data-icon="icon"></i>', props: ['icon'] }
     const icons = wrapper.findAll(".v-icon-stub");
 
-    const hasArrowUp = icons.some(
-      (i) => i.attributes("data-icon") === "mdi-arrow-up"
-    );
-    const hasSortIcon = icons.some(
-      (i) => i.attributes("data-icon") === "mdi-sort-ascending"
-    );
+    const hasArrowUp = icons.some((i) => i.attributes("data-icon") === "mdi-arrow-up");
+    const hasSortIcon = icons.some((i) => i.attributes("data-icon") === "mdi-sort-ascending");
 
     expect(hasArrowUp).toBe(true);
     expect(hasSortIcon).toBe(true);
   });
 
-it("covers v-model setter functions for search and dialogs", async () => {
-  const wrapper = mount(TransactionHistory, globalOptions);
+  it("covers v-model setter functions for search and dialogs", async () => {
+    const wrapper = mount(TransactionHistory, globalOptions);
 
-  // 1. Cover Search v-model setter
-  // Instead of finding VTextField, we trigger the event the template is listening for
-  await wrapper.find('input').trigger('input'); // Or call the setter directly:
-  (wrapper.vm as any).search = 'New Search Term';
+    // 1. Cover Search v-model setter
+    // Instead of finding VTextField, we trigger the event the template is listening for
+    await wrapper.find("input").trigger("input"); // Or call the setter directly:
+    (wrapper.vm as any).search = "New Search Term";
 
-  // 2. Cover Dialog v-model setters
-  // These are the anonymous functions: (val) => (selectedItemDelete.value = val)
-  // We can trigger them by finding the stubbed components by their variable names
-  const deleteStub = wrapper.findComponent({ name: 'DeleteTransaction' });
-  const updateStub = wrapper.findComponent({ name: 'UpdateTransaction' });
+    // 2. Cover Dialog v-model setters
+    // These are the anonymous functions: (val) => (selectedItemDelete.value = val)
+    // We can trigger them by finding the stubbed components by their variable names
+    const deleteStub = wrapper.findComponent({ name: "DeleteTransaction" });
+    const updateStub = wrapper.findComponent({ name: "UpdateTransaction" });
 
-  // If findComponent still fails, we trigger via the 'stubs' reference
-  if (deleteStub.exists()) {
-    await deleteStub.vm.$emit('update:modelValue', null);
-  } else {
-    // Direct manual call to ensure the function is executed for the coverage tool
-    (wrapper.vm as any).selectedItemDelete = null;
-  }
+    // If findComponent still fails, we trigger via the 'stubs' reference
+    if (deleteStub.exists()) {
+      await deleteStub.vm.$emit("update:modelValue", null);
+    } else {
+      // Direct manual call to ensure the function is executed for the coverage tool
+      (wrapper.vm as any).selectedItemDelete = null;
+    }
 
-  if (updateStub.exists()) {
-    await updateStub.vm.$emit('update:modelValue', null);
-  } else {
-    (wrapper.vm as any).selectedItemUpdate = null;
-  }
+    if (updateStub.exists()) {
+      await updateStub.vm.$emit("update:modelValue", null);
+    } else {
+      (wrapper.vm as any).selectedItemUpdate = null;
+    }
 
-  expect((wrapper.vm as any).search).toBe('New Search Term');
-});
+    expect((wrapper.vm as any).search).toBe("New Search Term");
+  });
 });

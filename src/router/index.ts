@@ -1,9 +1,5 @@
 // @/router/index.ts
-import {
-  createRouter,
-  createWebHistory,
-  type RouteRecordRaw,
-} from "vue-router";
+import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import { supabase } from "@/lib/supabase";
 import { logException } from "@/lib/Logger";
 import { i18n } from "@/i18n";

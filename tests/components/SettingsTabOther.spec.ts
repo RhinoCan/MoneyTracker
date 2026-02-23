@@ -135,9 +135,7 @@ describe("SettingsTabOther", () => {
 
   describe("UI Elements", () => {
     it("renders the container with instructions", () => {
-      expect(wrapper.text()).toContain(
-        "This is the current value of the timeout"
-      );
+      expect(wrapper.text()).toContain("This is the current value of the timeout");
       expect(wrapper.text()).toContain("Save Changes");
     });
 

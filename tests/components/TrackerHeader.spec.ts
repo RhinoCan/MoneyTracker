@@ -15,9 +15,9 @@ describe("TrackerHeader.vue", () => {
       },
       components: {
         VChip,
-        VBtn
-      }
-    }
+        VBtn,
+      },
+    },
   };
 
   it("renders with 'Dev Server' environment by default", () => {
@@ -51,16 +51,15 @@ describe("TrackerHeader.vue", () => {
   });
 
   it("updates showSettings when the dialog emits update:modelValue", async () => {
-  const wrapper = mount(TrackerHeader, mountOptions);
+    const wrapper = mount(TrackerHeader, mountOptions);
 
-  // 1. Manually trigger the event that v-model listens for
-  const dialog = wrapper.findComponent({ name: 'v-dialog' });
-  await dialog.vm.$emit("update:modelValue", true);
-  expect((wrapper.vm as any).showSettings).toBe(true);
+    // 1. Manually trigger the event that v-model listens for
+    const dialog = wrapper.findComponent({ name: "v-dialog" });
+    await dialog.vm.$emit("update:modelValue", true);
+    expect((wrapper.vm as any).showSettings).toBe(true);
 
-  // 2. Trigger it again with false to fully exercise the logic
-  await dialog.vm.$emit("update:modelValue", false);
-  expect((wrapper.vm as any).showSettings).toBe(false);
-});
-
+    // 2. Trigger it again with false to fully exercise the logic
+    await dialog.vm.$emit("update:modelValue", false);
+    expect((wrapper.vm as any).showSettings).toBe(false);
+  });
 });

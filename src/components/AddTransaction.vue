@@ -18,7 +18,8 @@ const settingsStore = useSettingsStore();
 const storeTransaction = useTransactionStore();
 const { formatForUI, toISODateString } = useDateFormatter();
 const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
-const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
+const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } =
+  useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
 const newTransactionForm = ref();
@@ -41,26 +42,26 @@ const pickerDate = ref<Date>(new Date());
 
 // Display date in localized format for the text field
 const formattedDisplayDate = computed(() => {
-  return transaction.value?.date ? formatForUI(transaction.value.date) : '';
+  return transaction.value?.date ? formatForUI(transaction.value.date) : "";
 });
 
 // Amount format hint
 const amountHint = computed(() => {
   if (!isFocused.value || !displayAmount.value) {
-    return t('common.format', { example: amountExample.value });
+    return t("common.format", { example: amountExample.value });
   }
 
   if (!hasCorrectSeparator(displayAmount.value)) {
-    return t('common.wrongSeparator', { separator: decimalSeparator.value });
+    return t("common.wrongSeparator", { separator: decimalSeparator.value });
   }
 
-  return t('common.format', { example: amountExample.value });
+  return t("common.format", { example: amountExample.value });
 });
 
 // Rules object for the template
 const rules = {
   required,
-  dateRequired: (v: string) => dateRules(transaction.value?.date || ''),
+  dateRequired: (v: string) => dateRules(transaction.value?.date || ""),
   transactionTypeRequired,
   amountRules,
 };
@@ -85,7 +86,7 @@ async function onSubmit(event: SubmitEventPromise) {
   const { valid } = await event;
 
   if (!valid || !transaction.value) {
-    logValidation(t('common.invalidAmount'), {
+    logValidation(t("common.invalidAmount"), {
       module: "AddTransaction",
       action: "onSubmit",
     });
@@ -96,9 +97,9 @@ async function onSubmit(event: SubmitEventPromise) {
     const finalAmount = transaction.value.amount;
     if (!finalAmount || finalAmount <= 0) {
       logException(new Error("Validation failed: Amount is missing or negative."), {
-        module: 'AddTransaction',
-        action: 'onSubmit',
-        slug: t('addTrans.err_missing_or_negative')
+        module: "AddTransaction",
+        action: "onSubmit",
+        slug: t("addTrans.err_missing_or_negative"),
       });
       return;
     }
@@ -112,9 +113,9 @@ async function onSubmit(event: SubmitEventPromise) {
 
     await storeTransaction.addTransaction(newTransaction);
 
-    logSuccess(t('addTrans.success'), {
-      module: 'AddTransaction',
-      action: 'onSubmit'
+    logSuccess(t("addTrans.success"), {
+      module: "AddTransaction",
+      action: "onSubmit",
     });
 
     resetForm();
@@ -124,9 +125,9 @@ async function onSubmit(event: SubmitEventPromise) {
     }
   } catch (error) {
     logException(error, {
-      module: 'AddTransaction',
-      action: 'onSubmit',
-      slug: t('addTrans.submit_failed')
+      module: "AddTransaction",
+      action: "onSubmit",
+      slug: t("addTrans.submit_failed"),
     });
   }
 }
@@ -154,14 +155,19 @@ function resetForm() {
 <template>
   <v-card elevation="8" color="surface" class="mx-auto">
     <v-card-title class="bg-primary text-on-primary d-flex align-center justify-space-between">
-      {{ t('addTrans.title') }}
-        <v-tooltip :text="t('common.help')">
-          <template v-slot:activator="{ props }">
-            <v-btn v-bind="props" :aria-label="t('common.help')"
+      {{ t("addTrans.title") }}
+      <v-tooltip :text="t('common.help')">
+        <template v-slot:activator="{ props }">
+          <v-btn
+            v-bind="props"
+            :aria-label="t('common.help')"
             icon="mdi-help"
-            variant="text" size="small" @click="showKeyboardShortcuts =true"/>
-          </template>
-        </v-tooltip>
+            variant="text"
+            size="small"
+            @click="showKeyboardShortcuts = true"
+          />
+        </template>
+      </v-tooltip>
     </v-card-title>
 
     <v-form ref="newTransactionForm" @submit.prevent="onSubmit" class="pa-4">
@@ -173,11 +179,7 @@ function resetForm() {
         prepend-inner-icon="mdi-format-text"
       />
 
-      <v-menu
-        v-model="dateMenu"
-        :close-on-content-click="false"
-        location="bottom center"
-      >
+      <v-menu v-model="dateMenu" :close-on-content-click="false" location="bottom center">
         <template v-slot:activator="{ props }">
           <v-text-field
             v-bind="props"
@@ -190,11 +192,7 @@ function resetForm() {
             prepend-inner-icon="mdi-calendar"
           />
         </template>
-        <v-date-picker
-          v-model="pickerDate"
-          @update:model-value="onDateSelected"
-          color="primary"
-        />
+        <v-date-picker v-model="pickerDate" @update:model-value="onDateSelected" color="primary" />
       </v-menu>
 
       <v-radio-group
@@ -203,8 +201,16 @@ function resetForm() {
         :label="t('addTrans.labelType')"
         :rules="[rules.transactionTypeRequired]"
       >
-        <v-radio :label="t('addTrans.labelIncome')" :value="TransactionTypeValues.Income" color="success" />
-        <v-radio :label="t('addTrans.labelExpense')" :value="TransactionTypeValues.Expense" color="error" />
+        <v-radio
+          :label="t('addTrans.labelIncome')"
+          :value="TransactionTypeValues.Income"
+          color="success"
+        />
+        <v-radio
+          :label="t('addTrans.labelExpense')"
+          :value="TransactionTypeValues.Expense"
+          color="error"
+        />
       </v-radio-group>
 
       <v-text-field
@@ -221,27 +227,21 @@ function resetForm() {
       />
 
       <div class="d-flex justify-end mt-4">
-        <v-btn
-          variant="outlined"
-          color="secondary"
-          class="mr-2"
-          @click="resetForm"
-        >
-          {{ t('addTrans.btnReset') }}
+        <v-btn variant="outlined" color="secondary" class="mr-2" @click="resetForm">
+          {{ t("addTrans.btnReset") }}
         </v-btn>
 
-        <v-btn
-          type="submit"
-          color="primary"
-          elevation="4"
-        >
-          {{ t('addTrans.btnAdd') }}
+        <v-btn type="submit" color="primary" elevation="4">
+          {{ t("addTrans.btnAdd") }}
         </v-btn>
       </div>
     </v-form>
 
     <v-dialog v-model="showKeyboardShortcuts" max-width="400">
-      <KeyboardShortcutsDialog v-if="showKeyboardShortcuts" @close="showKeyboardShortcuts = false" />
+      <KeyboardShortcutsDialog
+        v-if="showKeyboardShortcuts"
+        @close="showKeyboardShortcuts = false"
+      />
     </v-dialog>
   </v-card>
 </template>

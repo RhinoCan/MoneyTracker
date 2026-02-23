@@ -76,9 +76,7 @@ describe("SettingsDialog", () => {
   });
 
   it("closes on Cancel click", async () => {
-    const cancelBtn = wrapper
-      .findAll("button")
-      .find((b) => b.text().includes("Cancel"));
+    const cancelBtn = wrapper.findAll("button").find((b) => b.text().includes("Cancel"));
     await cancelBtn?.trigger("click");
     expect(wrapper.emitted("close")).toBeTruthy();
   });
@@ -87,9 +85,7 @@ describe("SettingsDialog", () => {
     // Access the exposed spies from the refs
     const localeSpy = wrapper.vm.localeRef.saveChanges;
 
-    const saveBtn = wrapper
-      .findAll("button")
-      .find((b) => b.text().includes("Save Changes"));
+    const saveBtn = wrapper.findAll("button").find((b) => b.text().includes("Save Changes"));
     await saveBtn?.trigger("click");
 
     expect(localeSpy).toHaveBeenCalled();

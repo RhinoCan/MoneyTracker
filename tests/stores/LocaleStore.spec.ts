@@ -48,9 +48,7 @@ describe("LocaleStore", () => {
       const store = useLocaleStore();
       store.updateLocale("ja-JP");
       expect(store.currentLocale).toBe("ja-JP");
-      expect(JSON.parse(localStorage.getItem(storageKey)!).locale).toBe(
-        "ja-JP"
-      );
+      expect(JSON.parse(localStorage.getItem(storageKey)!).locale).toBe("ja-JP");
     });
 
     it("Update > when cases of locales are incorrect, then they should be canonicalized correctly (e.g., fr-fr -> fr-FR)", () => {
@@ -87,11 +85,9 @@ describe("LocaleStore", () => {
   describe("Error Handling", () => {
     it("Error > when localStorage quota is exceeded, then an exception should be logged", () => {
       const store = useLocaleStore();
-      const spy = vi
-        .spyOn(Storage.prototype, "setItem")
-        .mockImplementation(() => {
-          throw new DOMException("QuotaExceededError");
-        });
+      const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+        throw new DOMException("QuotaExceededError");
+      });
 
       store.updateLocale("fr-FR");
       expect(mockLogException).toHaveBeenCalledWith(

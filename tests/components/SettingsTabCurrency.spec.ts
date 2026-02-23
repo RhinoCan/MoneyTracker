@@ -82,7 +82,7 @@ describe("SettingsTabCurrency", () => {
       expect(storeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           currencyDisplay: "name",
-        }),
+        })
       );
     });
   });
@@ -134,8 +134,7 @@ describe("SettingsTabCurrency", () => {
         .findAllComponents({ name: "VSelect" })
         .find((c) => c.props("label") === "Negative Sign Style");
 
-      if (!signSelect)
-        throw new Error("Could not find Negative Sign Style select");
+      if (!signSelect) throw new Error("Could not find Negative Sign Style select");
 
       await signSelect.vm.$emit("update:modelValue", "accounting");
       await nextTick();
@@ -152,9 +151,7 @@ describe("SettingsTabCurrency", () => {
       // 6. Banker's Rounding Switch (Note: The label is in a slot, but name match works)
       // We'll find all switches and find the one that isn't the thousands separator
       const switches = wrapper.findAllComponents({ name: "VSwitch" });
-      const bankersSwitch = switches.find(
-        (s) => s.props("label") !== "Use Thousands Separator",
-      );
+      const bankersSwitch = switches.find((s) => s.props("label") !== "Use Thousands Separator");
       await bankersSwitch?.vm.$emit("update:modelValue", true);
       expect(wrapper.vm.localFormat.useBankersRounding).toBe(true);
     });
@@ -197,9 +194,7 @@ describe("SettingsTabCurrency", () => {
       const rules = maxSlider?.props("rules");
       const result = rules[0](1);
 
-      expect(result).toBe(
-        "Maximum precision cannot be less than minimum precision",
-      );
+      expect(result).toBe("Maximum precision cannot be less than minimum precision");
 
       // This is the one that was returning true—now it should be false
       expect(wrapper.vm.isValid).toBe(false);

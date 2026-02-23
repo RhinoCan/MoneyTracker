@@ -23,7 +23,7 @@ export function useCurrencyFormatter() {
         logException(err, {
           module: "useCurrencyFormatter",
           action: "formatNumber",
-          slug: t('currFormat.failed'),
+          slug: t("currFormat.failed"),
           data: { amount, locale, currency },
         });
         return amount.toString();

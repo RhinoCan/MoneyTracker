@@ -4,17 +4,16 @@ import { nextTick } from "vue";
 import InfoIcon from "@/components/InfoIcon.vue";
 
 describe("InfoIcon.vue", () => {
-
   it("renders the icon and shows content on click", async () => {
-  afterEach(() => {
-    document.body.innerHTML = "";
-  });
+    afterEach(() => {
+      document.body.innerHTML = "";
+    });
     const wrapper = mount(InfoIcon, {
       props: {
         title: "Test Title",
         text: "This is the tooltip content",
-        maxWidth: 250
-      }
+        maxWidth: 250,
+      },
     });
 
     // 1. Verify icon exists
@@ -24,7 +23,7 @@ describe("InfoIcon.vue", () => {
     // 2. Test event stopping logic in handleClick
     const event = {
       stopPropagation: vi.fn(),
-      preventDefault: vi.fn()
+      preventDefault: vi.fn(),
     } as unknown as Event;
 
     // Call the method directly to cover handleClick logic
@@ -44,7 +43,7 @@ describe("InfoIcon.vue", () => {
 
   it("does not render title div when title prop is missing", async () => {
     const wrapper = mount(InfoIcon, {
-      props: { text: "Only text" }
+      props: { text: "Only text" },
     });
 
     const icon = wrapper.find(".v-icon");

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore";
 import { useSettingsStore } from "@/stores/SettingsStore";
 
@@ -50,8 +50,8 @@ const handleDeleteAllSettings = async () => {
       await settingsStore.saveToDb();
 
       logInfo("The settings were all restored to their default values.", {
-        module: 'ManagementDialog',
-        action: "restore_defaults"
+        module: "ManagementDialog",
+        action: "restore_defaults",
       });
 
       // We don't necessarily need to close if the user just wants to reset and keep working,
@@ -59,9 +59,9 @@ const handleDeleteAllSettings = async () => {
       emit("close");
     } catch (error) {
       logException(error, {
-        module: 'ManagementDialog',
-        action: 'handleDeleteAllSettings',
-        slug: t('management.restore_settings_failed')
+        module: "ManagementDialog",
+        action: "handleDeleteAllSettings",
+        slug: t("management.restore_settings_failed"),
       });
     }
   }
@@ -88,15 +88,18 @@ const handleDeleteAllData = async () => {
       localStorage.clear();
       sessionStorage.clear();
 
-      logInfo("All transactions deleted and all settings reset to defaults.", { module: 'ManagementDialog', action: 'full_wipe' });
+      logInfo("All transactions deleted and all settings reset to defaults.", {
+        module: "ManagementDialog",
+        action: "full_wipe",
+      });
 
       // Reloading is the safest way to ensure all stores re-initialize from zero
       window.location.reload();
     } catch (error) {
       logException(error, {
-        module: 'ManagementDialog',
-        action: 'handleDeleteAllData',
-        slug: t('management.full_wipe_failed')
+        module: "ManagementDialog",
+        action: "handleDeleteAllData",
+        slug: t("management.full_wipe_failed"),
       });
     }
   }
@@ -114,12 +117,7 @@ const handleExport = () => {
     const cleanDate = transaction.date ? transaction.date.substring(0, 10) : "";
     const cleanDesc = `"${transaction.description.replace(/"/g, '""')}"`;
 
-    return [
-      cleanDate,
-      cleanDesc,
-      transaction.transaction_type,
-      transaction.amount
-    ].join(",");
+    return [cleanDate, cleanDesc, transaction.transaction_type, transaction.amount].join(",");
   });
 
   const csvContent = [headers, ...rows].join("\n");
@@ -133,7 +131,10 @@ const handleExport = () => {
   link.click();
   document.body.removeChild(link);
 
-  logInfo("The data was exported to a CSV file.", { module: 'ManagementDialog', action: 'export_csv' });
+  logInfo("The data was exported to a CSV file.", {
+    module: "ManagementDialog",
+    action: "export_csv",
+  });
 };
 </script>
 
@@ -162,7 +163,7 @@ const handleExport = () => {
       <v-divider class="mb-8"></v-divider>
 
       <section>
-        <h3 class="text-h6 text-warning mb-4">{{ t("management.dangerZone") || 'Danger Zone' }}</h3>
+        <h3 class="text-h6 text-warning mb-4">{{ t("management.dangerZone") || "Danger Zone" }}</h3>
 
         <div class="mb-6">
           <div class="text-subtitle-1 font-weight-bold">{{ t("management.deleteTransTitle") }}</div>
@@ -173,7 +174,9 @@ const handleExport = () => {
         </div>
 
         <div class="mb-6">
-          <div class="text-subtitle-1 font-weight-bold">{{ t("management.restoreSettingsTitle") }}</div>
+          <div class="text-subtitle-1 font-weight-bold">
+            {{ t("management.restoreSettingsTitle") }}
+          </div>
           <p class="text-caption mb-2">{{ t("management.restoreSettingsText") }}</p>
           <v-btn color="warning" size="small" @click="handleDeleteAllSettings">
             {{ t("management.btnRestoreSettings") }}
@@ -183,7 +186,9 @@ const handleExport = () => {
         <v-divider class="my-6"></v-divider>
 
         <div>
-          <div class="text-subtitle-1 font-weight-bold text-error">{{ t("management.deleteEverythingTitle") }}</div>
+          <div class="text-subtitle-1 font-weight-bold text-error">
+            {{ t("management.deleteEverythingTitle") }}
+          </div>
           <p class="text-caption mb-2">{{ t("management.deleteEverythingText") }}</p>
           <v-btn color="error" variant="elevated" @click="handleDeleteAllData">
             {{ t("management.btnDeleteEverything") }}

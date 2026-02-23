@@ -9,7 +9,7 @@ const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoi
 }));
 
 // Mock the Logger module using the hoisted functions
-vi.mock('@/utils/Logger', () => ({
+vi.mock("@/utils/Logger", () => ({
   logException: mockLogException,
   logWarning: mockLogWarning,
   logInfo: mockLogInfo,
@@ -37,27 +37,27 @@ describe("SystemDefaults - Error Handling", () => {
     vi.resetModules();
   });
 
-  it('uses the VITE_APP_NAME from environment variables', async () => {
-  // 1. Set the mock value
-  import.meta.env.VITE_APP_NAME = 'custom-app';
+  it("uses the VITE_APP_NAME from environment variables", async () => {
+    // 1. Set the mock value
+    import.meta.env.VITE_APP_NAME = "custom-app";
 
-  // 2. Clear module cache and re-import
-  vi.resetModules();
-  const { appName } = await import('@/utils/SystemDefaults');
+    // 2. Clear module cache and re-import
+    vi.resetModules();
+    const { appName } = await import("@/utils/SystemDefaults");
 
-  expect(appName).toBe('custom-app');
-});
+    expect(appName).toBe("custom-app");
+  });
 
-it('falls back to "money-tracker" when VITE_APP_NAME is undefined', async () => {
-  // 1. Force it to undefined
-  import.meta.env.VITE_APP_NAME = '';
+  it('falls back to "money-tracker" when VITE_APP_NAME is undefined', async () => {
+    // 1. Force it to undefined
+    import.meta.env.VITE_APP_NAME = "";
 
-  // 2. Clear module cache and re-import
-  vi.resetModules();
-  const { appName } = await import('@/utils/SystemDefaults');
+    // 2. Clear module cache and re-import
+    vi.resetModules();
+    const { appName } = await import("@/utils/SystemDefaults");
 
-  expect(appName).toBe('money-tracker');
-});
+    expect(appName).toBe("money-tracker");
+  });
 
   it("falls back to USD when Intl.NumberFormat throws an error", async () => {
     // Mock Intl.NumberFormat to throw an error
@@ -81,7 +81,7 @@ it('falls back to "money-tracker" when VITE_APP_NAME is undefined', async () => 
 
     expect(mockLogException).toHaveBeenCalledWith(
       expect.any(Error),
-      expect.objectContaining({ action: "fallback currency", data: 'USD' })
+      expect.objectContaining({ action: "fallback currency", data: "USD" })
     );
   });
 
@@ -120,9 +120,7 @@ it('falls back to "money-tracker" when VITE_APP_NAME is undefined', async () => 
 
   it("falls back to USD when resolvedOptions returns undefined currency", async () => {
     // Mock Intl.NumberFormat to return undefined currency
-    const mockResolvedOptions = vi
-      .fn()
-      .mockReturnValue({ currency: undefined });
+    const mockResolvedOptions = vi.fn().mockReturnValue({ currency: undefined });
     global.Intl.NumberFormat = vi.fn().mockImplementation(() => ({
       resolvedOptions: mockResolvedOptions,
       format: vi.fn(),

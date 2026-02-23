@@ -10,8 +10,8 @@ export function initPosthog() {
 
   posthog.init(key, {
     api_host: "https://app.posthog.com",
-    autocapture: false,       // YOU control events
-    capture_pageview: false,  // we’ll call it manually for SPA
+    autocapture: false, // YOU control events
+    capture_pageview: false, // we’ll call it manually for SPA
   });
 }
 

@@ -1,5 +1,5 @@
 // @/lib/supabase.ts
-import { createClient } from '@supabase/supabase-js';
+import { createClient } from "@supabase/supabase-js";
 
 export type Database = {
   public: {

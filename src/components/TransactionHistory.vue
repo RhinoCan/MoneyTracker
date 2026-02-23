@@ -166,9 +166,7 @@ const transactions = computed(() => storeTransaction.transactions);
           <div class="d-flex align-center justify-end px-4 py-2 ga-4">
             <!-- Items per page -->
             <div class="d-flex align-center ga-2">
-              <span v-if="!isRtl" class="text-body-2">{{
-                t("history.itemsPerPage")
-              }}</span>
+              <span v-if="!isRtl" class="text-body-2">{{ t("history.itemsPerPage") }}</span>
               <v-select
                 v-model="itemsPerPage"
                 :items="[5, 10, 25, 50]"
@@ -177,9 +175,7 @@ const transactions = computed(() => storeTransaction.transactions);
                 hide-details
                 style="width: 120px"
               />
-              <span v-if="isRtl" class="text-body-2">{{
-                t("history.itemsPerPage")
-              }}</span>
+              <span v-if="isRtl" class="text-body-2">{{ t("history.itemsPerPage") }}</span>
             </div>
 
             <!-- Page text -->

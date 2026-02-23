@@ -12,7 +12,7 @@ const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoi
 }));
 
 // Mock the Logger module using the hoisted functions
-vi.mock('@/utils/Logger', () => ({
+vi.mock("@/utils/Logger", () => ({
   logException: mockLogException,
   logWarning: mockLogWarning,
   logInfo: mockLogInfo,
@@ -137,7 +137,7 @@ describe("OtherStore", () => {
     });
 
     it("Set > when the timeout is very large, it should still be accepted", () => {
-    //The app does not allow values this large at present; this is only testing that localStorage can accomodate such a large value
+      //The app does not allow values this large at present; this is only testing that localStorage can accomodate such a large value
       const store = useOtherStore();
       const largeTimeout = 999999;
 
@@ -148,7 +148,7 @@ describe("OtherStore", () => {
     });
 
     it("Set > when the timeout is negative, it should still be accepted", () => {
-    //The app does not allow negative values and really shouldn't because a negative timeout is meaningless; this only tests that localStorage can accomodate a negative value
+      //The app does not allow negative values and really shouldn't because a negative timeout is meaningless; this only tests that localStorage can accomodate a negative value
       const store = useOtherStore();
       const negativeTimeout = -1000;
 

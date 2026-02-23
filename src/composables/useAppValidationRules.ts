@@ -17,18 +17,19 @@ export function useAppValidationRules() {
 
   const amountRules = (v: any) => {
     if (!v && v !== 0) return t("useApp.reqdZeroOk");
-    if (!hasCorrectSeparator(String(v))) return t("useApp.wrongSeparator", { separator: decimalSeparator.value });
+    if (!hasCorrectSeparator(String(v)))
+      return t("useApp.wrongSeparator", { separator: decimalSeparator.value });
     const num = parseCurrency(String(v), settingsStore.locale);
     if (num === null || num <= 0) return t("useApp.greater");
     return true;
   };
 
   const dateRules = (value: string) => {
-    if (!value || value.trim() === '') {
+    if (!value || value.trim() === "") {
       return t("useApp.dateReqd");
     }
 
-    const [year, month, day] = value.split('-').map(Number);
+    const [year, month, day] = value.split("-").map(Number);
     const parsedDate = new Date(year, month - 1, day);
 
     if (isNaN(parsedDate.getTime())) {

@@ -6,52 +6,52 @@
  * Output: hardcoded-strings-report.txt
  */
 
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 
-const SRC_DIR = './src';
-const OUTPUT_FILE = './hardcoded-strings-report.txt';
-const EXTENSIONS = ['.vue', '.ts', '.tsx'];
+const SRC_DIR = "./src";
+const OUTPUT_FILE = "./hardcoded-strings-report.txt";
+const EXTENSIONS = [".vue", ".ts", ".tsx"];
 
 // Patterns to search for, each with a description
 const PATTERNS = [
   {
-    name: 'Template label prop (hardcoded)',
+    name: "Template label prop (hardcoded)",
     regex: /label="([^"]+)"/g,
     excludePattern: /label=""/,
   },
   {
-    name: 'Template title prop (hardcoded)',
+    name: "Template title prop (hardcoded)",
     regex: /title="([^"]+)"/g,
     excludePattern: null,
   },
   {
-    name: 'Template placeholder prop (hardcoded)',
+    name: "Template placeholder prop (hardcoded)",
     regex: /placeholder="([^"]+)"/g,
     excludePattern: null,
   },
   {
-    name: 'Template hint prop (hardcoded)',
+    name: "Template hint prop (hardcoded)",
     regex: /hint="([^"]+)"/g,
     excludePattern: null,
   },
   {
-    name: 'Template text prop (hardcoded)',
+    name: "Template text prop (hardcoded)",
     regex: /\btext="([A-Z][^"]+)"/g,
     excludePattern: null,
   },
   {
-    name: 'Template text node (hardcoded)',
+    name: "Template text node (hardcoded)",
     regex: />\s*([A-Z][a-zA-Z\s]{3,})\s*</g,
     excludePattern: null,
   },
   {
-    name: 'Logger call with hardcoded string',
+    name: "Logger call with hardcoded string",
     regex: /log(?:Exception|Success|Warning|Validation|Info)\(\s*["']([A-Z][^"']+)["']/g,
     excludePattern: null,
   },
   {
-    name: 'logException slug with hardcoded string',
+    name: "logException slug with hardcoded string",
     regex: /slug:\s*["']([A-Z][^"']+)["']/g,
     excludePattern: null,
   },
@@ -59,25 +59,25 @@ const PATTERNS = [
 
 // Patterns to SKIP — these are false positives we don't care about
 const SKIP_PATTERNS = [
-  /^mdi-/,          // icon names
-  /^v-/,            // vue/vuetify directives
-  /^\$/,            // variables
-  /^#/,             // colors
-  /^[a-z]/,         // lowercase (likely technical identifiers)
-  /^\d/,            // numbers
-  /^YYYY/,          // date formats
-  /^[A-Z]{2,}$/,    // all-caps constants
+  /^mdi-/, // icon names
+  /^v-/, // vue/vuetify directives
+  /^\$/, // variables
+  /^#/, // colors
+  /^[a-z]/, // lowercase (likely technical identifiers)
+  /^\d/, // numbers
+  /^YYYY/, // date formats
+  /^[A-Z]{2,}$/, // all-caps constants
 ];
 
 function shouldSkip(match) {
-  return SKIP_PATTERNS.some(p => p.test(match.trim()));
+  return SKIP_PATTERNS.some((p) => p.test(match.trim()));
 }
 
 function getAllFiles(dir, files = []) {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   for (const entry of entries) {
     const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory() && entry.name !== 'node_modules') {
+    if (entry.isDirectory() && entry.name !== "node_modules") {
       getAllFiles(fullPath, files);
     } else if (entry.isFile() && EXTENSIONS.includes(path.extname(entry.name))) {
       files.push(fullPath);
@@ -87,8 +87,8 @@ function getAllFiles(dir, files = []) {
 }
 
 function searchFile(filePath) {
-  const content = fs.readFileSync(filePath, 'utf8');
-  const lines = content.split('\n');
+  const content = fs.readFileSync(filePath, "utf8");
+  const lines = content.split("\n");
   const results = [];
 
   for (const pattern of PATTERNS) {
@@ -101,7 +101,7 @@ function searchFile(filePath) {
 
       // Find line number
       const upToMatch = content.substring(0, match.index);
-      const lineNumber = upToMatch.split('\n').length;
+      const lineNumber = upToMatch.split("\n").length;
       const lineContent = lines[lineNumber - 1]?.trim();
 
       results.push({
@@ -122,32 +122,32 @@ function run() {
   const output = [];
   let totalHits = 0;
 
-  output.push('HARDCODED STRINGS REPORT');
-  output.push('========================');
+  output.push("HARDCODED STRINGS REPORT");
+  output.push("========================");
   output.push(`Generated: ${new Date().toLocaleString()}`);
   output.push(`Files scanned: ${files.length}`);
-  output.push('');
+  output.push("");
 
   for (const filePath of files) {
     const results = searchFile(filePath);
     if (results.length === 0) continue;
 
     output.push(`FILE: ${filePath}`);
-    output.push('-'.repeat(60));
+    output.push("-".repeat(60));
 
     for (const result of results) {
       output.push(`  [${result.pattern}]`);
       output.push(`  Line ${result.line}: ${result.context}`);
       output.push(`  Matched: "${result.match}"`);
-      output.push('');
+      output.push("");
       totalHits++;
     }
   }
 
-  output.push('========================');
+  output.push("========================");
   output.push(`Total potential hardcoded strings found: ${totalHits}`);
 
-  fs.writeFileSync(OUTPUT_FILE, output.join('\n'), 'utf8');
+  fs.writeFileSync(OUTPUT_FILE, output.join("\n"), "utf8");
   console.log(`Done. Found ${totalHits} potential hardcoded strings.`);
   console.log(`Report written to: ${OUTPUT_FILE}`);
 }

@@ -98,5 +98,4 @@ describe("useAppValidationRules", () => {
       // expect(logWarning).toHaveBeenCalled();
     });
   });
-
 });

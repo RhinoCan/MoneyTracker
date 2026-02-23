@@ -204,99 +204,99 @@ describe("AddTransaction.vue", () => {
     );
   });
 
-it("toggles classes on focus and blur to cover the ternary operator", async () => {
-  const wrapper = mount(AddTransaction, globalOptions);
+  it("toggles classes on focus and blur to cover the ternary operator", async () => {
+    const wrapper = mount(AddTransaction, globalOptions);
 
-  // 1. Path A: isFocused is false
-  // We need to make sure the composable thinks it's an Income type
-  (wrapper.vm as any).transactionTypeModel = "Income";
-  (wrapper.vm as any).isFocused = false;
+    // 1. Path A: isFocused is false
+    // We need to make sure the composable thinks it's an Income type
+    (wrapper.vm as any).transactionTypeModel = "Income";
+    (wrapper.vm as any).isFocused = false;
 
-  // Note: Vuetify components often apply classes to an inner element.
-  // Let's check the wrapper itself since .money-field is on the v-text-field
-  await wrapper.vm.$nextTick();
+    // Note: Vuetify components often apply classes to an inner element.
+    // Let's check the wrapper itself since .money-field is on the v-text-field
+    await wrapper.vm.$nextTick();
 
-  // If the composable logic is working, colorClass should return 'money-plus'
-  // Let's verify what colorClass actually is first
-  const currentColor = (wrapper.vm as any).colorClass;
+    // If the composable logic is working, colorClass should return 'money-plus'
+    // Let's verify what colorClass actually is first
+    const currentColor = (wrapper.vm as any).colorClass;
 
-  expect(wrapper.find(".money-field").classes()).toContain(currentColor);
-  expect((wrapper.vm as any).isFocused).toBe(false);
+    expect(wrapper.find(".money-field").classes()).toContain(currentColor);
+    expect((wrapper.vm as any).isFocused).toBe(false);
 
-  // 2. Path B: isFocused is true
-  await (wrapper.vm as any).handleFocus(); // Use the actual function!
-  await wrapper.vm.$nextTick();
+    // 2. Path B: isFocused is true
+    await (wrapper.vm as any).handleFocus(); // Use the actual function!
+    await wrapper.vm.$nextTick();
 
-  // When focused, the first part of the ternary returns ''
-  // So the classes should NOT contain the color class anymore
-  expect(wrapper.find(".money-field").classes()).not.toContain("money-plus");
-  expect(wrapper.find(".money-field").classes()).not.toContain("money-minus");
-});
+    // When focused, the first part of the ternary returns ''
+    // So the classes should NOT contain the color class anymore
+    expect(wrapper.find(".money-field").classes()).not.toContain("money-plus");
+    expect(wrapper.find(".money-field").classes()).not.toContain("money-minus");
+  });
 
-it("touches all template-compiled v-model and event functions", async () => {
-  const wrapper = mount(AddTransaction, globalOptions);
+  it("touches all template-compiled v-model and event functions", async () => {
+    const wrapper = mount(AddTransaction, globalOptions);
 
-  // 1. Help button @click (This is a DOM element, not a component)
-  await wrapper.find('button[aria-label="Help"]').trigger("click");
+    // 1. Help button @click (This is a DOM element, not a component)
+    await wrapper.find('button[aria-label="Help"]').trigger("click");
 
-  // 2. Find all text fields and match by label to be safe
-  const textFields = wrapper.findAllComponents({ name: 'VTextField' });
+    // 2. Find all text fields and match by label to be safe
+    const textFields = wrapper.findAllComponents({ name: "VTextField" });
 
-  const descField = textFields.find(c => c.props('label') === 'Description');
-  const dateField = textFields.find(c => c.props('label') === 'Transaction Date');
-  const amountField = textFields.find(c => c.props('label') === 'Amount');
+    const descField = textFields.find((c) => c.props("label") === "Description");
+    const dateField = textFields.find((c) => c.props("label") === "Transaction Date");
+    const amountField = textFields.find((c) => c.props("label") === "Amount");
 
-  // Emit updates (triggers the anonymous functions in the template)
-  if (descField) await descField.vm.$emit('update:modelValue', 'New Desc');
-  if (dateField) await dateField.vm.$emit('update:modelValue', '2025-01-01');
-  if (amountField) await amountField.vm.$emit('update:modelValue', '100');
+    // Emit updates (triggers the anonymous functions in the template)
+    if (descField) await descField.vm.$emit("update:modelValue", "New Desc");
+    if (dateField) await dateField.vm.$emit("update:modelValue", "2025-01-01");
+    if (amountField) await amountField.vm.$emit("update:modelValue", "100");
 
-  // 3. Radio Group
-  const radioGroup = wrapper.findComponent({ name: 'VRadioGroup' });
-  if (radioGroup.exists()) {
-    await radioGroup.vm.$emit('update:modelValue', 'Income');
-  }
+    // 3. Radio Group
+    const radioGroup = wrapper.findComponent({ name: "VRadioGroup" });
+    if (radioGroup.exists()) {
+      await radioGroup.vm.$emit("update:modelValue", "Income");
+    }
 
-  // 4. Date Menu
-  const dateMenu = wrapper.findComponent({ name: 'VMenu' });
-  if (dateMenu.exists()) {
-    await dateMenu.vm.$emit('update:modelValue', true);
-  }
+    // 4. Date Menu
+    const dateMenu = wrapper.findComponent({ name: "VMenu" });
+    if (dateMenu.exists()) {
+      await dateMenu.vm.$emit("update:modelValue", true);
+    }
 
-  // 5. Help Dialog v-model
-  // Look for the v-dialog stub
-  const helpDialog = wrapper.findComponent({ name: 'VDialog' });
-  if (helpDialog.exists()) {
-     await (helpDialog as any).vm.$emit('update:modelValue', false);
-  }
-});
+    // 5. Help Dialog v-model
+    // Look for the v-dialog stub
+    const helpDialog = wrapper.findComponent({ name: "VDialog" });
+    if (helpDialog.exists()) {
+      await (helpDialog as any).vm.$emit("update:modelValue", false);
+    }
+  });
 
-it("finalizes coverage for date-picker and shortcuts dialog", async () => {
-  const wrapper = mount(AddTransaction, globalOptions);
+  it("finalizes coverage for date-picker and shortcuts dialog", async () => {
+    const wrapper = mount(AddTransaction, globalOptions);
 
-  // 1. KeyboardShortcutsDialog
-  (wrapper.vm as any).showKeyboardShortcuts = true;
-  await wrapper.vm.$nextTick();
+    // 1. KeyboardShortcutsDialog
+    (wrapper.vm as any).showKeyboardShortcuts = true;
+    await wrapper.vm.$nextTick();
 
-  const shortcutsDialog = wrapper.findComponent({ name: 'KeyboardShortcutsDialog' });
-  // Directly trigger the event the template is listening for
-  await shortcutsDialog.vm.$emit('close');
-  expect((wrapper.vm as any).showKeyboardShortcuts).toBe(false);
+    const shortcutsDialog = wrapper.findComponent({ name: "KeyboardShortcutsDialog" });
+    // Directly trigger the event the template is listening for
+    await shortcutsDialog.vm.$emit("close");
+    expect((wrapper.vm as any).showKeyboardShortcuts).toBe(false);
 
-  // 2. VDatePicker
-  (wrapper.vm as any).dateMenu = true;
-  await wrapper.vm.$nextTick();
+    // 2. VDatePicker
+    (wrapper.vm as any).dateMenu = true;
+    await wrapper.vm.$nextTick();
 
-  const datePicker = wrapper.findComponent({ name: 'VDatePicker' });
+    const datePicker = wrapper.findComponent({ name: "VDatePicker" });
 
-  // A: Trigger the v-model update (touches line 1)
-  await datePicker.vm.$emit('update:modelValue', new Date());
+    // A: Trigger the v-model update (touches line 1)
+    await datePicker.vm.$emit("update:modelValue", new Date());
 
-  // B: Manually call the method linked to @update:model-value (touches line 2)
-  // This ensures the logic runs even if the event binding is being finicky in the stub
-  await (wrapper.vm as any).closeDatePicker();
+    // B: Manually call the method linked to @update:model-value (touches line 2)
+    // This ensures the logic runs even if the event binding is being finicky in the stub
+    await (wrapper.vm as any).closeDatePicker();
 
-  await wrapper.vm.$nextTick();
-  expect((wrapper.vm as any).dateMenu).toBe(false);
-});
+    await wrapper.vm.$nextTick();
+    expect((wrapper.vm as any).dateMenu).toBe(false);
+  });
 });

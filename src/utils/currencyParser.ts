@@ -43,12 +43,11 @@ export function parseCurrency(formattedString: string, locale: string): number |
     const parsedValue = parseFloat(rawString);
 
     return isNaN(parsedValue) || parsedValue <= 0 ? null : parsedValue;
-
   } catch (error) {
     logException(error, {
       module: "currencyParser",
       action: "parseCurrency",
-      slug: t('currParser.parser_failure'),
+      slug: t("currParser.parser_failure"),
       data: { formattedString, locale },
     });
     return null;

@@ -32,7 +32,7 @@ interface FormFields {
 }
 
 export function useTransactionFormFields(
-  externalTransaction?: Ref<Transaction | null>,
+  externalTransaction?: Ref<Transaction | null>
 ): FormFields {
   const settingsStore = useSettingsStore();
   const { displayMoney } = useCurrencyFormatter();
@@ -51,8 +51,7 @@ export function useTransactionFormFields(
     user_id: "",
   });
 
-  const transaction = (externalTransaction ||
-    internalTransaction) as Ref<Transaction | null>;
+  const transaction = (externalTransaction || internalTransaction) as Ref<Transaction | null>;
 
   // --- Display State ---
   const displayAmount = ref("");
@@ -100,9 +99,9 @@ export function useTransactionFormFields(
       // Format using locale decimal separator so German users see 5,01 not 5.01
       const parts = new Intl.NumberFormat(settingsStore.locale).formatToParts(currentAmount);
       displayAmount.value = parts
-        .filter(p => p.type === 'integer' || p.type === 'decimal' || p.type === 'fraction')
-        .map(p => p.value)
-        .join('');
+        .filter((p) => p.type === "integer" || p.type === "decimal" || p.type === "fraction")
+        .map((p) => p.value)
+        .join("");
     } else {
       //If amount is 0 (invalid input was rejected), leave displayAmount as-is
     }
@@ -117,7 +116,7 @@ export function useTransactionFormFields(
     if (!hasCorrectSeparator(rawValue)) {
       transaction.value!.amount = 0;
       //Leave displayAmount as the invalid input so the user can see and correct it
-      displayAmount.value =  rawValue;
+      displayAmount.value = rawValue;
       return;
     }
 

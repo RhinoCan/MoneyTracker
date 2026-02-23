@@ -12,14 +12,14 @@ describe("App.vue", () => {
     const localStorageMock = {
       getItem: vi.fn(),
       setItem: vi.fn(),
-      clear: vi.fn()
+      clear: vi.fn(),
     };
-    vi.stubGlobal('localStorage', localStorageMock);
+    vi.stubGlobal("localStorage", localStorageMock);
   });
 
   it("loads transactions from localStorage on mount", async () => {
     const mockTransactions = [
-      { id: 1, description: 'Test', amount: 10, date: '2025-01-01', transactionType: 'Expense' }
+      { id: 1, description: "Test", amount: 10, date: "2025-01-01", transactionType: "Expense" },
     ];
 
     // Force the getItem to return our stringified data
@@ -28,9 +28,9 @@ describe("App.vue", () => {
     const wrapper = mount(App, {
       global: {
         stubs: {
-          VApp: { template: '<div><slot /></div>' },
-          VMain: { template: '<div><slot /></div>' },
-          VContainer: { template: '<div><slot /></div>' },
+          VApp: { template: "<div><slot /></div>" },
+          VMain: { template: "<div><slot /></div>" },
+          VContainer: { template: "<div><slot /></div>" },
           TrackerHeader: true,
           AccountSummary: true,
           AddTransaction: true,
@@ -45,9 +45,9 @@ describe("App.vue", () => {
     const store = useTransactionStore();
 
     // This triggers the 'if (savedTransactions !== null)' branch
-    expect(localStorage.getItem).toHaveBeenCalledWith('transactions');
+    expect(localStorage.getItem).toHaveBeenCalledWith("transactions");
     expect(store.transactions.length).toBe(1);
-    expect(store.transactions[0].description).toBe('Test');
+    expect(store.transactions[0].description).toBe("Test");
     expect(wrapper.exists()).toBe(true);
   });
 });

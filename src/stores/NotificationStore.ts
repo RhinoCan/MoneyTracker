@@ -1,14 +1,17 @@
-import { defineStore } from 'pinia';
-import { ref, nextTick } from 'vue';
+import { defineStore } from "pinia";
+import { ref, nextTick } from "vue";
 
-export const useNotificationStore = defineStore('notification', () => {
+export const useNotificationStore = defineStore("notification", () => {
   const isVisible = ref(false);
-  const text = ref('');
-  const color = ref('success');
+  const text = ref("");
+  const color = ref("success");
 
   const snackbarKey = ref(0);
 
-  async function showMessage(message: string, type: ('success' | 'error' | 'info' | 'warning') = 'success') {
+  async function showMessage(
+    message: string,
+    type: "success" | "error" | "info" | "warning" = "success"
+  ) {
     text.value = message;
     color.value = type;
     snackbarKey.value++;

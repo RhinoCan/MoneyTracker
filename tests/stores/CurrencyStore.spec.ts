@@ -5,13 +5,12 @@ import type { NumberFormat } from "@/types/CommonTypes";
 import { appName } from "@/utils/SystemDefaults";
 
 // Hoist the mock functions so they're available to the mock factory
-const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } =
-  vi.hoisted(() => ({
-    mockLogException: vi.fn(),
-    mockLogWarning: vi.fn(),
-    mockLogInfo: vi.fn(),
-    mockLogSuccess: vi.fn(),
-  }));
+const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoisted(() => ({
+  mockLogException: vi.fn(),
+  mockLogWarning: vi.fn(),
+  mockLogInfo: vi.fn(),
+  mockLogSuccess: vi.fn(),
+}));
 
 // Mock the Logger module using the hoisted functions
 vi.mock("@/utils/Logger", () => ({
@@ -106,7 +105,7 @@ describe("CurrencyStore", () => {
           module: "Currency",
           action: "Read from localStorage",
           data: "invalid json {",
-        }),
+        })
       );
     });
 
@@ -290,14 +289,10 @@ describe("CurrencyStore", () => {
       const storageKey = `${appName}.Currency`;
 
       store.updateNumberFormat({ currency: "JPY" });
-      expect(
-        JSON.parse(localStorage.getItem(storageKey)!).format.currency,
-      ).toBe("JPY");
+      expect(JSON.parse(localStorage.getItem(storageKey)!).format.currency).toBe("JPY");
 
       store.updateNumberFormat({ currency: "EUR" });
-      expect(
-        JSON.parse(localStorage.getItem(storageKey)!).format.currency,
-      ).toBe("EUR");
+      expect(JSON.parse(localStorage.getItem(storageKey)!).format.currency).toBe("EUR");
     });
 
     it("should handle boolean false values correctly", () => {
@@ -383,11 +378,9 @@ describe("CurrencyStore", () => {
     it("should handle localStorage quota exceeded gracefully", () => {
       const store = useCurrencyStore();
 
-      const setItemSpy = vi
-        .spyOn(Storage.prototype, "setItem")
-        .mockImplementation(() => {
-          throw new DOMException("QuotaExceededError", "QuotaExceededError");
-        });
+      const setItemSpy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
+        throw new DOMException("QuotaExceededError", "QuotaExceededError");
+      });
 
       store.updateNumberFormat({ currency: "EUR" });
 
@@ -397,7 +390,7 @@ describe("CurrencyStore", () => {
           module: "Currency",
           action: "Update",
           data: { currency: "EUR" },
-        }),
+        })
       );
       setItemSpy.mockRestore();
     });

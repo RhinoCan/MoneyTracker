@@ -60,13 +60,8 @@ describe("useTransactionFormFields", () => {
 
   describe("Formatting and Focus Logic", () => {
     it("should toggle between raw amount and formatted amount on focus/blur", () => {
-      const {
-        formattedAmount,
-        handleFocus,
-        handleBlur,
-        displayAmount,
-        transaction,
-      } = useTransactionFormFields();
+      const { formattedAmount, handleFocus, handleBlur, displayAmount, transaction } =
+        useTransactionFormFields();
 
       // 1. Setup the mock to return a number when called
       (parseCurrency as any).mockReturnValue(123.45);
@@ -87,8 +82,7 @@ describe("useTransactionFormFields", () => {
     });
 
     it("should set displayAmount to empty string if transaction amount is null on focus", () => {
-      const { handleFocus, displayAmount, transaction } =
-        useTransactionFormFields();
+      const { handleFocus, displayAmount, transaction } = useTransactionFormFields();
 
       // Set the amount to null explicitly to trigger the 'else' branch
       transaction.value!.amount = null as any;
@@ -105,26 +99,25 @@ describe("useTransactionFormFields", () => {
     });
 
     it("should format the date when a date value exists", () => {
-    const { transaction, formattedDate } = useTransactionFormFields();
+      const { transaction, formattedDate } = useTransactionFormFields();
 
-    // Ensure transaction exists and has a date string
-    transaction.value = {
-      id: 1,
-      amount: 10,
-      transactionType: TransactionTypeValues.Expense,
-      date: "2025-01-01T00:00:00.000Z",
-      description: "Test"
-    };
+      // Ensure transaction exists and has a date string
+      transaction.value = {
+        id: 1,
+        amount: 10,
+        transactionType: TransactionTypeValues.Expense,
+        date: "2025-01-01T00:00:00.000Z",
+        description: "Test",
+      };
 
-    // This triggers the 'formatDate(dateValue)' part of the ternary
-    expect(formattedDate.value).toBe("2025-01-01");
-  });
+      // This triggers the 'formatDate(dateValue)' part of the ternary
+      expect(formattedDate.value).toBe("2025-01-01");
+    });
   });
 
   describe("handleBlur and Parsing", () => {
     it("should update transaction amount on successful parse", () => {
-      const { displayAmount, handleBlur, transaction } =
-        useTransactionFormFields();
+      const { displayAmount, handleBlur, transaction } = useTransactionFormFields();
       (parseCurrency as any).mockReturnValue(500);
 
       displayAmount.value = "500";
@@ -147,8 +140,7 @@ describe("useTransactionFormFields", () => {
   });
 
   it("should reset the form to defaults", () => {
-    const { resetForm, transaction, displayAmount } =
-      useTransactionFormFields();
+    const { resetForm, transaction, displayAmount } = useTransactionFormFields();
     transaction.value!.amount = 100;
     displayAmount.value = "100";
 
@@ -233,5 +225,4 @@ describe("useTransactionFormFields", () => {
       // will clear the 'untested function' flags.
     });
   });
-
 });

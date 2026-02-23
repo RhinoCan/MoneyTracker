@@ -16,7 +16,7 @@ export class TransactionError extends Error {
     message: string,
     public code?: string,
     public details?: string,
-    public hint?: string,
+    public hint?: string
   ) {
     super(message);
     this.name = "TransactionError";
@@ -35,29 +35,24 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
   const getIncome = computed(() =>
     transactions.value.reduce(
       (acc, t) =>
-        t.transaction_type === TransactionTypeValues.Income
-          ? acc + Number(t.amount)
-          : acc,
-      0,
-    ),
+        t.transaction_type === TransactionTypeValues.Income ? acc + Number(t.amount) : acc,
+      0
+    )
   );
 
   const getExpense = computed(() =>
     transactions.value.reduce(
       (acc, t) =>
-        t.transaction_type === TransactionTypeValues.Expense
-          ? acc + Number(t.amount)
-          : acc,
-      0,
-    ),
+        t.transaction_type === TransactionTypeValues.Expense ? acc + Number(t.amount) : acc,
+      0
+    )
   );
 
   const getBalance = computed(() => getIncome.value - getExpense.value);
 
   // --- Helpers ---
   const getRequiredUserId = () => {
-    if (!userStore.userId)
-      throw new Error("User ID is required for Transaction operations");
+    if (!userStore.userId) throw new Error("User ID is required for Transaction operations");
     return userStore.userId;
   };
 
@@ -68,8 +63,7 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
       "08006": "Database connection failed.",
     };
 
-    const message =
-      errorMessages[supabaseError.code] || `Failed to ${operation}.`;
+    const message = errorMessages[supabaseError.code] || `Failed to ${operation}.`;
 
     logException(supabaseError, {
       module: "TransactionStore",
@@ -90,15 +84,12 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
     try {
       const userId = getRequiredUserId();
       // Fix: Cast 'from' to any to bypass the 'never' type collapse
-      const { data, error: supabaseError } = await (
-        supabase.from("transactions") as any
-      )
+      const { data, error: supabaseError } = await (supabase.from("transactions") as any)
         .select("*")
         .eq("user_id", userId)
         .order("date", { ascending: false });
 
-      if (supabaseError)
-        handleSupabaseError(supabaseError, "fetchTransactions");
+      if (supabaseError) handleSupabaseError(supabaseError, "fetchTransactions");
 
       transactions.value = data || [];
       logInfo("The transactions were fetched.", {
@@ -120,9 +111,7 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
       // Explicitly type the payload to maintain safety despite the cast below
       const payload: TransactionInsert = { ...newTx, user_id: userId };
 
-      const { data, error: supabaseError } = await (
-        supabase.from("transactions") as any
-      )
+      const { data, error: supabaseError } = await (supabase.from("transactions") as any)
         .insert([payload])
         .select();
 
@@ -152,23 +141,17 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
     }
   }
 
-  async function updateTransaction(
-    id: number,
-    updates: Partial<NewTransaction>,
-  ) {
+  async function updateTransaction(id: number, updates: Partial<NewTransaction>) {
     loading.value = true;
     try {
       const userId = getRequiredUserId();
-      const { data, error: supabaseError } = await (
-        supabase.from("transactions") as any
-      )
+      const { data, error: supabaseError } = await (supabase.from("transactions") as any)
         .update(updates) // Error 3 Fix: Casting from table to 'any'
         .eq("id", id)
         .eq("user_id", userId)
         .select();
 
-      if (supabaseError)
-        handleSupabaseError(supabaseError, "updateTransaction");
+      if (supabaseError) handleSupabaseError(supabaseError, "updateTransaction");
 
       const index = transactions.value.findIndex((t) => t.id === id);
       if (index !== -1) transactions.value[index] = data[0];
@@ -198,15 +181,12 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
     loading.value = true;
     try {
       const userId = getRequiredUserId();
-      const { error: supabaseError } = await (
-        supabase.from("transactions") as any
-      )
+      const { error: supabaseError } = await (supabase.from("transactions") as any)
         .delete()
         .eq("id", id)
         .eq("user_id", userId);
 
-      if (supabaseError)
-        handleSupabaseError(supabaseError, "deleteTransaction");
+      if (supabaseError) handleSupabaseError(supabaseError, "deleteTransaction");
 
       transactions.value = transactions.value.filter((t) => t.id !== id);
 
@@ -233,14 +213,11 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
     loading.value = true;
     try {
       const userId = getRequiredUserId();
-      const { error: supabaseError } = await (
-        supabase.from("transactions") as any
-      )
+      const { error: supabaseError } = await (supabase.from("transactions") as any)
         .delete()
         .eq("user_id", userId);
 
-      if (supabaseError)
-        handleSupabaseError(supabaseError, "deleteAllTransactions");
+      if (supabaseError) handleSupabaseError(supabaseError, "deleteAllTransactions");
 
       const count = transactions.value.length;
       transactions.value = [];

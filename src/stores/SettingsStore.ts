@@ -29,7 +29,7 @@ export const localeToCurrency: Record<SupportedLocale, CurrencyCode> = {
   "ar-SA": "SAR",
   "ru-RU": "RUB",
   "pt-BR": "BRL",
-  "it-IT": "EUR"
+  "it-IT": "EUR",
 };
 
 export const useSettingsStore = defineStore("settingsStore", () => {
@@ -44,13 +44,17 @@ export const useSettingsStore = defineStore("settingsStore", () => {
   // --- Watchers ---
 
   // Update i18n and HTML lang attribute when locale changes
-  watch(locale, (newVal) => {
-    (i18n.global as any).locale.value = newVal;
-    document.querySelector('html')?.setAttribute('lang', newVal);
-  }, { immediate: true });
+  watch(
+    locale,
+    (newVal) => {
+      (i18n.global as any).locale.value = newVal;
+      document.querySelector("html")?.setAttribute("lang", newVal);
+    },
+    { immediate: true }
+  );
 
   // Auto-update currency when locale changes
-/*   watch(locale, (newLocale) => {
+  /*   watch(locale, (newLocale) => {
     const defaultCurrency = localeToCurrency[newLocale];
     if (defaultCurrency) {
       currency.value = defaultCurrency;
@@ -112,15 +116,16 @@ export const useSettingsStore = defineStore("settingsStore", () => {
       user_id: userStore.userId,
       locale_value: locale.value,
       currency_value: currency.value,
-      timeout_value: snackbarTimeout.value
+      timeout_value: snackbarTimeout.value,
     };
 
     try {
-      const { error } = await (supabase.from("system_settings") as any)
-        .upsert(payload as any, { onConflict: 'user_id' });
+      const { error } = await (supabase.from("system_settings") as any).upsert(payload as any, {
+        onConflict: "user_id",
+      });
 
       if (error) throw error;
-      logSuccess(t('settingsStore.updated'), { module: "SettingsStore", action: "saveToDb" });
+      logSuccess(t("settingsStore.updated"), { module: "SettingsStore", action: "saveToDb" });
     } catch (error) {
       logException(error, { module: "SettingsStore", action: "saveToDb" });
       throw error;
@@ -143,7 +148,7 @@ export const useSettingsStore = defineStore("settingsStore", () => {
       if (error) throw error;
 
       restoreDefaults();
-      logSuccess(t('settingsStore.cleared'), { module: "SettingsStore", action: "clearFromDb" });
+      logSuccess(t("settingsStore.cleared"), { module: "SettingsStore", action: "clearFromDb" });
     } catch (error) {
       logException(error, { module: "SettingsStore", action: "clearFromDb" });
       throw error;
@@ -160,6 +165,6 @@ export const useSettingsStore = defineStore("settingsStore", () => {
     loadSettings,
     saveToDb,
     restoreDefaults,
-    clearFromDb
+    clearFromDb,
   };
 });

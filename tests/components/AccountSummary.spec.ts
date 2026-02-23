@@ -16,8 +16,8 @@ describe("AccountSummary.vue", () => {
 
     const wrapper = mount(AccountSummary, {
       global: {
-        stubs: { Money: true }
-      }
+        stubs: { Money: true },
+      },
     });
 
     expect(wrapper.find(".v-alert").exists()).toBe(true);
@@ -28,20 +28,22 @@ describe("AccountSummary.vue", () => {
   it("renders the summary table when transactions exist", () => {
     const store = useTransactionStore();
     // Add dummy data to trigger the v-else
-    store.transactions = [{ id: 1, description: "Test", transactionType: "Income", amount: 100, date: "2023-01-01" }];
+    store.transactions = [
+      { id: 1, description: "Test", transactionType: "Income", amount: 100, date: "2023-01-01" },
+    ];
 
     // Setup mock getters
     // Note: In real Pinia, getters are computed from state,
     // but we can just set the state and let the store work.
     store.transactions = [
-        { id: 1, description: 'Salary', transactionType: "Income", amount: 1000, date: '2023-01-01' },
-        { id: 2, description: 'Rent', transactionType: "Expense",  amount: 400, date: '2023-01-01' }
+      { id: 1, description: "Salary", transactionType: "Income", amount: 1000, date: "2023-01-01" },
+      { id: 2, description: "Rent", transactionType: "Expense", amount: 400, date: "2023-01-01" },
     ];
 
     const wrapper = mount(AccountSummary, {
       global: {
-        components: { Money } // Use real Money component to verify props
-      }
+        components: { Money }, // Use real Money component to verify props
+      },
     });
 
     expect(wrapper.find(".v-alert").exists()).toBe(false);

@@ -92,10 +92,7 @@ export const logWarning = (message: string, meta: LoggerMeta) => {
   });
 
   posthog.capture("warning", { message, ...meta, locale: getCurrentLocale() });
-  console.warn(
-    `🟠 [WARNING] ${meta.module} > ${meta.action}: ${message}`,
-    meta,
-  );
+  console.warn(`🟠 [WARNING] ${meta.module} > ${meta.action}: ${message}`, meta);
 };
 
 /**

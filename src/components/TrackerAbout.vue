@@ -3,7 +3,7 @@
  * TrackerAbout.vue
  * Attribution and technology stack information.
  */
-import { useI18n } from 'vue-i18n';
+import { useI18n } from "vue-i18n";
 
 const { t, tm } = useI18n();
 
@@ -26,7 +26,7 @@ const techStack = [
   <v-expansion-panels>
     <v-expansion-panel color="surface">
       <v-expansion-panel-title class="bg-primary text-on-primary">
-        {{ t('about.title') }}
+        {{ t("about.title") }}
         <template v-slot:actions="{ expanded }">
           <v-icon :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
         </template>
@@ -34,7 +34,7 @@ const techStack = [
 
       <v-expansion-panel-text class="pa-4">
         <v-card flat class="mx-auto maincard-width mb-6">
-          <div class="maincard-title text-primary">{{ t('about.origins') }}</div>
+          <div class="maincard-title text-primary">{{ t("about.origins") }}</div>
 
           <i18n-t keypath="about.introParagraph" tag="p" class="text-body-1 mb-4">
             <template #linkTraversy>
@@ -43,7 +43,7 @@ const techStack = [
                 target="_blank"
                 class="text-decoration-none text-secondary font-weight-bold"
               >
-                {{ t('about.linkText') }}
+                {{ t("about.linkText") }}
               </a>
             </template>
           </i18n-t>
@@ -56,17 +56,14 @@ const techStack = [
         </v-card>
 
         <v-card flat class="mx-auto maincard-width">
-          <div class="maincard-title text-primary">{{ t('about.packages') }}</div>
+          <div class="maincard-title text-primary">{{ t("about.packages") }}</div>
 
           <v-row dense>
-            <v-col
-              v-for="tech in techStack"
-              :key="tech.key"
-              cols="6"
-              sm="4"
-              md="2"
-            >
-              <v-card variant="outlined" class="pa-2 text-center h-100 d-flex flex-column align-center border-opacity-25">
+            <v-col v-for="tech in techStack" :key="tech.key" cols="6" sm="4" md="2">
+              <v-card
+                variant="outlined"
+                class="pa-2 text-center h-100 d-flex flex-column align-center border-opacity-25"
+              >
                 <div class="logo-container d-flex align-center justify-center mb-2">
                   <img :src="tech.logo" :alt="t(tech.key)" class="logo-img" />
                 </div>

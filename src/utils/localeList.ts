@@ -20,7 +20,7 @@ const SUPPORTED_LANGUAGE_CODES = [
   "ar",
   "ru",
   "pt",
-  "it"
+  "it",
 ];
 
 export interface LocaleItem {
@@ -80,7 +80,7 @@ export function generateLocaleList(displayLocale: string = "en"): LocaleItem[] {
       "ar-SA",
       "ru-RU",
       "pt-BR",
-      "it-IT"
+      "it-IT",
     ];
   }
 

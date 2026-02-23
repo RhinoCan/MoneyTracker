@@ -4,28 +4,36 @@ import { useUserStore } from "@/stores/UserStore";
 import { useSettingsStore } from "@/stores/SettingsStore";
 import TrackerHeader from "@/components/TrackerHeader.vue";
 import { useI18n } from "vue-i18n";
-import { useLocale } from 'vuetify';
+import { useLocale } from "vuetify";
 
 const { current: vuetifyLocale } = useLocale();
 const { t, locale } = useI18n();
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
-const RTL_LOCALES = ['ar', 'he', 'fa', 'ur'];
+const RTL_LOCALES = ["ar", "he", "fa", "ur"];
 import { useNotificationStore } from "@/stores/NotificationStore";
 const notificationStore = useNotificationStore();
 const fatalError = ref(false);
 
-watch(locale, (newLocale) => {
-  const lang = newLocale.split('-')[0];
-  const isRTL = RTL_LOCALES.includes(newLocale);
-  document.documentElement.dir = isRTL ? 'rtl' : 'ltr';
-  document.documentElement.lang = newLocale;
-  vuetifyLocale.value = newLocale;
-}, { immediate: true });
+watch(
+  locale,
+  (newLocale) => {
+    const lang = newLocale.split("-")[0];
+    const isRTL = RTL_LOCALES.includes(newLocale);
+    document.documentElement.dir = isRTL ? "rtl" : "ltr";
+    document.documentElement.lang = newLocale;
+    vuetifyLocale.value = newLocale;
+  },
+  { immediate: true }
+);
 
-watch(() => settingsStore.locale, (newLocale) => {
-  vuetifyLocale.value = newLocale
-}, { immediate: true })
+watch(
+  () => settingsStore.locale,
+  (newLocale) => {
+    vuetifyLocale.value = newLocale;
+  },
+  { immediate: true }
+);
 
 /**
  * bootApp
@@ -50,7 +58,6 @@ const retryInit = () => {
 onMounted(() => {
   bootApp();
 });
-
 </script>
 
 <template>
@@ -59,7 +66,7 @@ onMounted(() => {
       <v-row justify="center" align="center">
         <v-col cols="12" sm="8" md="4" class="text-center">
           <v-icon color="error" size="64">mdi-alert-octagon</v-icon>
-          <h1 class="text-h5 mt-4">{{ t('app.fatalHeadline') }}</h1>
+          <h1 class="text-h5 mt-4">{{ t("app.fatalHeadline") }}</h1>
           <p class="text-body-1 mt-2 text-medium-emphasis">
             {{ t("app.noStart") }}
           </p>

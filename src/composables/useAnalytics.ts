@@ -6,7 +6,6 @@ import posthog from "posthog-js";
  * Composable wrapper for PostHog event tracking and page views.
  */
 export function useAnalytics() {
-
   /**
    * track
    * Captures a custom event with optional metadata.
@@ -27,7 +26,7 @@ export function useAnalytics() {
   function page(name: string, props?: Record<string, unknown>) {
     posthog.capture("$pageview", {
       name,
-      ...props
+      ...props,
     });
   }
 

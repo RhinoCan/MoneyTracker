@@ -5,7 +5,7 @@ import { generateLocaleList } from "@/utils/localeList";
 import { useI18n } from "vue-i18n";
 import { CurrencyCode, SupportedLocale } from "@/types/CommonTypes";
 import { getCurrencyDisplayNames } from "@/utils/SystemDefaults";
-import { useLocale } from 'vuetify';
+import { useLocale } from "vuetify";
 
 const { current: vuetifyLocale } = useLocale();
 const emit = defineEmits(["close"]);
@@ -26,7 +26,18 @@ const locales = computed(() =>
 );
 
 const supportedCurrencies: CurrencyCode[] = [
-  "USD","CAD","GBP","EUR","CHF","CNY","JPY","KRW","INR","SAR","RUB","BRL"
+  "USD",
+  "CAD",
+  "GBP",
+  "EUR",
+  "CHF",
+  "CNY",
+  "JPY",
+  "KRW",
+  "INR",
+  "SAR",
+  "RUB",
+  "BRL",
 ];
 
 const currencyItems = computed(() =>
@@ -41,11 +52,20 @@ const isMessagePersistent = computed<boolean>({
   get: () => localTimeout.value === -1,
   set: (on) => {
     localTimeout.value = on ? -1 : 5; // default 5s when switching off
-  }
+  },
 });
 
 const tickLabels = {
-  1:"1", 2:"2", 3:"3", 4:"4", 5:"5", 6:"6", 7:"7", 8:"8", 9:"9", 10:"10"
+  1: "1",
+  2: "2",
+  3: "3",
+  4: "4",
+  5: "5",
+  6: "6",
+  7: "7",
+  8: "8",
+  9: "9",
+  10: "10",
 };
 
 // --- Save spinner ---
@@ -77,7 +97,6 @@ watch(localLocale, (newLocale) => {
     localCurrency.value = defaultCurrency;
   }
 });
-
 </script>
 
 <template>
@@ -138,12 +157,7 @@ watch(localLocale, (newLocale) => {
     <v-card-actions>
       <v-spacer />
       <v-btn variant="text" @click="emit('close')">{{ t("common.cancel") }}</v-btn>
-      <v-btn
-        color="primary"
-        variant="elevated"
-        @click="handleSave"
-        :loading="savingSettings"
-      >
+      <v-btn color="primary" variant="elevated" @click="handleSave" :loading="savingSettings">
         {{ t("common.saveChanges") }}
       </v-btn>
     </v-card-actions>

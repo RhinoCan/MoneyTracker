@@ -40,12 +40,7 @@ function handleClick(event: Event) {
       />
     </template>
 
-    <v-card
-      :max-width="maxWidth || 300"
-      class="pa-3"
-      elevation="8"
-      @click.stop
-    >
+    <v-card :max-width="maxWidth || 300" class="pa-3" elevation="8" @click.stop>
       <div v-if="title" class="text-subtitle-2 font-weight-bold mb-1">
         {{ title }}
       </div>

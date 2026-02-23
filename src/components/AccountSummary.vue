@@ -13,9 +13,7 @@ const income = computed(() => storeTransaction.getIncome);
 const expense = computed(() => storeTransaction.getExpense);
 const balance = computed(() => storeTransaction.getBalance);
 
-const hasTransactions = computed(
-  () => storeTransaction.transactions.length > 0,
-);
+const hasTransactions = computed(() => storeTransaction.transactions.length > 0);
 </script>
 
 <template>

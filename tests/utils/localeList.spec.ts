@@ -130,11 +130,9 @@ describe("localeList Utility", () => {
 
     it("falls back to hardcoded list and logs exception when Intl.supportedValuesOf fails", async () => {
       // 1. Break the API
-      const spy = vi
-        .spyOn(Intl, "supportedValuesOf" as any)
-        .mockImplementation(() => {
-          throw new Error("Intl Failure");
-        });
+      const spy = vi.spyOn(Intl, "supportedValuesOf" as any).mockImplementation(() => {
+        throw new Error("Intl Failure");
+      });
 
       // 2. Re-import the module to trigger the top-level 'generateLocaleList'
       const { localeList } = await import("@/utils/localeList");

@@ -36,7 +36,7 @@ const showDataManagement = ref(false);
 <template>
   <v-app-bar color="primary" elevation="2" density="comfortable">
     <v-app-bar-title class="font-weight-black text-uppercase letter-spacing-1">
-      {{ t('header.title') }}
+      {{ t("header.title") }}
     </v-app-bar-title>
 
     <v-spacer />
@@ -85,22 +85,26 @@ const showDataManagement = ref(false);
       <span class="mr-3 d-none d-lg-inline text-caption opacity-80">
         {{ userStore.userEmail }}
       </span>
-      <v-btn
-        variant="outlined"
-        size="small"
-        color="white"
-        class="mr-2"
-        @click="handleLogout"
-      >
-        {{ t('header.logoff') }}
+      <v-btn variant="outlined" size="small" color="white" class="mr-2" @click="handleLogout">
+        {{ t("header.logoff") }}
       </v-btn>
     </div>
 
-    <v-dialog v-model="showSettings" max-width="550" persistent transition="dialog-bottom-transition">
+    <v-dialog
+      v-model="showSettings"
+      max-width="550"
+      persistent
+      transition="dialog-bottom-transition"
+    >
       <SettingsDialog @close="showSettings = false" />
     </v-dialog>
 
-     <v-dialog v-model="showDataManagement" max-width="550" persistent transition="dialog-bottom-transition">
+    <v-dialog
+      v-model="showDataManagement"
+      max-width="550"
+      persistent
+      transition="dialog-bottom-transition"
+    >
       <DataManagementDialog @close="showDataManagement = false" />
     </v-dialog>
   </v-app-bar>

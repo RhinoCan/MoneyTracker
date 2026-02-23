@@ -13,8 +13,7 @@ import { useTransactionStore } from "@/stores/TransactionStore";
 
 const t = (i18n.global as any).t;
 
-export type SystemSetting =
-  Database["public"]["Tables"]["system_settings"]["Row"];
+export type SystemSetting = Database["public"]["Tables"]["system_settings"]["Row"];
 
 export const useUserStore = defineStore("user", () => {
   // --- STATE ---
@@ -100,7 +99,6 @@ export const useUserStore = defineStore("user", () => {
           if (event === "SIGNED_IN") {
             await runFullInitialization();
           }
-
         } else {
           posthog.reset();
           isInitialized.value = false; //allow re-initialization on next login
