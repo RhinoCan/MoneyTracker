@@ -1,180 +1,271 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import { useTransactionStore } from "@/stores/TransactionStore.ts";
-import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
-import { useDateFormatter } from "@/composables/useDateFormatter.ts";
+import { useTransactionStore } from "@/stores/TransactionStore";
+import { useDateFormatter } from "@/composables/useDateFormatter";
 import DeleteTransaction from "@/components/DeleteTransaction.vue";
 import UpdateTransaction from "@/components/UpdateTransaction.vue";
 import Money from "@/components/Money.vue";
-import { Transaction } from "@/types/Transaction.ts";
+import { Transaction } from "@/types/Transaction";
+import { i18n } from "@/i18n";
+import { useLocale, type DataTableHeader } from "vuetify";
 
 const storeTransaction = useTransactionStore();
-const { displayMoney } = useCurrencyFormatter();
+
+const t = (i18n.global as any).t;
+
+const { isRtl } = useLocale();
+
+const { formatForUI: formatDate } = useDateFormatter();
+
+// 1. TABLE STATE
 const search = ref("");
+const page = ref(1);
+const itemsPerPage = ref(10);
 const selectedItemDelete = ref<Transaction | null>(null);
 const selectedItemUpdate = ref<Transaction | null>(null);
 
-import type { DataTableHeader } from "vuetify";
-
-const headers = ref<DataTableHeader<Transaction>[]>([
-  { key: "id", title: "ID", sortable: true, align: "end" },
-  { key: "description", title: "Description", sortable: true, align: "start" },
-  { key: "date", title: "Date", sortable: true, align: "start" },
-  { key: "transactionType", title: "Type", sortable: true, align: "start" },
-  { key: "amount", title: "Amount", sortable: true, align: "end" },
-  { key: "actions", title: "Actions", sortable: false, align: "center" },
+// 2. HEADER DEFINITIONS
+const headers = computed<DataTableHeader[]>(() => [
+  {
+    key: "description",
+    title: t("common.description"),
+    sortable: true,
+    align: "start",
+  },
+  { key: "date", title: t("common.date"), sortable: true, align: "start" },
+  {
+    key: "transaction_type",
+    title: t("common.type"),
+    sortable: true,
+    align: "start",
+  },
+  { key: "amount", title: t("common.amount"), sortable: true, align: "end" },
+  {
+    key: "actions",
+    title: t("history.actions"),
+    sortable: false,
+    align: "center",
+    width: "120px",
+  },
 ]);
 
-const { formatDate } = useDateFormatter();
-
-const items = computed(() => storeTransaction.transactions);
+const transactions = computed(() => storeTransaction.transactions);
 </script>
 
 <template>
-  <v-card color="surface" elevation="8">
-    <v-card-title class="bg-primary primary-on-text"
-      >Transaction History</v-card-title
-    >
+  <v-card color="surface" elevation="8" class="rounded-lg">
+    <v-card-title class="bg-primary text-on-primary py-4">
+      {{ t("history.title") }}
+    </v-card-title>
 
-    <v-text-field
-      v-model="search"
-      label="Search"
-      prepend-inner-icon="mdi-magnify"
-      variant="outlined"
-      hide-details
-      single-line
-    />
+    <v-card-text class="pa-0">
+      <v-text-field
+        v-model="search"
+        :label="t('history.search')"
+        prepend-inner-icon="mdi-magnify"
+        variant="filled"
+        hide-details
+        class="search-field"
+      />
 
-    <v-data-table
-      :headers="headers"
-      :items="items"
-      item-key="id"
-      items-per-page="10"
-      :search="search"
-    >
-      <!-- NO DATA SLOT -->
-      <template v-slot:no-data>
-        <v-card color="surface" elevation="8" v-if="items.length <= 0">
-          <v-alert type="info" variant="tonal">
-            You won't see any transactions here until you add some via the
-            <strong>Add New Transaction</strong> form below.
-          </v-alert>
-        </v-card>
-      </template>
-
-      <!-- ONE SLOT FOR ALL HEADERS -->
-      <template
-        v-for="h in headers"
-        v-slot:[`header.${h.key}`]="{ column, isSorted, getSortIcon }"
+      <v-data-table
+        v-model:page="page"
+        v-model:items-per-page="itemsPerPage"
+        :headers="headers"
+        :items="transactions"
+        :search="search"
+        hover
+        class="transaction-table"
+        :items-per-page-text="t('history.itemsPerPage')"
+        :page-text="
+          t('history.pageText', [
+            transactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0,
+            Math.min(page * itemsPerPage, transactions.length),
+            transactions.length,
+          ])
+        "
       >
-        <div
-          :class="[
-            'd-inline-flex align-center w-100',
-            // Mapping: 'start' -> justify-start, 'end' -> justify-end, 'center' -> justify-center
-            column.align === 'end'
-              ? 'justify-end'
-              : column.align === 'center'
-              ? 'justify-center'
-              : 'justify-start',
-          ]"
-          style="cursor: pointer"
+        <template
+          v-for="h in headers"
+          v-slot:[`header.${h.key}`]="{ column, isSorted, getSortIcon }"
         >
-          <v-icon
-            v-if="column.sortable !== false && column.align === 'end'"
-            :icon="isSorted(column) ? getSortIcon(column) : 'mdi-arrow-up'"
+          <div
+            :key="h.key"
             :class="[
-              isSorted(column) ? 'opacity-100' : 'opacity-0 header-hover-icon',
-              'me-1',
+              'd-inline-flex align-center w-100',
+              column.align === 'end'
+                ? 'justify-end'
+                : column.align === 'center'
+                  ? 'justify-center'
+                  : 'justify-start',
             ]"
-            size="small"
-          ></v-icon>
+            class="header-container"
+          >
+            <v-icon
+              v-if="column.sortable !== false && column.align === 'end'"
+              :icon="isSorted(column) ? getSortIcon(column) : 'mdi-arrow-up'"
+              :class="isSorted(column) ? 'active-sort' : 'hint-sort'"
+              size="x-small"
+              class="me-1"
+            />
 
-          <span class="header">{{ column.title }}</span>
+            <span class="custom-header-text">{{ column.title }}</span>
 
-          <v-icon
-            v-if="column.sortable !== false && column.align !== 'end'"
-            :icon="isSorted(column) ? getSortIcon(column) : 'mdi-arrow-up'"
-            :class="[
-              isSorted(column) ? 'opacity-100' : 'opacity-0 header-hover-icon',
-              'ms-1',
-            ]"
-            size="small"
-          ></v-icon>
-        </div>
-      </template>
-      <!-- ROW TEMPLATE -->
-      <template #item="{ item }">
-        <tr>
-          <td class="right">{{ item.id }}</td>
-          <td>{{ item.description }}</td>
-          <td>{{ formatDate(item.date) }}</td>
-          <td>{{ item.transactionType }}</td>
+            <v-icon
+              v-if="column.sortable !== false && column.align !== 'end'"
+              :icon="isSorted(column) ? getSortIcon(column) : 'mdi-arrow-up'"
+              :class="isSorted(column) ? 'active-sort' : 'hint-sort'"
+              size="x-small"
+              class="ms-1"
+            />
+          </div>
+        </template>
 
-          <td class="right">
-            <Money :amount="item.amount" :type="item.transactionType" />
-          </td>
+        <template #item="{ item }">
+          <tr>
+            <td class="font-weight-medium">{{ item.description }}</td>
+            <td class="text-nowrap">{{ formatDate(item.date) }}</td>
+            <td class="text-nowrap">
+              {{ t(`common.${item.transaction_type}`) }}
+            </td>
+            <td class="text-right">
+              <Money :amount="item.amount" :type="item.transaction_type" />
+            </td>
+            <td>
+              <div class="d-flex justify-center ga-2">
+                <v-btn
+                  icon="mdi-pencil"
+                  color="amber-darken-2"
+                  size="x-small"
+                  @click="selectedItemUpdate = item"
+                  :aria-label="t('history.ariaUpdate')"
+                />
+                <v-btn
+                  icon="mdi-delete"
+                  color="error"
+                  size="x-small"
+                  @click="selectedItemDelete = item"
+                  :aria-label="t('history.ariaDelete')"
+                />
+              </div>
+            </td>
+          </tr>
+        </template>
 
-          <td class="center">
-            <div class="d-flex justify-center ga-4 text-nowrap">
-              <v-btn
-                icon="mdi-pencil"
-                color="orange"
-                size="medium"
-                variant="elevated"
-                elevation="8"
-                @click="selectedItemUpdate = item"
+        <template #no-data>
+          <v-alert type="info" variant="tonal" class="ma-4">
+            <i18n-t keypath="history.alert" tag="span">
+              <template #addNew>
+                <strong class="text-uppercase">{{ t("common.addNew") }}</strong>
+              </template>
+            </i18n-t>
+          </v-alert>
+        </template>
+
+        <template #bottom="{ pageCount }">
+          <div class="d-flex align-center justify-end px-4 py-2 ga-4">
+            <!-- Items per page -->
+            <div class="d-flex align-center ga-2">
+              <span v-if="!isRtl" class="text-body-2">{{
+                t("history.itemsPerPage")
+              }}</span>
+              <v-select
+                v-model="itemsPerPage"
+                :items="[5, 10, 25, 50]"
+                density="compact"
+                variant="outlined"
+                hide-details
+                style="width: 120px"
               />
+              <span v-if="isRtl" class="text-body-2">{{
+                t("history.itemsPerPage")
+              }}</span>
+            </div>
 
+            <!-- Page text -->
+            <span class="text-body-2">
+              {{
+                t("history.pageText", [
+                  transactions.length > 0 ? (page - 1) * itemsPerPage + 1 : 0,
+                  Math.min(page * itemsPerPage, transactions.length),
+                  transactions.length,
+                ])
+              }}
+            </span>
+
+            <!-- Navigation arrows -->
+            <div class="d-flex align-center ga-1">
               <v-btn
-                icon="mdi-delete"
-                color="red"
-                size="medium"
-                variant="elevated"
-                elevation="8"
-                @click="selectedItemDelete = item"
+                :icon="isRtl ? 'mdi-page-last' : 'mdi-page-first'"
+                :disabled="page <= 1"
+                variant="text"
+                size="small"
+                @click="page = 1"
+              />
+              <v-btn
+                :icon="isRtl ? 'mdi-chevron-right' : 'mdi-chevron-left'"
+                :disabled="page <= 1"
+                variant="text"
+                size="small"
+                @click="page--"
+              />
+              <v-btn
+                :icon="isRtl ? 'mdi-chevron-left' : 'mdi-chevron-right'"
+                :disabled="page >= pageCount"
+                variant="text"
+                size="small"
+                @click="page++"
+              />
+              <v-btn
+                :icon="isRtl ? 'mdi-page-first' : 'mdi-page-last'"
+                :disabled="page >= pageCount"
+                variant="text"
+                size="small"
+                @click="page = pageCount"
               />
             </div>
-          </td>
-        </tr>
-      </template>
-    </v-data-table>
+          </div>
+        </template>
+      </v-data-table>
+    </v-card-text>
 
-    <DeleteTransaction v-model="selectedItemDelete" />
-    <UpdateTransaction v-model="selectedItemUpdate" />
+    <DeleteTransaction v-if="selectedItemDelete" v-model="selectedItemDelete" />
+    <UpdateTransaction v-if="selectedItemUpdate" v-model="selectedItemUpdate" />
   </v-card>
 </template>
 
 <style scoped>
-span.header {
-  font-weight: 700;
-  font-size: larger;
-  white-space: nowrap;
+.custom-header-text {
+  font-weight: 800;
+  font-size: 0.875rem;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
-.left {
-  text-align: left;
-}
-.center {
-  text-align: center;
-}
-.right {
-  text-align: right;
-}
-CSS
 
-/* Keep the arrow hidden until hover */
-.header-hover-icon {
+.header-container {
+  cursor: pointer;
+  user-select: none;
+}
+
+.hint-sort {
+  opacity: 0;
   transition: opacity 0.2s ease;
-  color: rgba(0, 0, 0, 0.3); /* Faint color for the hint */
 }
 
-/* Show the hint when hovering over the header container */
-div.d-inline-flex:hover .header-hover-icon {
-  opacity: 1 !important;
+.header-container:hover .hint-sort {
+  opacity: 0.4;
 }
 
-/* Ensure the active sort arrow is fully visible and likely the primary color */
-.opacity-100 {
-  opacity: 1 !important;
+.active-sort {
+  opacity: 1;
   color: rgb(var(--v-theme-primary));
+}
+
+.search-field {
+  border-radius: 0;
+}
+
+:deep(.v-data-table__th) {
+  background-color: #f8f9fa !important;
 }
 </style>

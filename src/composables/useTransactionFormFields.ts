@@ -1,13 +1,17 @@
+// @/composables/useTransactionFormFields.ts
 import { ref, computed, nextTick, type Ref } from "vue";
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter";
 import { useDateFormatter } from "@/composables/useDateFormatter";
 import { useAppValidationRules } from "@/composables/useAppValidationRules";
+import { useNumberFormatHints } from "@/composables/useNumberFormatHints";
 import { parseCurrency } from "@/utils/currencyParser";
 import { TransactionTypeValues, type Transaction } from "@/types/Transaction";
-import { useLocaleStore } from "@/stores/LocaleStore"
-import { logException } from "@/utils/Logger";
+import { useSettingsStore } from "@/stores/SettingsStore";
+import { logException } from "@/lib/Logger";
+import { i18n } from "@/i18n";
 
-// Updated the interface to acknowledge the transaction can be null
+const t = (i18n.global as any).t;
+
 interface FormFields {
   transaction: Ref<Transaction | null>;
   formattedAmount: Ref<string>;
@@ -27,23 +31,28 @@ interface FormFields {
   closeDatePicker: () => void;
 }
 
-export function useTransactionFormFields(externalTransaction?: Ref<Transaction | null>): FormFields {
-  const localeStore = useLocaleStore();
+export function useTransactionFormFields(
+  externalTransaction?: Ref<Transaction | null>,
+): FormFields {
+  const settingsStore = useSettingsStore();
   const { displayMoney } = useCurrencyFormatter();
-  const { formatDate } = useDateFormatter();
-  const { required, dateRangeRule, amountValidations } = useAppValidationRules(localeStore.currentLocale);
+  const { formatForUI, toISODateString } = useDateFormatter();
+  const { required, dateRules, amountRules } = useAppValidationRules();
+  const { hasCorrectSeparator } = useNumberFormatHints();
 
   // --- Data Model State ---
-  // If an external Ref is provided, use it. Otherwise, create a default internal one.
+  const today = new Date();
   const internalTransaction = ref<Transaction>({
     id: 0,
     amount: 0,
-    transactionType: TransactionTypeValues.Expense,
-    date: new Date().toISOString(),
+    transaction_type: TransactionTypeValues.Expense,
+    date: toISODateString(today),
     description: "",
+    user_id: "",
   });
 
-  const transaction = (externalTransaction || internalTransaction) as Ref<Transaction | null>;
+  const transaction = (externalTransaction ||
+    internalTransaction) as Ref<Transaction | null>;
 
   // --- Display State ---
   const displayAmount = ref("");
@@ -56,35 +65,28 @@ export function useTransactionFormFields(externalTransaction?: Ref<Transaction |
     if (isFocused.value) {
       return displayAmount.value;
     }
-    // Added optional chaining ?.
-    return displayMoney(transaction.value?.amount ?? 0);
+    return displayMoney.value(transaction.value?.amount ?? 0);
   });
 
   const formattedDate = computed<string>(() => {
-    // Added optional chaining ?.
     const dateValue = transaction.value?.date;
-    return dateValue ? formatDate(dateValue) : "";
+    return dateValue ? formatForUI(dateValue) : "";
   });
 
   const colorClass = computed<string>(() => {
-    if (isFocused.value) {
-      return "money-neutral";
-    }
-    // Added optional chaining and fallback
-    const type = transaction.value?.transactionType;
-    return (type as string) === TransactionTypeValues.Expense
-      ? "money-minus"
-      : "money-plus";
+    if (isFocused.value) return "money-neutral";
+    const type = transaction.value?.transaction_type;
+    return type === TransactionTypeValues.Expense ? "money-minus" : "money-plus";
   });
 
   // --- Functions ---
 
   function resetForm() {
     if (!transaction.value) return;
-
+    const today = new Date();
     transaction.value.amount = 0;
-    transaction.value.transactionType = TransactionTypeValues.Expense;
-    transaction.value.date = new Date().toISOString();
+    transaction.value.transaction_type = TransactionTypeValues.Expense;
+    transaction.value.date = toISODateString(today);
     transaction.value.description = "";
     displayAmount.value = "";
     isFocused.value = false;
@@ -94,35 +96,63 @@ export function useTransactionFormFields(externalTransaction?: Ref<Transaction |
   function handleFocus() {
     isFocused.value = true;
     const currentAmount = transaction.value?.amount;
-    if (currentAmount !== null && currentAmount !== undefined) {
-      displayAmount.value = currentAmount.toString();
+    if (currentAmount !== null && currentAmount !== undefined && currentAmount > 0) {
+      // Format using locale decimal separator so German users see 5,01 not 5.01
+      const parts = new Intl.NumberFormat(settingsStore.locale).formatToParts(currentAmount);
+      displayAmount.value = parts
+        .filter(p => p.type === 'integer' || p.type === 'decimal' || p.type === 'fraction')
+        .map(p => p.value)
+        .join('');
     } else {
-      displayAmount.value = "";
+      //If amount is 0 (invalid input was rejected), leave displayAmount as-is
     }
   }
 
   function handleBlur() {
     isFocused.value = false;
     const rawValue = displayAmount.value;
-    const parsedAmount = parseCurrency(rawValue, localeStore.currentLocale);
-    //const localeStore = useLocaleStore();
-    const validationResult = amountValidations(rawValue);
+    const locale = settingsStore.locale;
+
+    // Reject immediately if wrong decimal separator used
+    if (!hasCorrectSeparator(rawValue)) {
+      transaction.value!.amount = 0;
+      //Leave displayAmount as the invalid input so the user can see and correct it
+      displayAmount.value =  rawValue;
+      return;
+    }
+
+    // Parse the string into a clean number
+    const parsedAmount = parseCurrency(rawValue, locale);
+
+    // Check validation rules for mismatch logging
+    const validationResult = amountRules(rawValue);
     const isValidAccordingToRules = validationResult === true;
 
     if (transaction.value) {
       if (parsedAmount !== null && parsedAmount > 0) {
+        // SUCCESS: Update the numeric amount in our data model
         transaction.value.amount = parsedAmount;
+        // Update the display field with the pretty formatted version
+        displayAmount.value = displayMoney.value(parsedAmount);
       } else {
+        // FAILURE: Reset model to 0
         transaction.value.amount = 0;
+
+        // Log if the parser failed but the validator was happy (logic gap detection)
         if (isValidAccordingToRules && rawValue !== "" && rawValue !== "0") {
           logException(new Error("Parse/Validator Mismatch"), {
-            module: "useTransactionFormFields", action: "handleBlur", data: {rawValue, locale: localeStore.currentLocale }
-          })
+            slug: t("useTrans.parseValidatorMismatch"),
+            module: "useTransactionFormFields",
+            action: "handleBlur",
+            data: { rawValue, locale },
+          });
+        }
+
+        if (rawValue === "" || rawValue === "0") {
+          displayAmount.value = displayMoney.value(0);
         }
       }
     }
-
-    displayAmount.value = formattedAmount.value;
   }
 
   function closeDatePicker() {
@@ -131,10 +161,9 @@ export function useTransactionFormFields(externalTransaction?: Ref<Transaction |
     });
   }
 
-  // --- Validation Rules ---
   const rules = {
-    date: [required, (v: string | null) => dateRangeRule(v)],
-    amount: [required, (v: string) => amountValidations(v)],
+    date: [required, (v: any) => dateRules(v)],
+    amount: [required, (v: any) => amountRules(v)],
     category: [required],
   };
 

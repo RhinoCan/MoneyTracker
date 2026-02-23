@@ -1,74 +1,56 @@
-// src/utils/currencyParser.ts
-import { logException } from "@/utils/Logger";
+import { logException } from "@/lib/Logger";
+import { i18n } from "@/i18n";
+
+const t = (i18n.global as any).t;
 
 /**
- * Takes a raw or formatted string from a user input field and converts it back to a number.
- * It uses the current locale to correctly identify decimal and thousands separators.
- *
- * @param {string} formattedString - The string value from the input field (e.g., "1.234,56" or "1,234.56").
- * @returns {number | null} - The numeric amount (e.g., 1234.56), or null if parsing fails.
+ * Parses a localized currency string into a numeric value.
  */
 export function parseCurrency(formattedString: string, locale: string): number | null {
-  if (typeof formattedString !== 'string' || !formattedString) return null;
+  if (!formattedString || typeof formattedString !== "string") {
+    return null;
+  }
 
   try {
-    // 1. Get the locale's separators by formatting a dummy number
+    // 1. Identify locale-specific separators
     const parts = new Intl.NumberFormat(locale).formatToParts(1111.11);
-    const decimalSeparatorPart = parts.find(part => part.type === 'decimal');
-    const groupSeparatorPart = parts.find(part => part.type === 'group');
-    const currencySeparatorPart = parts.find(part => part.type === 'currency'); // Added for currency symbol check
-
-    const decimalSeparator = decimalSeparatorPart ? decimalSeparatorPart.value : '.';
-    const groupSeparator = groupSeparatorPart ? groupSeparatorPart.value : ',';
-    const currencySymbol = currencySeparatorPart ? currencySeparatorPart.value : '$';
+    const decimalSeparator = parts.find((p) => p.type === "decimal")?.value ?? ".";
+    const groupSeparator = parts.find((p) => p.type === "group")?.value ?? ",";
 
     let rawString = formattedString.trim();
 
-    // --- START OF NEW/REVISED LOGIC ---
+    // 2. Escape separators for Regex safety
+    const escapedDecimal = decimalSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const escapedGroup = groupSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    // A. Remove all grouping (thousands) separators
-    if (groupSeparator) {
-      const escapedGroupSeparator = groupSeparator.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-      const groupSeparatorRegex = new RegExp(escapedGroupSeparator, 'g');
-      rawString = rawString.replace(groupSeparatorRegex, '');
+    // 3. Remove group separators (thousands)
+    rawString = rawString.replace(new RegExp(escapedGroup, "g"), "");
+
+    // 4. Clean up non-numeric characters except the decimal and minus sign
+    const keepRegex = new RegExp(`[^\\d${escapedDecimal}-]`, "g");
+    rawString = rawString.replace(keepRegex, "");
+
+    // 5. Normalize decimal separator to standard "." for parseFloat
+    if (decimalSeparator !== ".") {
+      rawString = rawString.replace(decimalSeparator, ".");
     }
 
-    // B. Remove the expected currency symbol (if present)
-    if (currencySymbol) {
-        // Use a global regex to remove all occurrences of the known symbol
-        const escapedCurrencySymbol = currencySymbol.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-        const currencySymbolRegex = new RegExp(escapedCurrencySymbol, 'g');
-        rawString = rawString.replace(currencySymbolRegex, '');
-    }
-
-    // C. Convert the locale-specific decimal separator to the standard JS '.'
-    if (decimalSeparator !== '.') {
-      rawString = rawString.replace(decimalSeparator, '.');
-    }
-
-    // D. CRITICAL VALIDATION: Check for illegal characters (like 'a', 'b', etc.)
-    // If the string contains anything that is NOT a digit or a dot, reject it.
-    // This is the direct fix for the "12.00a" issue.
-    if (/[^\d.]/.test(rawString)) {
-        return null; // Input contains illegal characters (e.g., letters, multiple symbols)
-    }
-
-    // E. CRITICAL VALIDATION: Check for multiple decimal points (e.g., "1.2.3")
+    // 6. Final Validation & Parsing
     if ((rawString.match(/\./g) || []).length > 1) {
-        return null; // Input contains too many decimal points
+      return null;
     }
 
-    // --- END OF NEW/REVISED LOGIC ---
-
-    // Final Parse
     const parsedValue = parseFloat(rawString);
 
-    // Return the number, or null if it resulted in NaN or zero (must be > 0 for validation)
     return isNaN(parsedValue) || parsedValue <= 0 ? null : parsedValue;
 
-  } catch (e) {
-    // This catch block handles internal formatting errors, unlikely for simple inputs.
-    // logException(e, { store: "currencyParser", action: "Parse currency string", data: {formattedString, locale}});
+  } catch (error) {
+    logException(error, {
+      module: "currencyParser",
+      action: "parseCurrency",
+      slug: t('currParser.parser_failure'),
+      data: { formattedString, locale },
+    });
     return null;
   }
 }

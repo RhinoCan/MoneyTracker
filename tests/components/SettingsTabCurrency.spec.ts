@@ -20,7 +20,7 @@ describe("SettingsTabCurrency", () => {
       currencySign: "standard",
       minPrecision: 2,
       maxPrecision: 2,
-      thousandsSeparator: true,
+      useGrouping: true,
       useBankersRounding: false,
     });
 
@@ -82,7 +82,7 @@ describe("SettingsTabCurrency", () => {
       expect(storeSpy).toHaveBeenCalledWith(
         expect.objectContaining({
           currencyDisplay: "name",
-        })
+        }),
       );
     });
   });
@@ -94,8 +94,8 @@ describe("SettingsTabCurrency", () => {
       expect(selects.length).toBe(2);
     });
 
-    it("toggles the thousands separator switch", async () => {
-      wrapper.vm.localFormat.thousandsSeparator = false;
+    it("toggles the useGrouping switch", async () => {
+      wrapper.vm.localFormat.useGrouping = false;
       await nextTick();
 
       // With separator off, the preview should not have commas
@@ -147,13 +147,13 @@ describe("SettingsTabCurrency", () => {
         label: "Use Thousands Separator",
       });
       await thousandSwitch.vm.$emit("update:modelValue", false);
-      expect(wrapper.vm.localFormat.thousandsSeparator).toBe(false);
+      expect(wrapper.vm.localFormat.useGrouping).toBe(false);
 
       // 6. Banker's Rounding Switch (Note: The label is in a slot, but name match works)
       // We'll find all switches and find the one that isn't the thousands separator
       const switches = wrapper.findAllComponents({ name: "VSwitch" });
       const bankersSwitch = switches.find(
-        (s) => s.props("label") !== "Use Thousands Separator"
+        (s) => s.props("label") !== "Use Thousands Separator",
       );
       await bankersSwitch?.vm.$emit("update:modelValue", true);
       expect(wrapper.vm.localFormat.useBankersRounding).toBe(true);
@@ -198,7 +198,7 @@ describe("SettingsTabCurrency", () => {
       const result = rules[0](1);
 
       expect(result).toBe(
-        "Maximum precision cannot be less than minimum precision"
+        "Maximum precision cannot be less than minimum precision",
       );
 
       // This is the one that was returning true—now it should be false

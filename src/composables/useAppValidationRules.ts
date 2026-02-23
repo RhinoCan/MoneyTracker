@@ -1,104 +1,90 @@
-import { isAfter, isBefore, startOfYear, startOfDay, endOfYesterday, parseISO } from 'date-fns';
-import { logWarning } from '@/utils/Logger';
-import { parseCurrency } from "@/utils/currencyParser"
+// @/composables/useAppValidationRules.ts
+import { i18n } from "@/i18n";
+import { logWarning } from "@/lib/Logger";
+import { useSettingsStore } from "@/stores/SettingsStore";
+import { parseCurrency } from "@/utils/currencyParser";
+import { useNumberFormatHints } from "@/composables/useNumberFormatHints";
 
-/**
- * Provides a set of reusable validation rules for Vuetify form components.
- */
-export function useAppValidationRules(locale: string) {
-    // ----------------------------------------------------
-    // --- Date Checks (Calculated once per component load) ---
-    // ----------------------------------------------------
-    const today = new Date();
-    // The start of the current calendar year (e.g., January 1st, 2025 00:00:00)
-    const startOfCurrentYear = startOfYear(today);
-    // The end of yesterday (e.g., December 13th, 2025 23:59:59)
-    const yesterday = endOfYesterday();
+export function useAppValidationRules() {
+  const t = (i18n.global as any).t;
+  const settingsStore = useSettingsStore();
+  const { hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
-    // ----------------------------------------------------
-    // --- 1. Basic Rules ---
-    // ----------------------------------------------------
+  const required = (v: any) => !!v || t("useApp.reqd");
 
-    const required = (v: any) =>
-        !!v || 'This field is required. Zero is not allowed.';
+  const transactionTypeRequired = (v: any) =>
+    ["Income", "Expense"].includes(v) || t("useApp.transReqd");
 
-    const requiredZeroOk = (v: any) =>
-      (v !== null && v !== undefined && v !== '') || 'This field is required. Zero is allowed.'
+  const amountRules = (v: any) => {
+    if (!v && v !== 0) return t("useApp.reqdZeroOk");
+    if (!hasCorrectSeparator(String(v))) return t("useApp.wrongSeparator", { separator: decimalSeparator.value });
+    const num = parseCurrency(String(v), settingsStore.locale);
+    if (num === null || num <= 0) return t("useApp.greater");
+    return true;
+  };
 
-    // Rule for Transaction Type Radio Group
-    const transactionTypeRequired = (v: string | null) =>
-        (!!v) || "Transaction Type must be chosen";
+  const dateRules = (value: string) => {
+    if (!value || value.trim() === '') {
+      return t("useApp.dateReqd");
+    }
 
+    const [year, month, day] = value.split('-').map(Number);
+    const parsedDate = new Date(year, month - 1, day);
 
-    //Use start of TODAY for comparison. If date is after this, it's tomorrow or later.
-    const startOfToday = startOfDay(today);
+    if (isNaN(parsedDate.getTime())) {
+      logWarning("Date validation failed: Invalid date object", {
+        module: "useAppValidationRules",
+        action: "dateRules",
+        data: { input: value },
+      });
+      return t("useApp.invalidFmt");
+    }
 
+    if (
+      parsedDate.getFullYear() !== year ||
+      parsedDate.getMonth() !== month - 1 ||
+      parsedDate.getDate() !== day
+    ) {
+      logWarning("Date validation failed: Date components mismatch", {
+        module: "useAppValidationRules",
+        action: "dateRules",
+        data: { input: value, parsed: parsedDate },
+      });
+      return t("useApp.invalidFmt");
+    }
 
-    // ----------------------------------------------------
-    // --- 2. Date Rules ---
-    // ----------------------------------------------------
+    const now = new Date();
+    const currentYear = now.getFullYear();
 
-    /**
-     * Date validation rule: checks for no future dates and confines it to the current calendar year.
-     * @param v The date string (expected to be an ISO string YYYY-MM-DD from the date picker).
-     */
-    const dateRangeRule = (v: string | null) => {
+    now.setHours(23, 59, 59, 999);
+    if (parsedDate > now) {
+      return t("useApp.notFuture");
+    }
 
-        if (!v) return 'Date is required.'; // Fail if empty
+    if (parsedDate.getFullYear() !== currentYear) {
+      return t("useApp.notPrevYear", { year: parsedDate.getFullYear() });
+    }
 
-        // parseISO handles the YYYY-MM-DD format correctly.
-        const parsedDate = parseISO(v);
+    return true;
+  };
 
-        if(isNaN(parsedDate.getTime())) {
-          logWarning("parse(ISO) returned a date that is in the wrong format.", { module: "useAppValidationRules", action: "parseISO", data: v })
-          return 'Invalid date format.';
-        }
+  const otherTabRules = (v: any) => {
+    if (v === null || v === undefined || v === "") return t("useApp.reqd");
 
-        //Normalize the input date to start of its day for clean comparison
-        const inputDateStart = startOfDay(parsedDate);
+    const num = Number(v);
 
-        // Check for Future Date (Must be today or earlier)
-        // If the input date is after yesterday's end, it's a future date.
-        if (isAfter(inputDateStart, startOfToday)) {
-            return 'Transaction date cannot be in the future (tomorrow or later).';
-        }
+    if (isNaN(num) || num < -1) return t("useApp.timeoutMin");
+    if (num > 10) return t("useApp.timeoutMax");
+    if (!Number.isInteger(num)) return t("useApp.timeoutInteger");
 
-        // 2. Check for Previous Calendar Year
-        // If the input date is before the start of the current calendar year
-        if (isBefore(inputDateStart, startOfCurrentYear)) {
-            return `Transaction date cannot be from a previous calendar year (${startOfCurrentYear.getFullYear()}).`;
-        }
+    return true;
+  };
 
-        return true; // Validation passed
-    };
-
-    // ----------------------------------------------------
-    // --- 3. Amount Rules ---
-    // ----------------------------------------------------
-
-    /**
-     * Amount validation rule: checks for valid currency format and positive value.
-     * NOTE: This rule relies on the component's `handleBlur` or submit handler
-     * to have correctly updated the underlying model to a parseable numeric value,
-     * or set it to 0 if invalid.
-     * @param v The display string from the text field (e.g., "$100.50").
-     */
-    const amountValidations = (v: string) => {
-        // We use a basic scrubbing to get a number here, but your component's logic is the source of truth.
-        // This is mainly to validate the string as a number > 0.
-        const parsedAmount = parseCurrency(v, locale);
-
-        return (
-            (parsedAmount !== null && parsedAmount > 0) ||
-            "Amount must be supplied and must be greater than zero"
-        );
-    };
-
-    return {
-        required: required,
-        requiredZeroOk,
-        transactionTypeRequired,
-        dateRangeRule,
-        amountValidations,
-    };
+  return {
+    required,
+    transactionTypeRequired,
+    dateRules,
+    amountRules,
+    otherTabRules,
+  };
 }

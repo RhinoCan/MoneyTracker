@@ -3,7 +3,6 @@ import { config } from '@vue/test-utils'
 import { createVuetify } from 'vuetify'
 import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
-import { logWarning } from '@/utils/Logger'
 
 // Global mock for the Logger to keep the console clean
 vi.mock('@/utils/Logger', () => ({

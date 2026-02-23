@@ -1,0 +1,223 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "saveChanges": "Save Changes",
+    "help": "Help",
+    "close": "Close",
+    "addNew": "Add New Transaction",
+    "Income": "Income",
+    "Expense": "Expense",
+    "description": "Description",
+    "date": "Date",
+    "type": "Transaction Type",
+    "amount": "Amount",
+    "error_unexpected": "Something went wrong. Please try again later.",
+    "fill_all_fields": "Please fill in all of the fields.",
+    "format": "Format: {example}.",
+    "wrongSeparator": "Please use {separator} for decimals.",
+    "invalidAmount": "Please correct the amount format before saving."
+  },
+  "app": {
+    "fatalHeadline": "Application Failed to Start",
+    "noStart": "We couldn't start the application. Please check your connection and try again.",
+    "retry": "Retry Connection."
+  },
+  "main": {
+    "global_vue_crash": "Vue has experienced a major crash in main.ts"
+  },
+  "deleteDialog": {
+    "title": "Confirm or Cancel Delete",
+    "error_no_trans": "The transaction couldn't be deleted because it no longer exists.",
+    "error_UI": "The delete failed at the user interface level.",
+    "confirmBtn": "Delete Transaction"
+  },
+  "settings": {
+    "title": "Settings",
+    "locale": "Locale",
+    "currency": "Currency",
+    "persistMsg": "Persist messages until you close them manually",
+    "timeoutMsg": "Set the duration of the message via the slider"
+  },
+  "settingsStore": {
+    "updated": "Settings updated.",
+    "cleared": "Settings cleared from database."
+  },
+  "management": {
+    "title": "Data Management",
+    "exportTitle": "Export Data",
+    "exportText": "Save a copy of your transactions to a CSV file for backup or use in spreadsheets.",
+    "btnExport": "Export CSV",
+    "dangerZone": "Danger Zone",
+    "deleteTransTitle": "Delete All Transactions",
+    "deleteTransText": "Deletes every transaction but preserves your settings (language, currency, message timeout).",
+    "btnDeleteTrans": "Delete All Transactions",
+    "restoreSettingsTitle": "Restore All Settings to Defaults",
+    "restoreSettingsText": "Restores all settings (language, currency, date format) to their defaults but preserves all transactions.",
+    "btnRestoreSettings": "Restore All Settings to Defaults",
+    "deleteEverythingTitle": "Delete All Transactions and Settings",
+    "deleteEverythingText": "This deletes every transaction AND all of your settings, then restarts the app with default settings.",
+    "btnDeleteEverything": "Delete All Transactions *and* Settings",
+    "confirmDeleteAllTransactions": "Are you sure? This will delete all of your transactions but keep your settings. You cannot undo this. Proceed?",
+    "confirmRestoreAllSettings": "Are you sure? This will restore all settings to defaults but keep your transactions. You cannot undo this. Proceed?",
+    "confirmDeleteEverything": "STOP: This will permanently erase ALL transactions and ALL settings. You cannot undo this. Proceed?",
+    "restore_settings_failed": "Failed to restore all settings to their defaults.",
+    "full_wipe_failed": "Failed to delete all transactions and to restore all settings to their defaults."
+  },
+  "accountSummary": {
+    "title": "Account Summary",
+    "alert": "You won't see anything here until you add at least one Transaction via the {addNew} form below.",
+    "income": "Total Income",
+    "expense": "Total Expense",
+    "balance": "Balance"
+  },
+  "addTrans": {
+    "title": "Add New Transaction",
+    "btnReset": "Reset",
+    "btnAdd": "Add transaction",
+    "labelDescription": "Description",
+    "labelDate": "Transaction Date",
+    "labelType": "Transaction Type",
+    "labelIncome": "Income",
+    "labelExpense": "Expense",
+    "labelAmount": "Amount",
+    "err_missing_or_negative": "The amount cannot be missing or negative.",
+    "success": "The transaction was added.",
+    "submit_failed": "The new transaction failed the submit validations."
+  },
+  "keyboard": {
+    "title": "Keyboard Shortcuts",
+    "paraEsc": "You may use the {Esc} key on your keyboard to cancel this update rather than using the {iconHelp} icon or the Cancel button.",
+    "paraEnter": "You may use the {Enter} key on your keyboard to save the changes you made here rather than using the Save button.",
+    "paraTab": "You may use the {Tab} key on your keyboard to jump between fields on forms that contain multiple fields.",
+    "keyEsc": "Esc",
+    "keyEnter": "Enter",
+    "keyTab": "Tab"
+  },
+  "about": {
+    "title": "About",
+    "origins": "Origins",
+    "introParagraph": "This app is a descendant of one I originally built while following {linkTraversy}. I then made a number of upgrades which are summarized below:",
+    "linkText": "one of Brad Traversy's courses",
+    "enhancements": [
+      "Tests were written and executed for the original Vue components.",
+      "The props were almost entirely replaced by Pinia stores.",
+      "Vue components were replaced by Vuetify components.",
+      "Javascript modules were converted to TypeScript.",
+      "Some internationalization/localization was done to make monetary amounts appear in the correct format for the locale in which the app is running.",
+      "A confirm dialog was added to ensure that the user really means to delete the transaction chosen for deletion.",
+      "The AccountBalance and IncomeExpense components were merged into a single new component called AccountSummary.",
+      "A new component called Money was created to display all instances of money except where it is being input or edited.",
+      "A transaction date was added to the Transaction definition so that users could record when the income was made or the expense incurred.",
+      "The various individual Settings dialogs were merged into a single tabbed Settings Dialog, which was later simplified.",
+      "Added Sentry so that errors and warnings would be properly logged.",
+      "Translated all of the text visible (and audible) to the user into a variety of locales and widely-spoken languages.",
+      "Added PostHog to track information and success messages for analytical purposes.",
+      "Added Vue Router and Register/Login pages so that users could be authenticated.",
+      "Replaced all usages of localStorage with Supabase."
+    ],
+    "packages": "Major Packages Used",
+    "textVue": "Vue 3.x",
+    "textVuetify": "Vuetify 3.x",
+    "textPinia": "Pinia",
+    "textSentry": "Sentry",
+    "textPostHog": "PostHog",
+    "textSupabase": "Supabase"
+  },
+  "header": {
+    "title": "Money Tracker",
+    "settings": "Settings",
+    "data": "Data Management",
+    "textLive": "Live (GitHub Pages)",
+    "textDev": "Dev Server",
+    "logoff": "Log Off"
+  },
+  "history": {
+    "title": "Transaction History",
+    "search": "Search",
+    "alert": "You won't see any transactions here until you add some via the {addNew} form below.",
+    "actions": "Actions",
+    "itemsPerPage": "Items per page:",
+    "pageText": "{0}-{1} of {2}",
+    "ariaUpdate": "Update",
+    "ariaDelete": "Delete"
+  },
+  "updateDialog": {
+    "title": "Update Transaction",
+    "btnUpdate": "Update Transaction",
+    "noChanges": "Nothing in this transaction was changed so no update was performed.",
+    "success": "The transaction was updated successfully.",
+    "failedUI": "The update failed in the user interface."
+  },
+  "useApp": {
+    "reqd": "This field is required. Zero is not allowed.",
+    "reqdZeroOk": "This field is required. Zero is allowed in a numeric field.",
+    "transReqd": "A transaction type must be chosen.",
+    "timeoutMin": "Timeout must be -1 or greater.",
+    "timeoutMax": "Timeout must be 10 or less.",
+    "timeoutInteger": "Timeout must be a positive number or zero.",
+    "dateReqd": "Date is required.",
+    "notFuture": "Transaction date cannot be in the future (tomorrow or later).",
+    "invalidFmt": "Invalid date format.",
+    "notPrevYear": "Transaction date cannot be from a previous calendar year {year}.",
+    "greater": "Amount must be supplied and must be greater than zero.",
+    "wrongSeparator": "Please use {separator} as the decimal separator."
+  },
+  "transactionStore": {
+    "added": "Successfully added the transaction with ID {id}.",
+    "add_failed": "Failed to add the transaction with ID {id}.",
+    "updated": "Successfully updated the transaction with ID {id}.",
+    "update_failed": "Failed to update the transaction with ID {id}.",
+    "deleteOne": "Successfully deleted the transaction with ID {id}.",
+    "deleteOne_failed": "Failed to delete the transaction with ID {id}.",
+    "deleteAll": "Successfully deleted all of the transactions.",
+    "deleteAll_failed": "Failed to delete all of the transactions."
+  },
+  "login": {
+    "title": "Login",
+    "email_label": "Email Address",
+    "password_label": "Password",
+    "no_account": "Don't have an account?",
+    "fail_generic": "Login failed. Please try again.",
+    "fail_unconfirmed": "Please confirm your email before logging in.",
+    "fail_credentials": "Invalid email or password.",
+    "error_unexpected": "An unexpected error occurred during login.",
+    "button": "Sign In",
+    "go_register": "Register",
+    "success": "Login successful.",
+    "auth_login_failed": "",
+    "auth_unexpected": ""
+  },
+  "register": {
+    "title": "Register",
+    "fail": "Could not complete registration.",
+    "success_check_email": "Registration successful! Check your email for a confirmation link.",
+    "button": "Sign Up",
+    "go_login": "Back to Login"
+  },
+  "userStore": {
+    "authFailed": "We couldn't connect to your account. Please refresh the page.",
+    "signoutFailed": "Sign out failed. Please try again.",
+    "initChainFailed": "Initialization chain failed."
+  },
+  "currFormat": {
+    "failed": "Failed to format currency."
+  },
+  "currParser": {
+    "parser_failure": "Failed to parse currency."
+  },
+  "useTrans": {
+    "parseValidatorMismatch": "The validator didn't like the format of the amount."
+  },
+  "router": {
+    "auth_check_failed": ""
+  },
+  "localeList": {
+    "intl_supported_values_failed": ""
+  },
+  "appInit": {
+    "hydration_failed": "The hydration of AppInitializer failed."
+  },
+  "defaults": {
+    "currency_detection_failed": "Failed to detect the currency."
+  }
+}

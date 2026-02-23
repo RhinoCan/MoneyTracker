@@ -1,173 +1,151 @@
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { storeToRefs } from "pinia";
-import SettingsLocale from "@/components/SettingsTabLocale.vue";
-import SettingsCurrency from "@/components/SettingsTabCurrency.vue";
-import SettingsDateFormat from "@/components/SettingsTabDateFormat.vue";
-import SettingsOther from "@/components/SettingsTabOther.vue";
-import { useOtherStore } from "@/stores/OtherStore.ts";
-import { useToast } from "vue-toastification";
-import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+import { ref, computed, watch } from "vue";
+import { useSettingsStore, localeToCurrency } from "@/stores/SettingsStore";
+import { generateLocaleList } from "@/utils/localeList";
+import { useI18n } from "vue-i18n";
+import { CurrencyCode, SupportedLocale } from "@/types/CommonTypes";
+import { getCurrencyDisplayNames } from "@/utils/SystemDefaults";
+import { useLocale } from 'vuetify';
 
-const toast = useToast();
-
-const otherStore = useOtherStore();
-const { getTimeout } = storeToRefs(otherStore);
-
-const showKeyboardShortcuts = ref(false);
-
-const openHelp = () => {
-  showKeyboardShortcuts.value = true;
-}
-
-const closeDialog = () => {
-  emit('close');
-}
-
+const { current: vuetifyLocale } = useLocale();
 const emit = defineEmits(["close"]);
+const { t, locale } = useI18n();
+const settingsStore = useSettingsStore();
 
-const activeTab = ref("locale");
+// --- Local draft state ---
+const localLocale = ref<SupportedLocale>(settingsStore.locale);
+const localCurrency = ref<CurrencyCode>(settingsStore.currency);
+const localTimeout = ref<number>(settingsStore.snackbarTimeout);
 
-// Template Refs to child components
-const localeRef = ref<InstanceType<typeof SettingsLocale> | null>(null);
-const currencyRef = ref<InstanceType<typeof SettingsCurrency> | null>(null);
-const dateFormatRef = ref<InstanceType<typeof SettingsDateFormat> | null>(null);
-const otherRef = ref<InstanceType<typeof SettingsOther> | null>(null);
+// --- Dropdown items ---
+const locales = computed(() =>
+  generateLocaleList(localLocale.value).map((loc) => ({
+    label: loc.name,
+    value: loc.code,
+  }))
+);
 
-/**
- * Computed property to check if all forms are valid.
- */
-const isEverythingValid = computed(() => {
-  return (
-    (localeRef.value?.isValid ?? true) &&
-    (currencyRef.value?.isValid ?? true) &&
-    (dateFormatRef.value?.isValid ?? true) &&
-    (otherRef.value?.isValid ?? true)
-  );
+const supportedCurrencies: CurrencyCode[] = [
+  "USD","CAD","GBP","EUR","CHF","CNY","JPY","KRW","INR","SAR","RUB","BRL"
+];
+
+const currencyItems = computed(() =>
+  supportedCurrencies.map((code) => {
+    const { english, local } = getCurrencyDisplayNames(code, localLocale.value);
+    return { value: code, title: `${code} - ${english} - ${local}` };
+  })
+);
+
+// --- Slider and switch ---
+const isMessagePersistent = computed<boolean>({
+  get: () => localTimeout.value === -1,
+  set: (on) => {
+    localTimeout.value = on ? -1 : 5; // default 5s when switching off
+  }
 });
 
-/**
- * The "Master Save"
- * Calls the exposed saveChanges() method on every tab.
- */
-async function saveAllTabs() {
-  if (!isEverythingValid.value) return;
-  localeRef.value?.saveChanges();
-  currencyRef.value?.saveChanges();
-  dateFormatRef.value?.saveChanges();
-  otherRef.value?.saveChanges();
+const tickLabels = {
+  1:"1", 2:"2", 3:"3", 4:"4", 5:"5", 6:"6", 7:"7", 8:"8", 9:"9", 10:"10"
+};
 
-  toast.success("Successfully updated the settings.", {
-    timeout: getTimeout.value,
-  });
+// --- Save spinner ---
+const savingSettings = ref(false);
 
-  emit("close");
-}
+// --- Handle Save ---
+async function handleSave() {
+  if (savingSettings.value) return; //guard against concurrent calls
+  savingSettings.value = true;
 
-/**
- * Keyboard Handler
- * Triggers save on 'Enter' unless the user is inside a numeric input.
- */
-function handleEnter(event: KeyboardEvent) {
-  if (!isEverythingValid.value) return;
-  const target = event.target as HTMLElement;
-
-  if (target.tagName === "INPUT" && target.getAttribute("type") === "number") {
-    return;
+  try {
+    settingsStore.locale = localLocale.value;
+    settingsStore.currency = localCurrency.value;
+    settingsStore.snackbarTimeout = localTimeout.value;
+    locale.value = localLocale.value; //triggers App.vue RTL watcher
+    vuetifyLocale.value = localLocale.value;
+    await settingsStore.saveToDb();
+    emit("close");
+  } catch (error) {
+    // error logged by store; dialog remains open
+  } finally {
+    savingSettings.value = false;
   }
-
-  // Brief delay to ensure v-select/v-autocomplete menus close before saving
-  setTimeout(() => {
-    saveAllTabs();
-  }, 100);
 }
 
-// <-- Expose the methods to template and tests
-defineExpose({ saveAllTabs, handleEnter });
+watch(localLocale, (newLocale) => {
+  const defaultCurrency = localeToCurrency[newLocale];
+  if (defaultCurrency) {
+    localCurrency.value = defaultCurrency;
+  }
+});
+
 </script>
 
 <template>
-  <v-card color="surface" @keydown.enter="handleEnter">
+  <v-card>
     <v-card-title class="bg-primary text-on-primary">
-      Settings
-      <v-btn
-        icon="mdi-help"
-        variant="text"
-        color="white"
-        aria-label="Help"
-        position="absolute"
-        style="top: 0px; right: 48px"
-        @click="openHelp"
-      />
-      <v-btn
-        icon="mdi-close"
-        variant="text"
-        color="white"
-        aria-label="Close dialog"
-        position="absolute"
-        style="top: 0px; right: 8px"
-        @click="closeDialog"
-      />
+      {{ t("settings.title") }}
     </v-card-title>
 
-    <v-tabs v-model="activeTab" color="surface" bg-color="primary">
-      <v-tab value="locale">
-        Locale
-        <v-icon v-if="!localeRef?.isValid" icon="mdi-alert-circle" color="error" size="small" class="ml-1"/>
-      </v-tab>
-      <v-tab value="currency">
-        Currency
-        <v-icon v-if="!currencyRef?.isValid" icon="mdi-alert-circle" color="error" size="small" class="ml-1"/>
-      </v-tab>
-      <v-tab value="dateFormat">
-        Date Format
-        <v-icon v-if="!dateFormatRef?.isValid" icon="mdi-alert-circle" color="error" size="small" class="ml-1"/>
-      </v-tab>
-      <v-tab value="other">
-        Other
-        <v-icon v-if="!otherRef?.isValid" icon="mdi-alert-circle" color="error" size="small" class="ml-1"/>
-      </v-tab>
-    </v-tabs>
+    <v-card-text class="pt-4">
+      <v-select
+        v-model="localLocale"
+        :items="locales"
+        item-title="label"
+        item-value="value"
+        :label="t('settings.locale')"
+        prepend-inner-icon="mdi-translate"
+      />
 
-    <v-tabs-window v-model="activeTab">
-      <v-tabs-window-item value="locale" :eager="true">
-        <SettingsLocale ref="localeRef" />
-      </v-tabs-window-item>
-      <v-tabs-window-item value="currency" :eager="true">
-        <SettingsCurrency ref="currencyRef" />
-      </v-tabs-window-item>
-      <v-tabs-window-item value="dateFormat" :eager="true">
-        <SettingsDateFormat ref="dateFormatRef" />
-      </v-tabs-window-item>
-      <v-tabs-window-item value="other" :eager="true">
-        <SettingsOther ref="otherRef" />
-      </v-tabs-window-item>
-    </v-tabs-window>
+      <v-select
+        v-model="localCurrency"
+        :items="currencyItems"
+        item-title="title"
+        item-value="value"
+        :label="t('settings.currency')"
+        prepend-inner-icon="mdi-currency-usd"
+      />
 
-    <v-divider></v-divider>
+      <!-- Persistent snackbar toggle -->
+      <v-switch
+        v-model="isMessagePersistent"
+        :label="isMessagePersistent ? t('settings.persistMsg') : t('settings.timeoutMsg')"
+        color="primary"
+        prepend-icon="mdi-pin-outline"
+      />
 
-    <v-card-actions class="d-block pa-4">
-      <v-fade-transition>
-        <div v-if="!isEverythingValid" class="text-right mb-2">
-          <span class="text-error text-caption font-weight-bold">
-            <v-icon icon="mdi-alert-circle-outline" size="small" class="mr-1"/>
-            Please fix errors on all tabs before saving
-          </span>
+      <!-- Slider appears only when NOT persistent -->
+      <v-expand-transition>
+        <div v-if="!isMessagePersistent">
+          <v-slider
+            v-model="localTimeout"
+            :min="0"
+            :max="10"
+            :step="1"
+            :ticks="tickLabels"
+            show-ticks="always"
+            tick-size="4"
+            prepend-icon="mdi-timer-outline"
+            thumb-label
+          >
+            <template #append>
+              <span class="text-caption">{{ localTimeout.toFixed(1) }} s</span>
+            </template>
+          </v-slider>
         </div>
-      </v-fade-transition>
+      </v-expand-transition>
+    </v-card-text>
 
-      <div class="d-flex justify-end">
-        <v-btn color="secondary" variant="outlined" class="mr-2" @click="emit('close')">
-          Cancel
-        </v-btn>
-        <v-btn color="primary" variant="elevated" :disabled="!isEverythingValid" @click="saveAllTabs">
-          Save Changes
-        </v-btn>
-      </div>
+    <v-card-actions>
+      <v-spacer />
+      <v-btn variant="text" @click="emit('close')">{{ t("common.cancel") }}</v-btn>
+      <v-btn
+        color="primary"
+        variant="elevated"
+        @click="handleSave"
+        :loading="savingSettings"
+      >
+        {{ t("common.saveChanges") }}
+      </v-btn>
     </v-card-actions>
   </v-card>
-
-  <v-dialog v-model="showKeyboardShortcuts" max-width="300">
-    <KeyboardShortcutsDialog @close="showKeyboardShortcuts = false" />
-  </v-dialog>
 </template>

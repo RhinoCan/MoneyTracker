@@ -34,7 +34,7 @@ describe("useCurrencyFormatter", () => {
         currencySign: "standard",
         minPrecision: 2,
         maxPrecision: 2,
-        thousandsSeparator: true,
+        useGrouping: true,
       },
     };
 

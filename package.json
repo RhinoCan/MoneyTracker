@@ -15,10 +15,16 @@
     "deploy": "bash scripts/deploy.sh"
   },
   "dependencies": {
+    "@date-io/date-fns": "^3.2.1",
     "@fontsource/roboto": "^5.2.9",
+    "@sentry/hub": "^7.120.4",
     "@sentry/vue": "^10.32.1",
+    "@supabase/supabase-js": "^2.89.0",
     "date-fns": "^4.1.0",
     "pinia": "^3.0.4",
+    "posthog-js": "^1.313.0",
+    "vue-i18n": "^11.2.8",
+    "vue-router": "^4.6.4",
     "vue-toastification": "^2.0.0-rc.5",
     "vuetify": "^3.11.0"
   },

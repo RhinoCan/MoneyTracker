@@ -1,25 +1,32 @@
 <script lang="ts" setup>
 import { ref, computed } from "vue";
-import { useTransactionStore } from "@/stores/TransactionStore.ts";
-import { useDateFormatter } from "@/composables/useDateFormatter.ts";
+import { useTransactionStore } from "@/stores/TransactionStore";
+import { useDateFormatter } from "@/composables/useDateFormatter";
 import { useAppValidationRules } from "@/composables/useAppValidationRules";
 import { useTransactionFormFields } from "@/composables/useTransactionFormFields";
-import { parseCurrency } from "@/utils/currencyParser.ts";
-import { TransactionType, Transaction } from "@/types/Transaction.ts";
+import { useNumberFormatHints } from "@/composables/useNumberFormatHints";
+import { TransactionTypeValues } from "@/types/Transaction";
 import type { SubmitEventPromise } from "vuetify";
-import { formatISO, parseISO } from "date-fns";
 import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
-import { useLocaleStore } from "@/stores/LocaleStore";
+import { useSettingsStore } from "@/stores/SettingsStore";
+import { logSuccess, logValidation, logException } from "@/lib/Logger";
+import { useI18n } from "vue-i18n";
 
-const localeStore = useLocaleStore();
+const { t } = useI18n();
+
+const settingsStore = useSettingsStore();
+const storeTransaction = useTransactionStore();
+const { formatForUI, toISODateString } = useDateFormatter();
+const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
+const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
+const newTransactionForm = ref();
+const dateError = ref<string | null>(null);
 
-const storeTransaction = useTransactionStore();
-const { required, transactionTypeRequired, dateRangeRule, amountValidations } =
-  useAppValidationRules(localeStore.currentLocale);
-
+// Pull logic from the shared form composable
 const {
+  transaction, // This holds description, date, amount, type
   displayAmount,
   isFocused,
   colorClass,
@@ -29,129 +36,141 @@ const {
   closeDatePicker,
 } = useTransactionFormFields();
 
-// Form models
-const descriptionModel = ref("");
-const dateModel = ref<string | null>(null);
-const transactionTypeModel = ref<TransactionType | null>(null);
+// Date picker needs a Date object
+const pickerDate = ref<Date>(new Date());
 
-const { formatDate } = useDateFormatter();
+// Display date in localized format for the text field
+const formattedDisplayDate = computed(() => {
+  return transaction.value?.date ? formatForUI(transaction.value.date) : '';
+});
 
-const formattedDisplayDate = computed({
-  get() {
-  const isoDate = dateModel.value;
-  if (!isoDate) {
-    return '';
+// Amount format hint
+const amountHint = computed(() => {
+  if (!isFocused.value || !displayAmount.value) {
+    return t('common.format', { example: amountExample.value });
   }
-  return formatDate(isoDate);
-},
-set(newValue) {
-  //Do nothing. The date is updated directly via the v-date-picker binding to dateModel.value, not through
-  //this text field. This setter exists purely to prevent the "Write operation failed" error.
-}
-})
 
-const dateError = ref<string | null>(null);
+  if (!hasCorrectSeparator(displayAmount.value)) {
+    return t('common.wrongSeparator', { separator: decimalSeparator.value });
+  }
 
-function resetState() {
-  dateError.value = null;
-}
+  return t('common.format', { example: amountExample.value });
+});
 
-const newTransactionForm = ref();
-
-// ------------------------------------
-// Validation rules
-// ------------------------------------
+// Rules object for the template
 const rules = {
   required,
-  descriptionRequired: required,
-  dateRequired: dateRangeRule,
-  transactionTypeRequired: transactionTypeRequired,
-  amountValidations: amountValidations,
+  dateRequired: (v: string) => dateRules(transaction.value?.date || ''),
+  transactionTypeRequired,
+  amountRules,
 };
 
-// ------------------------------------
-// Submit handler
-// ------------------------------------
-async function onSubmit(event: SubmitEventPromise) {
+// Handle date selection from picker
+function onDateSelected(date: Date | Date[] | null) {
+  if (!date || Array.isArray(date)) return;
 
-  dateError.value = null;
-
-  if (!dateModel.value) {
-    return;
+  // Update the source of truth (YYYY-MM-DD string)
+  if (transaction.value) {
+    transaction.value.date = toISODateString(date);
+    pickerDate.value = date;
   }
 
-  const dateValue = dateModel.value;
-  let dateObject: Date;
-
-  if (typeof dateValue === 'string') {
-    dateObject = parseISO(dateValue);
-  } else {
-    dateObject = dateValue as Date;
-  }
-
-  const cleanIsoDate = formatISO(dateObject, { representation: 'date' });
-
-  const validationResult = rules.dateRequired(cleanIsoDate);
-  if (validationResult !== true) {
-    //Validation failed: capture the error message and stop submission.
-    dateError.value = validationResult as string;
-    return;
-  }
-
-  const { valid } = await event;
-  if (!valid) return;
-
-  const finalAmount = parseCurrency(displayAmount.value, localeStore.currentLocale);
-
-  const newTransaction: Transaction = {
-    id: storeTransaction.getNewId,
-    description: descriptionModel.value,
-    date: dateModel.value!,
-    transactionType: transactionTypeModel.value!,
-    amount: finalAmount || 0,
-  };
-
-  storeTransaction.addTransaction(newTransaction);
-  resetForm();
+  closeDatePicker();
 }
 
-// ------------------------------------
-// resetForm
-// ------------------------------------
+async function onSubmit(event: SubmitEventPromise) {
+  handleBlur();
+  dateError.value = null;
+
+  const { valid } = await event;
+
+  if (!valid || !transaction.value) {
+    logValidation(t('common.invalidAmount'), {
+      module: "AddTransaction",
+      action: "onSubmit",
+    });
+    return;
+  }
+
+  try {
+    const finalAmount = transaction.value.amount;
+    if (!finalAmount || finalAmount <= 0) {
+      logException(new Error("Validation failed: Amount is missing or negative."), {
+        module: 'AddTransaction',
+        action: 'onSubmit',
+        slug: t('addTrans.err_missing_or_negative')
+      });
+      return;
+    }
+
+    const newTransaction = {
+      description: transaction.value.description,
+      date: transaction.value.date,
+      transaction_type: transaction.value.transaction_type,
+      amount: finalAmount,
+    };
+
+    await storeTransaction.addTransaction(newTransaction);
+
+    logSuccess(t('addTrans.success'), {
+      module: 'AddTransaction',
+      action: 'onSubmit'
+    });
+
+    resetForm();
+
+    if (newTransactionForm.value) {
+      newTransactionForm.value.resetValidation();
+    }
+  } catch (error) {
+    logException(error, {
+      module: 'AddTransaction',
+      action: 'onSubmit',
+      slug: t('addTrans.submit_failed')
+    });
+  }
+}
+
 function resetForm() {
-  newTransactionForm.value.reset();
-  descriptionModel.value = "";
-  dateMenu.value = false;
-  dateModel.value = null;
-  transactionTypeModel.value = null;
+  if (newTransactionForm.value) newTransactionForm.value.reset();
+
+  const today = new Date();
+
+  // Explicitly reset the composable's state
+  if (transaction.value) {
+    transaction.value.description = "";
+    transaction.value.amount = 0;
+    transaction.value.date = toISODateString(today); // YYYY-MM-DD format
+    transaction.value.transaction_type = TransactionTypeValues.Expense;
+  }
+
+  pickerDate.value = today;
   displayAmount.value = "";
-  isFocused.value = false;
-  dateError.value = "";
+  dateError.value = null;
+  dateMenu.value = false;
 }
 </script>
 
 <template>
   <v-card elevation="8" color="surface" class="mx-auto">
-    <v-card-title class="bg-primary primary-with-text"
-      >Add New Transaction
-          <v-btn
+    <v-card-title class="bg-primary text-on-primary d-flex align-center justify-space-between">
+      {{ t('addTrans.title') }}
+        <v-tooltip :text="t('common.help')">
+          <template v-slot:activator="{ props }">
+            <v-btn v-bind="props" :aria-label="t('common.help')"
             icon="mdi-help"
-            variant="text"
-            color="white"
-            aria-label="Help"
-            position="absolute"
-            style="top: 0px; right: 8px"
-            @click="showKeyboardShortcuts = true"
-          />
-      </v-card-title
-    >
-    <v-form id="form" ref="newTransactionForm" @submit.prevent="onSubmit">
+            variant="text" size="small" @click="showKeyboardShortcuts =true"/>
+          </template>
+        </v-tooltip>
+    </v-card-title>
+
+    <v-form ref="newTransactionForm" @submit.prevent="onSubmit" class="pa-4">
       <v-text-field
-        label="Description"
-        v-model="descriptionModel"
+        v-model="transaction!.description"
+        :label="t('addTrans.labelDescription')"
         variant="outlined"
-        :rules="[rules.descriptionRequired]"
-        class="mt-2"
+        :rules="[rules.required]"
+        prepend-inner-icon="mdi-format-text"
       />
 
       <v-menu
@@ -161,97 +180,84 @@ function resetForm() {
       >
         <template v-slot:activator="{ props }">
           <v-text-field
-            label="Transaction Date"
-            :key="dateModel || ''"
+            v-bind="props"
             v-model="formattedDisplayDate"
+            :label="t('addTrans.labelDate')"
             variant="outlined"
             readonly
-            v-bind="props"
-            validate-on="submit"
-            :rules="[rules.required]"
+            :rules="[rules.dateRequired]"
             :error-messages="dateError"
-            class="mt-2"
             prepend-inner-icon="mdi-calendar"
           />
         </template>
-
         <v-date-picker
-          v-model="dateModel"
-          @update:model-value="closeDatePicker"
+          v-model="pickerDate"
+          @update:model-value="onDateSelected"
           color="primary"
-        ></v-date-picker>
+        />
       </v-menu>
 
       <v-radio-group
-        v-model="transactionTypeModel"
+        v-model="transaction!.transaction_type"
         inline
-        label="Transaction Type"
+        :label="t('addTrans.labelType')"
         :rules="[rules.transactionTypeRequired]"
       >
-        <v-radio label="Income" value="Income" />
-        <v-radio label="Expense" value="Expense" />
+        <v-radio :label="t('addTrans.labelIncome')" :value="TransactionTypeValues.Income" color="success" />
+        <v-radio :label="t('addTrans.labelExpense')" :value="TransactionTypeValues.Expense" color="error" />
       </v-radio-group>
 
       <v-text-field
-        label="Amount"
         v-model="displayAmount"
+        :label="t('addTrans.labelAmount')"
+        :placeholder="amountPlaceholder"
+        :hint="amountHint"
+        persistent-hint
         variant="outlined"
-        type="text"
         :class="[isFocused ? '' : colorClass, 'money-field']"
-        :readonly="!isFocused && !!displayAmount"
         @focus="handleFocus"
         @blur="handleBlur"
-        :rules="[rules.amountValidations]"
-        placeholder="0.00"
-        style="cursor: pointer"
+        :rules="[rules.amountRules]"
       />
-      <div class="text-end mb-2">
+
+      <div class="d-flex justify-end mt-4">
         <v-btn
-          @click="resetForm"
+          variant="outlined"
           color="secondary"
           class="mr-2"
-          variant="outlined"
-          rounded="lg"
+          @click="resetForm"
         >
-          Reset
+          {{ t('addTrans.btnReset') }}
         </v-btn>
 
         <v-btn
           type="submit"
           color="primary"
-          elevation="8"
-          rounded="lg"
-          class="mr-2"
+          elevation="4"
         >
-          Add transaction
+          {{ t('addTrans.btnAdd') }}
         </v-btn>
       </div>
     </v-form>
-  </v-card>
-    <!--KEYBOARD SHORTCUTS DIALOG-->
-    <v-dialog v-model="showKeyboardShortcuts" max-width="300">
-      <KeyboardShortcutsDialog @close="showKeyboardShortcuts = false" />
+
+    <v-dialog v-model="showKeyboardShortcuts" max-width="400">
+      <KeyboardShortcutsDialog v-if="showKeyboardShortcuts" @close="showKeyboardShortcuts = false" />
     </v-dialog>
+  </v-card>
 </template>
 
 <style scoped>
-/* Final Attempt: Apply both size and color using the deepest selector */
-
-/* 1. Base style for the input element (font size) */
-/* We target the actual input element within the Vuetify field structure for all size changes */
 .money-field :deep(.v-field__input) {
-  font-size: 20px !important; /* Force larger font size */
-  letter-spacing: 1px;
-  margin: 5px 0;
+  font-size: 1.25rem !important;
+  font-weight: 600;
+  letter-spacing: 0.5px;
 }
 
-/* 2. Color classes: We use the dynamic class (money-plus/minus) on the outer component
-      to style the inner input element. */
 .money-field.money-plus :deep(.v-field__input) {
-  color: #2ecc71 !important; /* Green */
+  color: rgb(var(--v-theme-success)) !important;
 }
 
 .money-field.money-minus :deep(.v-field__input) {
-  color: #c0392b !important; /* Red */
+  color: rgb(var(--v-theme-error)) !important;
 }
 </style>

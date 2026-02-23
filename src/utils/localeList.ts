@@ -1,48 +1,76 @@
-import { logException } from "@/utils/Logger";
+// @/utils/localeList.ts
+import { logException } from "@/lib/Logger";
+import { i18n } from "@/i18n";
 
-// 1. RESTORED: This must stay here for LocaleStore to use!
+const t = (i18n.global as any).t;
+
+/**
+ * Curated list of base language codes we want to support in the UI.
+ * This prevents the user from being overwhelmed by thousands of browser-supported variations.
+ */
+const SUPPORTED_LANGUAGE_CODES = [
+  "en",
+  "fr",
+  "es",
+  "de",
+  "zh",
+  "ja",
+  "ko",
+  "hi",
+  "ar",
+  "ru",
+  "pt",
+  "it"
+];
+
 export interface LocaleItem {
   code: string;
   name: string;
 }
 
-export function generateLocaleList(): LocaleItem[] {
-  // Safe setup for the DisplayNames API
+/**
+ * Generates a list of locale objects containing the code and the localized name.
+ * * @param displayLocale - The language to use for the names in the list (defaults to 'en').
+ * @returns Sorted array of LocaleItem objects.
+ */
+export function generateLocaleList(displayLocale: string = "en"): LocaleItem[] {
   let display: Intl.DisplayNames;
+
   try {
-    display = new Intl.DisplayNames(["en"], { type: "language" });
+    display = new Intl.DisplayNames([displayLocale], { type: "language" });
   } catch (e) {
-    // If the browser is extremely old, provide a minimal fallback immediately
+    // Fallback for extremely restrictive environments
     return [{ code: "en-US", name: "English (US)" }];
   }
 
   let localeCodes: string[] = [];
 
   try {
-    // Some environments (like older Node/JSDOM) throw on "language"
-    // but work on "calendar". We can check existence first.
-    if (typeof Intl !== 'undefined' && 'supportedValuesOf' in Intl) {
-      // @ts-ignore
-       localeCodes = Intl.supportedValuesOf("language");
+    // Modern way to get browser-supported locales
+    if (typeof Intl !== "undefined" && "supportedValuesOf" in Intl) {
+      // Use cast instead of @ts-ignore for better type safety
+      localeCodes = (Intl as any).supportedValuesOf("language");
     } else {
-       throw new Error("API not supported");
+      throw new Error("Intl.supportedValuesOf not supported");
     }
   } catch (e) {
-    // Only log if it's NOT a RangeError about the key "language"
-    if (!(e instanceof RangeError && e.message.includes('language'))) {
-       logException(e, {
-         module: "localeList",
-         action: "generateLocaleList.supportedValues",
-       });
+    // We only log if it's a serious failure, not a known RangeError in specific environments
+    if (!(e instanceof RangeError && e.message.includes("language"))) {
+      logException(e, {
+        module: "localeList",
+        action: "generateLocaleList",
+        slug: t("localeList.intl_supported_values_failed"),
+      });
     }
 
+    // Hard-coded fallback list
     localeCodes = [
       "en-US",
       "en-CA",
-      "fr-CA",
       "en-GB",
-      "fr-CH",
       "fr-FR",
+      "fr-CA",
+      "fr-CH",
       "es-ES",
       "de-DE",
       "zh-CN",
@@ -51,20 +79,28 @@ export function generateLocaleList(): LocaleItem[] {
       "hi-IN",
       "ar-SA",
       "ru-RU",
+      "pt-BR",
+      "it-IT"
     ];
   }
 
-  const items: LocaleItem[] = localeCodes.map((code) => {
+  // Filter the list down to our supported base languages
+  const filteredCodes = localeCodes.filter((code) => {
+    const baseLanguage = code.split("-")[0].toLowerCase();
+    return SUPPORTED_LANGUAGE_CODES.includes(baseLanguage);
+  });
+
+  // Map codes to display names
+  const items: LocaleItem[] = filteredCodes.map((code) => {
     try {
+      // .of() returns the localized name (e.g., "English (United States)" if displayLocale is 'en')
       const name = display.of(code) || code;
       return { code, name };
     } catch {
-      return { code, name: code }; // Last resort: use the code as the name
+      return { code, name: code };
     }
   });
 
+  // Sort alphabetically by localized name for a better UX
   return items.sort((a, b) => a.name.localeCompare(b.name));
 }
-
-// 2. RESTORED: The constant used by the store
-export const localeList: LocaleItem[] = generateLocaleList();

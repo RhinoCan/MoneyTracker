@@ -1,0 +1,95 @@
+HARDCODED STRINGS REPORT
+========================
+Generated: 2026-02-22, 7:47:46 p.m.
+Files scanned: 40
+
+FILE: src\components\DataManagementDialog.vue
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 52: logInfo("The settings were all restored to their default values.", {
+  Matched: "The settings were all restored to their default values."
+
+  [Logger call with hardcoded string]
+  Line 91: logInfo("All data wiped.", { module: 'ManagementDialog', action: 'full_wipe' });
+  Matched: "All data wiped."
+
+  [Logger call with hardcoded string]
+  Line 136: logInfo("The data was exported to a CSV file.", { module: 'ManagementDialog', action: 'export_csv' });
+  Matched: "The data was exported to a CSV file."
+
+FILE: src\components\DeleteTransaction.vue
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 47: logInfo("The transaction was deleted.", {
+  Matched: "The transaction was deleted."
+
+FILE: src\composables\useAppValidationRules.ts
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 35: logWarning("Date validation failed: Invalid date object", {
+  Matched: "Date validation failed: Invalid date object"
+
+  [Logger call with hardcoded string]
+  Line 48: logWarning("Date validation failed: Date components mismatch", {
+  Matched: "Date validation failed: Date components mismatch"
+
+FILE: src\composables\useCurrencyFormatter.ts
+------------------------------------------------------------
+  [logException slug with hardcoded string]
+  Line 26: slug: "Failed to format currency",
+  Matched: "Failed to format currency"
+
+FILE: src\lib\Logger.ts
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 80: * logWarning("User profile image failed to load, using placeholder", {
+  Matched: "User profile image failed to load, using placeholder"
+
+  [Logger call with hardcoded string]
+  Line 126: * logInfo("Settings hydrated from database", {
+  Matched: "Settings hydrated from database"
+
+  [Logger call with hardcoded string]
+  Line 142: * logSuccess("Transaction deleted successfully", {
+  Matched: "Transaction deleted successfully"
+
+FILE: src\stores\SettingsStore.ts
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 122: logSuccess("Settings updated", { module: "SettingsStore", action: "saveToDb" });
+  Matched: "Settings updated"
+
+  [Logger call with hardcoded string]
+  Line 145: logSuccess("Settings cleared from database", { module: "SettingsStore", action: "clearFromDb" });
+  Matched: "Settings cleared from database"
+
+FILE: src\stores\TransactionStore.ts
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 104: logInfo("The transactions were fetched.", {
+  Matched: "The transactions were fetched."
+
+FILE: src\stores\UserStore.ts
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 48: logInfo("Application data sequence complete.", {
+  Matched: "Application data sequence complete."
+
+FILE: src\utils\AppInitializer.ts
+------------------------------------------------------------
+  [Logger call with hardcoded string]
+  Line 32: logInfo("SettingsStore hydrated from database", {
+  Matched: "SettingsStore hydrated from database"
+
+  [Logger call with hardcoded string]
+  Line 38: logInfo("No settings found, seeding defaults via SettingsStore...", {
+  Matched: "No settings found, seeding defaults via SettingsStore..."
+
+FILE: src\utils\currencyParser.ts
+------------------------------------------------------------
+  [logException slug with hardcoded string]
+  Line 51: slug: "Parser Failure",
+  Matched: "Parser Failure"
+
+========================
+Total potential hardcoded strings found: 17

@@ -1,124 +1,78 @@
 <script setup lang="ts">
+/**
+ * TrackerAbout.vue
+ * Attribution and technology stack information.
+ */
+import { useI18n } from 'vue-i18n';
+
+const { t, tm } = useI18n();
+
 defineOptions({
   name: "TrackerAbout",
 });
+
+// Tech stack using absolute paths for the public folder
+const techStack = [
+  { logo: "vue3-logo.png", key: "about.textVue" },
+  { logo: "vuetify3-logo.png", key: "about.textVuetify" },
+  { logo: "pinia-logo.png", key: "about.textPinia" },
+  { logo: "sentry-logo.png", key: "about.textSentry" },
+  { logo: "posthog-logo.png", key: "about.textPostHog" },
+  { logo: "supabase-logo.png", key: "about.textSupabase" },
+];
 </script>
 
 <template>
   <v-expansion-panels>
     <v-expansion-panel color="surface">
       <v-expansion-panel-title class="bg-primary text-on-primary">
-        About
+        {{ t('about.title') }}
         <template v-slot:actions="{ expanded }">
-          <v-icon
-            :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'"
-          ></v-icon>
+          <v-icon :icon="expanded ? 'mdi-chevron-up' : 'mdi-chevron-down'" />
         </template>
       </v-expansion-panel-title>
 
-      <v-expansion-panel-text>
-        <v-card flat class="mx-auto maincard-width">
-          <v-card-text class="maincard-title">Origins</v-card-text>
-          <p>
-            This app is a descendant of one I originally built while following
-            <a href="https://www.youtube.com/watch?v=hNPwdOZ3qFU"
-              >one of Brad Traversy's courses</a
-            >. I then made a number of upgrades which are summarized below:
-          </p>
+      <v-expansion-panel-text class="pa-4">
+        <v-card flat class="mx-auto maincard-width mb-6">
+          <div class="maincard-title text-primary">{{ t('about.origins') }}</div>
+
+          <i18n-t keypath="about.introParagraph" tag="p" class="text-body-1 mb-4">
+            <template #linkTraversy>
+              <a
+                href="https://www.youtube.com/watch?v=hNPwdOZ3qFU"
+                target="_blank"
+                class="text-decoration-none text-secondary font-weight-bold"
+              >
+                {{ t('about.linkText') }}
+              </a>
+            </template>
+          </i18n-t>
+
           <ul class="custom-list">
-            <li>
-              Tests were written and executed for the original Vue components.
-            </li>
-            <li>
-              The props were replaced by a Pinia store, with one exception.
-            </li>
-            <li>Vue components were replaced by Vuetify components.</li>
-            <li>Typescript checking was added.</li>
-            <li>
-              Some internationalization/localization was done to make monetary
-              amounts appear in the correct format for the locale in which the
-              app is running.
-            </li>
-            <li>
-              A confirm dialog was added to ensure that the user really means to
-              delete the transaction chosen for deletion.
-            </li>
-            <li>
-              The AccountBalance and IncomeExpense components were merged into a
-              single new component called AccountSummary.
-            </li>
-            <li>
-              A new component called Money was created to display all instances
-              of money except where it is being input or edited.
-            </li>
-            <li>
-              A transaction date was added to the Transaction definition so that
-              users could record when the income was made or the expense
-              incurred. The date is now input in AddTransaction, displayed in
-              TransactionHistory and DeleteTransaction, and both displayed and
-              changed in UpdateTransaction.
-            </li>
-            <li>
-              Merged the various individual Settings dialogs into a single
-              tabbed Settings Dialog.
-            </li>
-            <li>
-              Added Sentry so that errors and warnings would be properly logged,
-              reassuring users and bringing issues to the attention of
-              administrators.
+            <li v-for="point in tm('about.enhancements')" :key="String(point)">
+              {{ point }}
             </li>
           </ul>
         </v-card>
 
         <v-card flat class="mx-auto maincard-width">
-          <v-card-title class="maincard-title"
-            >Major Packages Used</v-card-title
-          >
-          <v-row dense class="text-center">
-            <v-col cols="4">
-              <v-card class="pa-2 text-center h-100" elevation="2">
-                <div
-                  class="d-flex justify-center align-center mt-2 mx-auto logo-container"
-                >
-                  <img src="/vue3-logo.png" alt="Vue logo" class="logo-img" />
-                </div>
-                <v-card-text class="pa-0 pt-1 font-weight-medium"
-                  >Vue 3</v-card-text
-                >
-              </v-card>
-            </v-col>
+          <div class="maincard-title text-primary">{{ t('about.packages') }}</div>
 
-            <v-col cols="4">
-              <v-card class="pa-2 text-center h-100" elevation="2">
-                <div
-                  class="d-flex justify-center align-center mt-2 mx-auto logo-container"
-                >
-                  <img
-                    src="/vuetify3-logo.png"
-                    alt="Vuetify logo"
-                    class="logo-img"
-                  />
+          <v-row dense>
+            <v-col
+              v-for="tech in techStack"
+              :key="tech.key"
+              cols="6"
+              sm="4"
+              md="2"
+            >
+              <v-card variant="outlined" class="pa-2 text-center h-100 d-flex flex-column align-center border-opacity-25">
+                <div class="logo-container d-flex align-center justify-center mb-2">
+                  <img :src="tech.logo" :alt="t(tech.key)" class="logo-img" />
                 </div>
-                <v-card-text class="pa-0 pt-1 font-weight-medium"
-                  >Vuetify 3</v-card-text
-                >
-              </v-card>
-            </v-col>
-
-            <v-col cols="4">
-              <v-card class="pa-2 text-center h-100" elevation="2">
-                <div
-                  class="d-flex justify-center align-center mt-2 mx-auto logo-container"
-                >
-                  <img
-                    src="/pinia-logo.png"
-                    alt="Pinia logo"
-                    class="logo-img"
-                  />
-                </div>
-                <v-card-text class="pa-0 pt-1 font-weight-medium"
-                  >Pinia</v-card-text
-                >
+                <v-card-text class="pa-0 text-caption font-weight-bold">
+                  {{ t(tech.key) }}
+                </v-card-text>
               </v-card>
             </v-col>
           </v-row>
@@ -129,29 +83,30 @@ defineOptions({
 </template>
 
 <style scoped>
+/* Styles remain unchanged as they were working */
 .custom-list {
   list-style-type: square;
-  padding-left: 30px;
-  margin-top: 10px;
-}
-.custom-list li {
-  padding-left: 10px;
-  margin-bottom: 8px;
+  padding-inline-start: 1.5rem;
+  margin-top: 0.5rem;
 }
 .maincard-title {
-  color: blue;
   font-weight: 900;
   font-size: 1.25rem;
   margin-bottom: 1rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
-
 .logo-container {
-  width: 64px;
-  height: 64px;
+  width: 48px;
+  height: 48px;
 }
-
 .logo-img {
   max-width: 100%;
   max-height: 100%;
+  object-fit: contain;
+  transition: transform 0.2s ease-in-out;
+}
+.v-card:hover .logo-img {
+  transform: scale(1.1);
 }
 </style>

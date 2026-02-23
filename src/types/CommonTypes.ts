@@ -6,7 +6,7 @@ export type CurrencySign = 'standard' | 'accounting';
 export interface NumberFormat {
     minPrecision?: number;
     maxPrecision: number;
-    thousandsSeparator: boolean;
+    useGrouping: boolean;
     currency: string;
     currencyDisplay: CurrencyDisplay;
     currencySign: CurrencySign;
@@ -27,7 +27,49 @@ export interface LocaleOption {
 }
 
 export enum DateFormatTemplate {
-  ISO = 'yyyy-MM-dd',
-  USA = 'MM/dd/yyyy',
-  EUR = 'dd.MM.yyyy'
+  ISO = 'ISO',
+  USA = 'USA',
+  EUR = 'EUR'
 }
+
+export const DateFormatTokens = {
+    [DateFormatTemplate.ISO]: 'yyyy-MM-dd',
+    [DateFormatTemplate.USA]: 'MM/dd/yyyy',
+    [DateFormatTemplate.EUR]: 'dd.MM.yyyy'
+}
+
+// ISO 4217 currency codes you support
+export type CurrencyCode =
+  | "USD"
+  | "CAD"
+  | "GBP"
+  | "EUR"
+  | "CHF"
+  | "CNY"
+  | "JPY"
+  | "KRW"
+  | "INR"
+  | "SAR"
+  | "RUB"
+  | "BRL";
+
+// Supported BCP 47 locales
+export type SupportedLocale =
+  | "en-US"
+  | "en-CA"
+  | "en-GB"
+  | "fr-FR"
+  | "fr-CA"
+  | "fr-CH"
+  | "es-ES"
+  | "de-DE"
+  | "zh-CN"
+  | "ja-JP"
+  | "ko-KR"
+  | "hi-IN"
+  | "ar-SA"
+  | "ru-RU"
+  | "pt-BR"
+  | "it-IT";
+
+

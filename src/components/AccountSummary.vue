@@ -1,65 +1,79 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useTransactionStore } from "@/stores/TransactionStore.ts";
-import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
+import { useTransactionStore } from "@/stores/TransactionStore";
 import Money from "@/components/Money.vue";
+import { i18n } from "@/i18n";
+
+const t = (i18n.global as any).t;
 
 const storeTransaction = useTransactionStore();
-const { displayMoney } = useCurrencyFormatter();
 
-// Compute totals using the store
+// Capture totals from the store's getters
 const income = computed(() => storeTransaction.getIncome);
 const expense = computed(() => storeTransaction.getExpense);
 const balance = computed(() => storeTransaction.getBalance);
 
+const hasTransactions = computed(
+  () => storeTransaction.transactions.length > 0,
+);
 </script>
 
 <template>
-  <v-card elevation="8" color="surface">
-    <v-card-title class="bg-primary text-on-primary"
-      >Account Summary</v-card-title
-    >
+  <v-card elevation="8" color="surface" class="mb-4">
+    <v-card-title class="bg-primary text-on-primary">
+      {{ t("accountSummary.title") }}
+    </v-card-title>
 
-    <v-fade-transition mode="out-in">
-      <div v-if="storeTransaction.transactions.length <= 0" key="empty">
-      <v-alert type="info" variant="tonal" v-if="storeTransaction.transactions.length <= 0">
-        You won't see anything but zeroes here until you add at least one Transaction via the <strong>Add New Transaction</strong> form below.
-      </v-alert>
-</div>
+    <v-card-text class="pa-4">
+      <v-fade-transition mode="out-in">
+        <div v-if="!hasTransactions" key="empty">
+          <v-alert type="info" variant="tonal">
+            <i18n-t keypath="accountSummary.alert" tag="p">
+              <template #addNew>
+                <span class="font-weight-bold text-primary">
+                  {{ t("common.addNew") }}
+                </span>
+              </template>
+            </i18n-t>
+          </v-alert>
+        </div>
 
-    <table v-else key="table" class="summary-table mt-4 mb-4">
-      <tbody>
-        <tr>
-          <td class="amount">
-            <Money :amount="income" type="Income"/>
-          </td>
-          <td class="label">Total Income</td>
-        </tr>
+        <table v-else key="table" class="summary-table my-2">
+          <tbody>
+            <tr>
+              <td class="amount">
+                <Money :amount="income" type="Income" />
+              </td>
+              <td class="label">{{ t("accountSummary.income") }}</td>
+            </tr>
 
-        <tr>
-          <td class="amount">
-            -&nbsp;<Money :amount="expense" type="Expense"/>
-          </td>
-          <td class="label">Total Expense</td>
-        </tr>
+            <tr>
+              <td class="amount">
+                <span class="mr-1">-</span>
+                <Money :amount="expense" type="Expense" />
+              </td>
+              <td class="label">{{ t("accountSummary.expense") }}</td>
+            </tr>
 
-        <!-- Divider inside the same amount column -->
-        <tr>
-          <td class="amount amount-divider">
-            <div class="divider-line"></div>
-          </td>
-          <td></td>
-        </tr>
+            <tr>
+              <td class="amount amount-divider">
+                <div class="divider-line"></div>
+              </td>
+              <td></td>
+            </tr>
 
-        <tr>
-          <td class="amount">
-            <Money :amount="balance" type="Balance"/>
-          </td>
-          <td class="label">Balance</td>
-        </tr>
-      </tbody>
-    </table>
-    </v-fade-transition>
+            <tr>
+              <td class="amount text-h6 font-weight-bold">
+                <Money :amount="balance" type="Balance" />
+              </td>
+              <td class="label text-h6 font-weight-bold">
+                {{ t("accountSummary.balance") }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </v-fade-transition>
+    </v-card-text>
   </v-card>
 </template>
 
@@ -70,27 +84,36 @@ const balance = computed(() => storeTransaction.getBalance);
   border-collapse: collapse;
 }
 
+.summary-table td {
+  padding: 4px 0;
+}
+
 .summary-table .amount {
   text-align: right;
-  padding-right: 12px;
+  padding-inline-end: 16px;
   white-space: nowrap;
-  width: 1px; /* shrink-wraps to widest number */
+  width: 1px;
+  /* Ensures digits line up vertically */
   font-variant-numeric: tabular-nums;
 }
 
 .summary-table .label {
   text-align: left;
-  padding-left: 12px;
+  padding-inline-start: 16px;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+  opacity: 0.8;
 }
 
 .amount-divider {
-  padding: 0; /* remove padding that would misalign the divider */
+  padding: 0 !important;
 }
 
 .divider-line {
-  border-bottom: 3px solid rgba(0, 0, 0, 0.3);
-  width: 100%; /* exactly width of amount column */
-  margin-top: 6px;
-  margin-bottom: 6px;
+  border-bottom: 3px solid rgba(var(--v-border-color), 0.3);
+  width: 100%;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 </style>

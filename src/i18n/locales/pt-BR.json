@@ -1,0 +1,223 @@
+{
+  "common": {
+    "cancel": "Cancelar",
+    "saveChanges": "Salvar alterações",
+    "help": "Ajuda",
+    "close": "Fechar",
+    "addNew": "Adicionar nova transação",
+    "Income": "Receita",
+    "Expense": "Despesa",
+    "description": "Descrição",
+    "date": "Data",
+    "type": "Tipo de transação",
+    "amount": "Valor",
+    "error_unexpected": "Ocorreu um erro. Por favor, tente novamente mais tarde.",
+    "fill_all_fields": "Por favor, preencha todos os campos.",
+    "format": "Formato: {example}.",
+    "wrongSeparator": "Por favor, use {separator} para decimais.",
+    "invalidAmount": "Por favor, corrija o formato do valor antes de salvar."
+  },
+  "app": {
+    "fatalHeadline": "Falha ao iniciar o aplicativo",
+    "noStart": "Não conseguimos iniciar o aplicativo. Verifique sua conexão e tente novamente.",
+    "retry": "Tentar novamente."
+  },
+  "main": {
+    "global_vue_crash": "Vue sofreu uma falha grave em main.ts"
+  },
+  "deleteDialog": {
+    "title": "Confirmar ou cancelar exclusão",
+    "error_no_trans": "A transação não pôde ser excluída porque não existe mais.",
+    "error_UI": "A exclusão falhou no nível da interface do usuário.",
+    "confirmBtn": "Excluir transação"
+  },
+  "settings": {
+    "title": "Configurações",
+    "locale": "Localidade",
+    "currency": "Moeda",
+    "persistMsg": "Manter mensagens até que você as feche manualmente",
+    "timeoutMsg": "Definir a duração da mensagem pelo controle deslizante"
+  },
+  "settingsStore": {
+    "updated": "Configurações atualizadas.",
+    "cleared": "Configurações removidas do banco de dados."
+  },
+  "management": {
+    "title": "Gerenciamento de dados",
+    "exportTitle": "Exportar dados",
+    "exportText": "Salve uma cópia das suas transações em um arquivo CSV para backup ou uso em planilhas.",
+    "btnExport": "Exportar CSV",
+    "dangerZone": "Zona de perigo",
+    "deleteTransTitle": "Excluir todas as transações",
+    "deleteTransText": "Exclui todas as transações, mas preserva suas configurações (idioma, moeda, tempo limite de mensagens).",
+    "btnDeleteTrans": "Excluir todas as transações",
+    "restoreSettingsTitle": "Restaurar todas as configurações padrão",
+    "restoreSettingsText": "Restaura todas as configurações (idioma, moeda, formato de data) para os padrões, mas preserva todas as transações.",
+    "btnRestoreSettings": "Restaurar todas as configurações padrão",
+    "deleteEverythingTitle": "Excluir todas as transações e configurações",
+    "deleteEverythingText": "Isso exclui todas as transações E todas as suas configurações, depois reinicia o aplicativo com as configurações padrão.",
+    "btnDeleteEverything": "Excluir todas as transações *e* configurações",
+    "confirmDeleteAllTransactions": "Tem certeza? Isso excluirá todas as suas transações, mas manterá suas configurações. Você não pode desfazer isso. Continuar?",
+    "confirmRestoreAllSettings": "Tem certeza? Isso restaurará todas as configurações para os padrões, mas manterá suas transações. Você não pode desfazer isso. Continuar?",
+    "confirmDeleteEverything": "ATENÇÃO: Isso apagará permanentemente TODAS as transações e TODAS as configurações. Você não pode desfazer isso. Continuar?",
+    "restore_settings_failed": "Falha ao restaurar todas as configurações padrão.",
+    "full_wipe_failed": "Falha ao excluir todas as transações e restaurar todas as configurações padrão."
+  },
+  "accountSummary": {
+    "title": "Resumo da conta",
+    "alert": "Você não verá nada aqui até adicionar pelo menos uma transação pelo formulário {addNew} abaixo.",
+    "income": "Receita total",
+    "expense": "Despesa total",
+    "balance": "Saldo"
+  },
+  "addTrans": {
+    "title": "Adicionar nova transação",
+    "btnReset": "Redefinir",
+    "btnAdd": "Adicionar transação",
+    "labelDescription": "Descrição",
+    "labelDate": "Data da transação",
+    "labelType": "Tipo de transação",
+    "labelIncome": "Receita",
+    "labelExpense": "Despesa",
+    "labelAmount": "Valor",
+    "err_missing_or_negative": "O valor não pode estar ausente ou ser negativo.",
+    "success": "A transação foi adicionada.",
+    "submit_failed": "A nova transação não passou nas validações de envio."
+  },
+  "keyboard": {
+    "title": "Atalhos de teclado",
+    "paraEsc": "Você pode usar a tecla {Esc} do teclado para cancelar esta atualização em vez de usar o ícone {iconHelp} ou o botão Cancelar.",
+    "paraEnter": "Você pode usar a tecla {Enter} do teclado para salvar as alterações feitas aqui em vez de usar o botão Salvar.",
+    "paraTab": "Você pode usar a tecla {Tab} do teclado para navegar entre campos em formulários com vários campos.",
+    "keyEsc": "Esc",
+    "keyEnter": "Enter",
+    "keyTab": "Tab"
+  },
+  "about": {
+    "title": "Sobre",
+    "origins": "Origens",
+    "introParagraph": "Este aplicativo é descendente de um que originalmente construí seguindo {linkTraversy}. Em seguida, fiz uma série de melhorias que estão resumidas abaixo:",
+    "linkText": "um dos cursos de Brad Traversy",
+    "enhancements": [
+      "Testes foram escritos e executados para os componentes Vue originais.",
+      "As props foram quase completamente substituídas por stores do Pinia.",
+      "Os componentes Vue foram substituídos por componentes Vuetify.",
+      "Os módulos JavaScript foram convertidos para TypeScript.",
+      "Uma internacionalização/localização parcial foi feita para que os valores monetários apareçam no formato correto para a localidade.",
+      "Um diálogo de confirmação foi adicionado para garantir que o usuário realmente deseja excluir a transação escolhida.",
+      "Os componentes AccountBalance e IncomeExpense foram mesclados em um novo componente chamado AccountSummary.",
+      "Um novo componente chamado Money foi criado para exibir todas as instâncias de dinheiro, exceto durante a entrada ou edição.",
+      "Uma data de transação foi adicionada à definição de Transação para que os usuários possam registrar quando a receita foi obtida ou a despesa foi incorrida.",
+      "Os vários diálogos de configurações individuais foram mesclados em um único diálogo de configurações com abas, que foi posteriormente simplificado.",
+      "Sentry foi adicionado para que erros e avisos sejam registrados corretamente.",
+      "Todo o texto visível (e audível) ao usuário foi traduzido para uma variedade de localidades e idiomas amplamente falados.",
+      "PostHog foi adicionado para rastrear informações e mensagens de sucesso para fins analíticos.",
+      "Vue Router e páginas de Registro/Login foram adicionados para que os usuários possam ser autenticados.",
+      "Todos os usos de localStorage foram substituídos pelo Supabase."
+    ],
+    "packages": "Principais pacotes utilizados",
+    "textVue": "Vue 3.x",
+    "textVuetify": "Vuetify 3.x",
+    "textPinia": "Pinia",
+    "textSentry": "Sentry",
+    "textPostHog": "PostHog",
+    "textSupabase": "Supabase"
+  },
+  "header": {
+    "title": "Gerenciador financeiro",
+    "settings": "Configurações",
+    "data": "Gerenciamento de dados",
+    "textLive": "Ao vivo (GitHub Pages)",
+    "textDev": "Servidor de desenvolvimento",
+    "logoff": "Sair"
+  },
+  "history": {
+    "title": "Histórico de transações",
+    "search": "Pesquisar",
+    "alert": "Você não verá nenhuma transação aqui até adicionar algumas pelo formulário {addNew} abaixo.",
+    "actions": "Ações",
+    "itemsPerPage": "Itens por página:",
+    "pageText": "{0}-{1} de {2}",
+    "ariaUpdate": "Atualizar",
+    "ariaDelete": "Excluir"
+  },
+  "updateDialog": {
+    "title": "Atualizar transação",
+    "btnUpdate": "Atualizar transação",
+    "noChanges": "Nenhuma alteração foi feita nesta transação, portanto nenhuma atualização foi realizada.",
+    "success": "A transação foi atualizada com sucesso.",
+    "failedUI": "A atualização falhou na interface do usuário."
+  },
+  "useApp": {
+    "reqd": "Este campo é obrigatório. Zero não é permitido.",
+    "reqdZeroOk": "Este campo é obrigatório. Zero é permitido em um campo numérico.",
+    "transReqd": "Um tipo de transação deve ser escolhido.",
+    "timeoutMin": "O tempo limite deve ser -1 ou maior.",
+    "timeoutMax": "O tempo limite deve ser 10 ou menor.",
+    "timeoutInteger": "O tempo limite deve ser um número positivo ou zero.",
+    "dateReqd": "A data é obrigatória.",
+    "notFuture": "A data da transação não pode ser no futuro (amanhã ou depois).",
+    "invalidFmt": "Formato de data inválido.",
+    "notPrevYear": "A data da transação não pode ser de um ano civil anterior {year}.",
+    "greater": "O valor deve ser fornecido e deve ser maior que zero.",
+    "wrongSeparator": "Por favor, use {separator} como separador decimal."
+  },
+  "transactionStore": {
+    "added": "Transação com ID {id} adicionada com sucesso.",
+    "add_failed": "Falha ao adicionar a transação com ID {id}.",
+    "updated": "Transação com ID {id} atualizada com sucesso.",
+    "update_failed": "Falha ao atualizar a transação com ID {id}.",
+    "deleteOne": "Transação com ID {id} excluída com sucesso.",
+    "deleteOne_failed": "Falha ao excluir a transação com ID {id}.",
+    "deleteAll": "Todas as transações foram excluídas com sucesso.",
+    "deleteAll_failed": "Falha ao excluir todas as transações."
+  },
+  "login": {
+    "title": "Entrar",
+    "email_label": "Endereço de e-mail",
+    "password_label": "Senha",
+    "no_account": "Não tem uma conta?",
+    "fail_generic": "Falha no login. Por favor, tente novamente.",
+    "fail_unconfirmed": "Por favor, confirme seu e-mail antes de fazer login.",
+    "fail_credentials": "Endereço de e-mail ou senha inválidos.",
+    "error_unexpected": "Ocorreu um erro inesperado durante o login.",
+    "button": "Entrar",
+    "go_register": "Registrar",
+    "success": "Login realizado com sucesso.",
+    "auth_login_failed": "",
+    "auth_unexpected": ""
+  },
+  "register": {
+    "title": "Registrar",
+    "fail": "Não foi possível concluir o registro.",
+    "success_check_email": "Registro realizado com sucesso! Verifique seu e-mail para obter um link de confirmação.",
+    "button": "Registrar",
+    "go_login": "Voltar ao login"
+  },
+  "userStore": {
+    "authFailed": "Não conseguimos conectar à sua conta. Por favor, atualize a página.",
+    "signoutFailed": "Falha ao sair. Por favor, tente novamente.",
+    "initChainFailed": "Falha na cadeia de inicialização."
+  },
+  "currFormat": {
+    "failed": "Falha ao formatar a moeda."
+  },
+  "currParser": {
+    "parser_failure": "Falha ao analisar a moeda."
+  },
+  "useTrans": {
+    "parseValidatorMismatch": "O validador não gostou do formato do valor."
+  },
+  "router": {
+    "auth_check_failed": ""
+  },
+  "localeList": {
+    "intl_supported_values_failed": ""
+  },
+  "appInit": {
+    "hydration_failed": "A hidratação do AppInitializer falhou."
+  },
+  "defaults": {
+    "currency_detection_failed": "Falha ao detectar a moeda."
+  }
+}

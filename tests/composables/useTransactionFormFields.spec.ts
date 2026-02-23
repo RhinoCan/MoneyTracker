@@ -18,8 +18,8 @@ vi.mock("@/composables/useDateFormatter", () => ({
 vi.mock("@/composables/useAppValidationRules", () => ({
   useAppValidationRules: () => ({
     required: vi.fn(() => true),
-    dateRangeRule: vi.fn(() => true),
-    amountValidations: vi.fn((v) => (v === "invalid" ? "Error" : true)),
+    dateRules: vi.fn(() => true),
+    amountRules: vi.fn((v) => (v === "invalid" ? "Error" : true)),
   }),
 }));
 
@@ -221,11 +221,11 @@ describe("useTransactionFormFields", () => {
       const { rules } = useTransactionFormFields();
 
       // Execute the date wrapper
-      // This calls (v: string | null) => dateRangeRule(v)
+      // This calls (v: string | null) => dateRules(v)
       expect(rules.date[1]("2025-01-01")).toBe(true);
 
       // Execute the amount wrapper
-      // This calls (v: string) => amountValidations(v)
+      // This calls (v: string) => amountRules(v)
       expect(rules.amount[1]("100")).toBe(true);
 
       // Note: rules.category[0] is just the 'required' function itself,

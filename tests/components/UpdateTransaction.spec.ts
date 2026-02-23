@@ -348,8 +348,8 @@ describe("UpdateTransaction", () => {
     });
 
     it("has amount validation rule", () => {
-      expect(wrapper.vm.rules.amountValidations).toBeDefined();
-      expect(typeof wrapper.vm.rules.amountValidations).toBe("function");
+      expect(wrapper.vm.rules.amountRules).toBeDefined();
+      expect(typeof wrapper.vm.rules.amountRules).toBe("function");
     });
   });
 

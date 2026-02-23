@@ -1,75 +1,86 @@
-// src/utils/SystemDefaults.ts - Initialization logic relying on native browser Intl API.
+// @/utils/SystemDefaults.ts
+import { i18n } from "@/i18n";
 
-// Exports default values for Pinia store initialization AND common application types.
+const t = (i18n.global as any).t;
 
-export const appName = import.meta.env.VITE_APP_NAME || 'money-tracker';
+/**
+ * Global App Constants
+ */
+export const appName = import.meta.env.VITE_APP_NAME || "money-tracker";
+export const defaultSystemTimeout = 0; // 0ms = persistent until dismissed
 
-// --- Type Definitions (Merged from former Common.ts) ---
-export type CurrencyDisplay = 'symbol' | 'code' | 'name' | 'narrowSymbol';
-export type CurrencySign = 'standard' | 'accounting';
+// --- Type Definitions ---
+export type CurrencyDisplay = "symbol" | "code" | "name" | "narrowSymbol";
+export type CurrencySign = "standard" | "accounting";
 
 export interface NumberFormat {
-    minPrecision?: number;
-    maxPrecision: number;
-    thousandsSeparator: boolean;
-    currency: string;
-    currencyDisplay: CurrencyDisplay;
-    currencySign: CurrencySign;
-
-    // Legacy properties maintained for store structure, but not used by Intl.NumberFormat
-    useBankersRounding: boolean;
-    negativeZero: boolean;
+  minPrecision?: number;
+  maxPrecision: number;
+  useGrouping: boolean;
+  currency: string;
+  currencyDisplay: CurrencyDisplay;
+  currencySign: CurrencySign;
+  // Legacy properties maintained for store compatibility
+  useBankersRounding: boolean;
+  negativeZero: boolean;
 }
 
 /**
- * Interface representing a single locale option for display in a selector.
+ * Interface representing a single locale option for display in selectors.
  */
 export interface LocaleOption {
-    /** The BCP 47 language tag (e.g., 'en-US', 'es-ES'). */
-    code: string;
-    /** The human-readable label (e.g., 'English (United States)'). */
-    label: string;
+  code: string; // e.g., 'en-US'
+  label: string; // e.g., 'English (United States)'
 }
 
-// --- 1. Determine Default Locale ---
-// Use the browser's preferred language tag (e.g., "en-US", "de-DE").
-export const defaultLocale = navigator.language || 'en-US';
+// --- 1. Detect Locale & Region ---
+export const defaultLocale = navigator.language || "en-US";
 
-// --- 2. Determine Default Country ---
-// Extract the region part (e.g., "en-US" -> "US")
-const parts = defaultLocale.split('-');
-export const defaultCountry = parts.length > 1 ? parts[parts.length - 1].toUpperCase() : 'US';
+const localeParts = defaultLocale.split("-");
+export const defaultCountry =
+  localeParts.length > 1
+    ? localeParts[localeParts.length - 1].toUpperCase()
+    : "US";
 
-// --- 3. Determine Default Currency Code ---
-let currencyCode = 'USD'; // Fallback value
+// --- 2. Determine Default Currency Code ---
+let detectedCurrency = "USD";
 
 try {
-    // Create a dummy NumberFormat object for the detected locale and read the resolved currency.
-    const formatter = new Intl.NumberFormat(defaultLocale, {
-        style: 'currency',
-        currency: 'USD', // Placeholder value
-    });
+  // We use a dummy format to see if the browser can resolve a currency for the locale
+  const formatter = new Intl.NumberFormat(defaultLocale, {
+    style: "currency",
+    currency: "USD", // Required by the constructor
+  });
 
-    // The browser resolves the currency to the locale's standard currency
-    // Use nullish coalescing (??) for type safety.
-    currencyCode = formatter.resolvedOptions().currency ?? currencyCode;
+  // resolvedOptions().currency usually reflects the input, but we check for environment safety
+  detectedCurrency = formatter.resolvedOptions().currency ?? "USD";
 } catch (e) {
-       // DYNAMIC IMPORT: We load the logger on-the-fly here
-    import("@/utils/Logger").then(m =>
-      m.logException(e, { module: "SystemDefaults", action: "fallback currency", data: currencyCode })
-    );
+  // DYNAMIC IMPORT: Prevents circular dependency during initialization
+  import("@/lib/Logger").then((m) =>
+    m.logException(e, {
+      module: "SystemDefaults",
+      action: "detectCurrency",
+      slug: t("defaults.currency_detection_failed"),
+      data: { locale: defaultLocale },
+    }),
+  );
 }
 
-export const defaultToastTimeout = 0; //0 milliseconds means to leave the message displayed until the user closes it
+export const defaultCurrencyCode = detectedCurrency;
 
-export const defaultCurrencyCode = currencyCode;
+export function getCurrencyDisplayNames(
+  currency: string,
+  locale: string
+) {
+  const english = new Intl.DisplayNames("en", { type: "currency" });
+  const local = new Intl.DisplayNames(locale, { type: "currency" });
 
-// --- Default Formatting Options (Matching CurrencyStore) ---
-// These are standard, non-Intl-specific defaults that set the initial Pinia state.
-export const defaultMinPrecision = 2;
-export const defaultMaxPrecision = 2;
-export const defaultThousandsSeparator = true; // Maps to Intl.useGrouping
-export const defaultUseBankersRounding = false; // Legacy property
-export const defaultNegativeZero = true; // Legacy property
-export const defaultCurrencyDisplay = "symbol";
-export const defaultCurrencySign = "standard";
+  return {
+    code: currency,
+    english: english.of(currency) ?? currency,
+    local: local.of(currency) ?? currency
+  };
+}
+
+
+

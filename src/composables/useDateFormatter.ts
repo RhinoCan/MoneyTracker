@@ -1,48 +1,52 @@
-// src/composables/useDateFormatter.ts (The FINAL, simplified version)
+// @/composables/useDateFormatter.ts
+import { useI18n } from 'vue-i18n'
 
-import { computed } from 'vue';
-import { format } from 'date-fns';
-import { useDateFormatStore } from '@/stores/DateFormatStore';
-import { logWarning } from '@/utils/Logger';
-
-// You still need to import DateFormatTemplate, but only for the store's type checking
-
-/**
- * Provides a reactive function to format dates based on the user's
- * active preference stored in the DateFormatStore.
- * @returns A formatting function that takes a Date object or string and returns a formatted string.
- */
 export function useDateFormatter() {
-    // 1. Access the store
-    const dateFormatStore = useDateFormatStore();
+  const { locale } = useI18n()
 
-    // 2. The activeTemplate IS the final format string itself!
-    const activeTemplate = computed(() => dateFormatStore.currentDateFormat);
+  /**
+   * Formats a date for UI display using the user's locale
+   * @param value - Date as YYYY-MM-DD string, Date object, or null
+   * @returns Localized date string using medium style
+   */
+  function formatForUI(value: string | Date | null): string {
+    if (!value) return ''
 
-    /**
-     * Formats a date value using the currently selected user preference.
-     * @param dateInput The date to be formatted (can be Date object, string, or number).
-     * @returns The formatted date string.
-     */
-    const formatDate = (dateInput: Date | string | number): string => {
-        if (!dateInput) {
-            return ''; // Handle null/undefined input gracefully
-        }
+    let date: Date
 
-        const dateObject = new Date(dateInput);
+    if (typeof value === 'string') {
+      // Strip time part if present and parse as local date
+      const dateOnly = value.substring(0, 10)
+      const [year, month, day] = dateOnly.split('-').map(Number)
+      date = new Date(year, month - 1, day) // month is 0-indexed
+    } else {
+      date = value
+    }
 
-        if (isNaN(dateObject.getTime())) {
-          logWarning("Input value to formatDate() is not a valid date", { module: "useDateFormatter", action: "formatDate()", data: dateInput})
-        }
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      return ''
+    }
 
-        // USE THE STORE'S VALUE DIRECTLY, as it is already the token string.
-        const formatString = activeTemplate.value; // <--- The Fix!
+    return new Intl.DateTimeFormat(locale.value, {
+      dateStyle: 'medium'
+    }).format(date)
+  }
 
-        return format(dateObject, formatString);
-    };
+  /**
+   * Converts a Date object to YYYY-MM-DD string (source of truth format)
+   * @param date - Date object
+   * @returns YYYY-MM-DD string
+   */
+  function toISODateString(date: Date): string {
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
+  }
 
-    // Return the function that components will call
-    return {
-        formatDate,
-    };
+  return {
+    formatForUI,
+    toISODateString
+  }
 }

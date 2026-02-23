@@ -1,51 +1,72 @@
 <script setup lang="ts">
 import { computed } from "vue";
-import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter.ts";
-import type { AmountType } from "@/types/Transaction.ts";
+import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter";
 
 interface Props {
-  amount: number;
-  type: AmountType; // "Income" | "Expense" | "Balance"
+  amount?: number | string | null;
+  type?: string;
 }
 
 const props = defineProps<Props>();
-
 const { displayMoney } = useCurrencyFormatter();
 
-// Reactive formatted amount
-const formattedAmount = computed(() => displayMoney(props.amount));
+/**
+ * 1. Safe Numeric Conversion
+ * Ensures we always have a valid number even if the prop is messy.
+ */
+const numericAmount = computed(() => {
+  const val = typeof props.amount === 'string' ? parseFloat(props.amount) : props.amount;
+  return (val !== null && !isNaN(val as number)) ? (val as number) : 0;
+});
 
-// Reactive class based on type and value
+/**
+ * 2. Formatted Output
+ * displayMoney is a computed function from useCurrencyFormatter.
+ */
+const formattedAmount = computed(() => {
+  return displayMoney.value(numericAmount.value);
+});
+
+/**
+ * 3. Color Logic
+ * Maps transaction types to semantic CSS classes.
+ */
 const colorClass = computed(() => {
-  switch (props.type) {
-    case "Income":
-      return "plus";
-    case "Expense":
-      return "minus";
-    case "Balance":
-      return props.amount < 0 ? "minus" : "plus";
-    default:
-      return "";
+  const t = props.type?.toLowerCase() || "";
+
+  if (t.includes("income") || t === "plus") return "plus";
+  if (t.includes("expense") || t === "minus") return "minus";
+
+  // For "Balance", the color depends on the final value
+  if (t.includes("balance")) {
+    return numericAmount.value < 0 ? "minus" : "plus";
   }
+  return "";
 });
 </script>
 
 <template>
-  <span class="money" :class="colorClass">{{ formattedAmount }}</span>
+  <span class="money-display" :class="colorClass">
+    {{ formattedAmount }}
+  </span>
 </template>
 
-<style lang="css" scoped>
-.money {
-  font-size: 20px;
+<style scoped>
+.money-display {
+  font-size: 1.25rem; /* 20px equivalent */
   letter-spacing: 1px;
-  margin: 5px 0;
+  font-weight: 700;
+  white-space: nowrap;
+  display: inline-block;
+  /* Tabular nums ensure numbers don't jump when values change */
+  font-variant-numeric: tabular-nums;
 }
 
 .plus {
-  color: #2ecc71 !important;
+  color: rgb(var(--v-theme-success)) !important;
 }
 
 .minus {
-  color: #c0392b !important;
-} 
+  color: rgb(var(--v-theme-error)) !important;
+}
 </style>

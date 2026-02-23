@@ -84,7 +84,7 @@ describe("AddTransaction.vue", () => {
     const store = useTransactionStore();
     const addSpy = vi.spyOn(store, "addTransaction");
 
-    // Use a real Date object for today to guarantee it passes dateRangeRule
+    // Use a real Date object for today to guarantee it passes dateRules
     const today = new Date();
 
     (wrapper.vm as any).descriptionModel = "Dinner";

@@ -20,10 +20,10 @@ describe("useAppValidationRules", () => {
   // specific project setup requires a Pinia instance or specific params.
   const rules = (useAppValidationRules as any)();
 
-  describe("dateRangeRule", () => {
+  describe("dateRules", () => {
     it("should return error for dates in a previous calendar year", () => {
       const pastYearDate = "2024-12-31";
-      expect(rules.dateRangeRule(pastYearDate)).toBe(
+      expect(rules.dateRules(pastYearDate)).toBe(
         "Transaction date cannot be from a previous calendar year (2025)."
       );
     });
@@ -31,18 +31,18 @@ describe("useAppValidationRules", () => {
     it("should return error for dates in the future", () => {
       // Use a date definitely in the next month to trigger the future check
       const futureDate = "2026-01-15";
-      const result = rules.dateRangeRule(futureDate);
+      const result = rules.dateRules(futureDate);
 
       expect(result).toBe("Transaction date cannot be in the future (tomorrow or later).");
     });
 
     it("should return true for today", () => {
       // 2025-12-14 is our mocked "today"
-      expect(rules.dateRangeRule("2025-12-14")).toBe(true);
+      expect(rules.dateRules("2025-12-14")).toBe(true);
     });
 
     it("should return error for empty values", () => {
-      expect(rules.dateRangeRule(null)).toBe("Date is required.");
+      expect(rules.dateRules(null)).toBe("Date is required.");
     });
   });
 
@@ -60,14 +60,14 @@ describe("useAppValidationRules", () => {
     });
   });
 
-  describe("amountValidations", () => {
+  describe("amountRules", () => {
     it("should return true for positive numbers", () => {
-      expect(rules.amountValidations("100")).toBe(true);
+      expect(rules.amountRules("100")).toBe(true);
     });
 
     it("should return error for zero", () => {
       const errorMsg = "Amount must be supplied and must be greater than zero";
-      expect(rules.amountValidations("0")).toBe(errorMsg);
+      expect(rules.amountRules("0")).toBe(errorMsg);
     });
   });
 
@@ -86,12 +86,12 @@ describe("useAppValidationRules", () => {
     });
   });
 
-  describe("dateRangeRule - Invalid Formats", () => {
+  describe("dateRules - Invalid Formats", () => {
     it("should return 'Invalid date format.' and log a warning for garbage input", () => {
       // This triggers if(isNaN(parsedDate.getTime()))
       const invalidInput = "this-is-not-a-date";
 
-      const result = rules.dateRangeRule(invalidInput);
+      const result = rules.dateRules(invalidInput);
 
       expect(result).toBe("Invalid date format.");
       // Note: If you have your Logger mocked, you could also verify the warning:

@@ -1,0 +1,223 @@
+{
+  "common": {
+    "cancel": "取消",
+    "saveChanges": "保存更改",
+    "help": "帮助",
+    "close": "关闭",
+    "addNew": "添加新交易",
+    "Income": "收入",
+    "Expense": "支出",
+    "description": "描述",
+    "date": "日期",
+    "type": "交易类型",
+    "amount": "金额",
+    "error_unexpected": "发生错误，请稍后重试。",
+    "fill_all_fields": "请填写所有字段。",
+    "format": "格式：{example}。",
+    "wrongSeparator": "请使用 {separator} 作为小数分隔符。",
+    "invalidAmount": "请在保存前更正金额格式。"
+  },
+  "app": {
+    "fatalHeadline": "应用程序启动失败",
+    "noStart": "我们无法启动应用程序。请检查您的网络连接后重试。",
+    "retry": "重试连接。"
+  },
+  "main": {
+    "global_vue_crash": "Vue 在 main.ts 中发生严重崩溃"
+  },
+  "deleteDialog": {
+    "title": "确认或取消删除",
+    "error_no_trans": "该交易已不存在，无法删除。",
+    "error_UI": "删除操作在用户界面层面失败。",
+    "confirmBtn": "删除交易"
+  },
+  "settings": {
+    "title": "设置",
+    "locale": "区域设置",
+    "currency": "货币",
+    "persistMsg": "保留消息直到您手动关闭",
+    "timeoutMsg": "通过滑块设置消息持续时间"
+  },
+  "settingsStore": {
+    "updated": "设置已更新。",
+    "cleared": "设置已从数据库中清除。"
+  },
+  "management": {
+    "title": "数据管理",
+    "exportTitle": "导出数据",
+    "exportText": "将您的交易记录保存为 CSV 文件，用于备份或在电子表格中使用。",
+    "btnExport": "导出 CSV",
+    "dangerZone": "危险区域",
+    "deleteTransTitle": "删除所有交易",
+    "deleteTransText": "删除所有交易，但保留您的设置（语言、货币、消息超时）。",
+    "btnDeleteTrans": "删除所有交易",
+    "restoreSettingsTitle": "恢复所有默认设置",
+    "restoreSettingsText": "将所有设置（语言、货币、日期格式）恢复为默认值，但保留所有交易。",
+    "btnRestoreSettings": "恢复所有默认设置",
+    "deleteEverythingTitle": "删除所有交易和设置",
+    "deleteEverythingText": "这将删除所有交易和所有设置，然后以默认设置重启应用程序。",
+    "btnDeleteEverything": "删除所有交易*和*设置",
+    "confirmDeleteAllTransactions": "您确定吗？这将删除您的所有交易，但保留您的设置。此操作无法撤销。继续？",
+    "confirmRestoreAllSettings": "您确定吗？这将把所有设置恢复为默认值，但保留您的交易。此操作无法撤销。继续？",
+    "confirmDeleteEverything": "警告：这将永久删除所有交易和所有设置。此操作无法撤销。继续？",
+    "restore_settings_failed": "恢复所有默认设置失败。",
+    "full_wipe_failed": "删除所有交易并恢复所有默认设置失败。"
+  },
+  "accountSummary": {
+    "title": "账户摘要",
+    "alert": "在您通过下方的 {addNew} 表单添加至少一笔交易之前，这里不会显示任何内容。",
+    "income": "总收入",
+    "expense": "总支出",
+    "balance": "余额"
+  },
+  "addTrans": {
+    "title": "添加新交易",
+    "btnReset": "重置",
+    "btnAdd": "添加交易",
+    "labelDescription": "描述",
+    "labelDate": "交易日期",
+    "labelType": "交易类型",
+    "labelIncome": "收入",
+    "labelExpense": "支出",
+    "labelAmount": "金额",
+    "err_missing_or_negative": "金额不能为空或为负数。",
+    "success": "交易已添加。",
+    "submit_failed": "新交易未通过提交验证。"
+  },
+  "keyboard": {
+    "title": "键盘快捷键",
+    "paraEsc": "您可以使用键盘上的 {Esc} 键取消此更新，而不必使用 {iconHelp} 图标或取消按钮。",
+    "paraEnter": "您可以使用键盘上的 {Enter} 键保存此处所做的更改，而不必使用保存按钮。",
+    "paraTab": "您可以使用键盘上的 {Tab} 键在包含多个字段的表单中跳转。",
+    "keyEsc": "Esc",
+    "keyEnter": "Enter",
+    "keyTab": "Tab"
+  },
+  "about": {
+    "title": "关于",
+    "origins": "起源",
+    "introParagraph": "这个应用程序是我跟随 {linkTraversy} 最初构建的应用程序的后继版本。之后我进行了一系列改进，总结如下：",
+    "linkText": "Brad Traversy 的课程之一",
+    "enhancements": [
+      "为原始 Vue 组件编写并执行了测试。",
+      "Props 几乎完全被 Pinia stores 取代。",
+      "Vue 组件被 Vuetify 组件取代。",
+      "JavaScript 模块转换为 TypeScript。",
+      "进行了部分国际化/本地化，使货币金额以适合当前区域设置的正确格式显示。",
+      "添加了确认对话框，以确保用户确实要删除所选交易。",
+      "AccountBalance 和 IncomeExpense 组件合并为一个新组件 AccountSummary。",
+      "创建了一个名为 Money 的新组件，用于显示所有货币金额（输入或编辑时除外）。",
+      "在交易定义中添加了交易日期，以便用户记录收入获得或支出发生的时间。",
+      "各个单独的设置对话框合并为一个带标签页的设置对话框，后来进一步简化。",
+      "添加了 Sentry 以正确记录错误和警告。",
+      "将用户可见（和可听）的所有文本翻译成多种区域设置和广泛使用的语言。",
+      "添加了 PostHog 以追踪信息和成功消息用于分析目的。",
+      "添加了 Vue Router 以及注册/登录页面，以便对用户进行身份验证。",
+      "将所有 localStorage 的使用替换为 Supabase。"
+    ],
+    "packages": "使用的主要软件包",
+    "textVue": "Vue 3.x",
+    "textVuetify": "Vuetify 3.x",
+    "textPinia": "Pinia",
+    "textSentry": "Sentry",
+    "textPostHog": "PostHog",
+    "textSupabase": "Supabase"
+  },
+  "header": {
+    "title": "财务管理器",
+    "settings": "设置",
+    "data": "数据管理",
+    "textLive": "在线版（GitHub Pages）",
+    "textDev": "开发服务器",
+    "logoff": "退出"
+  },
+  "history": {
+    "title": "交易历史",
+    "search": "搜索",
+    "alert": "在您通过下方的 {addNew} 表单添加一些交易之前，这里不会显示任何交易。",
+    "actions": "操作",
+    "itemsPerPage": "每页条数：",
+    "pageText": "{0}-{1} / {2}",
+    "ariaUpdate": "更新",
+    "ariaDelete": "删除"
+  },
+  "updateDialog": {
+    "title": "更新交易",
+    "btnUpdate": "更新交易",
+    "noChanges": "此交易未做任何更改，因此未执行更新。",
+    "success": "交易已成功更新。",
+    "failedUI": "更新在用户界面层面失败。"
+  },
+  "useApp": {
+    "reqd": "此字段为必填项。不允许为零。",
+    "reqdZeroOk": "此字段为必填项。数字字段中允许为零。",
+    "transReqd": "必须选择交易类型。",
+    "timeoutMin": "超时时间必须为 -1 或更大。",
+    "timeoutMax": "超时时间必须为 10 或更小。",
+    "timeoutInteger": "超时时间必须为正数或零。",
+    "dateReqd": "日期为必填项。",
+    "notFuture": "交易日期不能是未来的日期（明天或更晚）。",
+    "invalidFmt": "日期格式无效。",
+    "notPrevYear": "交易日期不能是上一个日历年 {year}。",
+    "greater": "必须提供金额，且金额必须大于零。",
+    "wrongSeparator": "请使用 {separator} 作为小数分隔符。"
+  },
+  "transactionStore": {
+    "added": "ID 为 {id} 的交易已成功添加。",
+    "add_failed": "添加 ID 为 {id} 的交易失败。",
+    "updated": "ID 为 {id} 的交易已成功更新。",
+    "update_failed": "更新 ID 为 {id} 的交易失败。",
+    "deleteOne": "ID 为 {id} 的交易已成功删除。",
+    "deleteOne_failed": "删除 ID 为 {id} 的交易失败。",
+    "deleteAll": "所有交易已成功删除。",
+    "deleteAll_failed": "删除所有交易失败。"
+  },
+  "login": {
+    "title": "登录",
+    "email_label": "电子邮件地址",
+    "password_label": "密码",
+    "no_account": "没有账户？",
+    "fail_generic": "登录失败，请重试。",
+    "fail_unconfirmed": "请在登录前确认您的电子邮件。",
+    "fail_credentials": "电子邮件地址或密码无效。",
+    "error_unexpected": "登录时发生意外错误。",
+    "button": "登录",
+    "go_register": "注册",
+    "success": "登录成功。",
+    "auth_login_failed": "",
+    "auth_unexpected": ""
+  },
+  "register": {
+    "title": "注册",
+    "fail": "无法完成注册。",
+    "success_check_email": "注册成功！请查收电子邮件中的确认链接。",
+    "button": "注册",
+    "go_login": "返回登录"
+  },
+  "userStore": {
+    "authFailed": "我们无法连接到您的账户，请刷新页面。",
+    "signoutFailed": "退出失败，请重试。",
+    "initChainFailed": "初始化链失败。"
+  },
+  "currFormat": {
+    "failed": "货币格式化失败。"
+  },
+  "currParser": {
+    "parser_failure": "货币解析失败。"
+  },
+  "useTrans": {
+    "parseValidatorMismatch": "验证器不接受该金额格式。"
+  },
+  "router": {
+    "auth_check_failed": ""
+  },
+  "localeList": {
+    "intl_supported_values_failed": ""
+  },
+  "appInit": {
+    "hydration_failed": "AppInitializer 水合失败。"
+  },
+  "defaults": {
+    "currency_detection_failed": "货币检测失败。"
+  }
+}
