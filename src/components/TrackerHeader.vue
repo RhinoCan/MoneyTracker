@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from "vue";
-import SettingsDialog from "@/components/SettingsDialog.vue";
-import DataManagementDialog from "@/components/DataManagementDialog.vue";
+import Settings from "@/components/Settings.vue";
+import DataManagement from "@/components/DataManagement.vue";
 import { useI18n } from "vue-i18n";
 import { useUserStore } from "@/stores/UserStore";
 import { useRouter } from "vue-router";
+import { logException } from "@/lib/Logger";
 
 const { t } = useI18n();
 const userStore = useUserStore();
@@ -23,9 +24,13 @@ const appEnvironment = computed(() => {
 async function handleLogout() {
   try {
     await userStore.signOut();
-    router.push("/login"); // Added leading slash for path safety
+    router.push("/login");
   } catch (error) {
-    console.error("Logout failed:", error);
+    logException(error, {
+      module: "TrackerHeader",
+      action: "handleLogout",
+      slug: t("header.logout_failed"),
+    });
   }
 }
 
@@ -96,7 +101,7 @@ const showDataManagement = ref(false);
       persistent
       transition="dialog-bottom-transition"
     >
-      <SettingsDialog @close="showSettings = false" />
+      <Settings @close="showSettings = false" />
     </v-dialog>
 
     <v-dialog
@@ -105,7 +110,7 @@ const showDataManagement = ref(false);
       persistent
       transition="dialog-bottom-transition"
     >
-      <DataManagementDialog @close="showDataManagement = false" />
+      <DataManagement @close="showDataManagement = false" />
     </v-dialog>
   </v-app-bar>
 </template>

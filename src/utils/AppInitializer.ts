@@ -3,7 +3,15 @@ import { useSettingsStore } from "@/stores/SettingsStore"; // The new source of 
 import { useUserStore } from "@/stores/UserStore";
 import { logException, logInfo } from "@/lib/Logger";
 import { i18n } from "@/i18n";
+import type { SettingsRow } from "@/stores/SettingsStore";
+import { SupportedLocale, SupportedCurrency } from "@/types/CommonTypes";
 
+// NOTE: The 'as any' cast on i18n.global is intentional.
+// useI18n() requires a Vue component setup context and cannot be called outside of one.
+// Accessing i18n.global directly is the correct pattern for translating strings outside
+// of components. The cast is necessary because vue-i18n does not export a public type
+// for the global composer object.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = (i18n.global as any).t;
 
 export async function initializeAppSettings() {
@@ -23,11 +31,11 @@ export async function initializeAppSettings() {
 
     if (data && data.length > 0) {
       // --- HYDRATION PATH ---
-      const record = data[0] as any;
+      const record = data[0] as SettingsRow;
 
-      settingsStore.locale = record.locale_value;
-      settingsStore.currency = record.currency_value;
-      settingsStore.snackbarTimeout = record.timeout_value;
+      settingsStore.locale = record.locale_value as SupportedLocale;
+      settingsStore.currency = record.currency_value as SupportedCurrency;
+      settingsStore.messageTimeoutSeconds = record.timeout_value;
 
       logInfo("SettingsStore hydrated from database", {
         module: "AppInitializer",

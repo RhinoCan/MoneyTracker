@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import posthog from "posthog-js";
 
 export function initPosthog() {

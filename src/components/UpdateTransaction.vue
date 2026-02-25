@@ -8,7 +8,7 @@ import { useTransactionFormFields } from "@/composables/useTransactionFormFields
 import { useNumberFormatHints } from "@/composables/useNumberFormatHints";
 import { Transaction } from "@/types/Transaction";
 import { SubmitEventPromise } from "vuetify";
-import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts.vue";
 import { logException, logValidation, logSuccess } from "@/lib/Logger";
 import { useI18n } from "vue-i18n";
 
@@ -16,7 +16,7 @@ const { t } = useI18n();
 const storeTransaction = useTransactionStore();
 const { displayMoney } = useCurrencyFormatter();
 const { formatForUI, toISODateString } = useDateFormatter();
-const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
+const { required, dateRules, amountRules } = useAppValidationRules();
 const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } =
   useNumberFormatHints();
 
@@ -121,7 +121,7 @@ async function onSubmit(event: SubmitEventPromise) {
   }
 
   // Date comparison - both should now be YYYY-MM-DD strings
-  const normalizeDate = (val: any): string => {
+  const normalizeDate = (val: string | Date | null): string => {
     if (!val) return "";
     if (typeof val === "string") {
       return val.substring(0, 10); // Ensure YYYY-MM-DD
@@ -156,7 +156,7 @@ async function onSubmit(event: SubmitEventPromise) {
     });
 
     closeDialog();
-  } catch (error) {
+  } catch {
     logException(new Error("Update failed in the UI."), {
       module: "UpdateTransaction",
       action: "onSubmit",
@@ -292,7 +292,7 @@ async function onSubmit(event: SubmitEventPromise) {
     </v-card>
 
     <v-dialog v-model="showKeyboardShortcuts" max-width="350">
-      <KeyboardShortcutsDialog
+      <KeyboardShortcuts
         v-if="showKeyboardShortcuts"
         @close="showKeyboardShortcuts = false"
       />

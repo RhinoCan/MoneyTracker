@@ -1,4 +1,4 @@
-// @/lib/Logger.ts
+/* eslint-disable no-console */
 import * as Sentry from "@sentry/vue";
 import posthog from "posthog-js";
 import { useNotificationStore } from "@/stores/NotificationStore";

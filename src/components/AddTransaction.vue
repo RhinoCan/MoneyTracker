@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ref, computed } from "vue";
+import { ref, computed, nextTick } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore";
 import { useDateFormatter } from "@/composables/useDateFormatter";
 import { useAppValidationRules } from "@/composables/useAppValidationRules";
@@ -7,14 +7,12 @@ import { useTransactionFormFields } from "@/composables/useTransactionFormFields
 import { useNumberFormatHints } from "@/composables/useNumberFormatHints";
 import { TransactionTypeValues } from "@/types/Transaction";
 import type { SubmitEventPromise } from "vuetify";
-import KeyboardShortcutsDialog from "@/components/KeyboardShortcutsDialog.vue";
-import { useSettingsStore } from "@/stores/SettingsStore";
+import KeyboardShortcuts from "@/components/KeyboardShortcuts.vue";
 import { logSuccess, logValidation, logException } from "@/lib/Logger";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const settingsStore = useSettingsStore();
 const storeTransaction = useTransactionStore();
 const { formatForUI, toISODateString } = useDateFormatter();
 const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
@@ -61,7 +59,7 @@ const amountHint = computed(() => {
 // Rules object for the template
 const rules = {
   required,
-  dateRequired: (v: string) => dateRules(transaction.value?.date || ""),
+  dateRequired: () => dateRules(transaction.value?.date || ""),
   transactionTypeRequired,
   amountRules,
 };
@@ -120,9 +118,6 @@ async function onSubmit(event: SubmitEventPromise) {
 
     resetForm();
 
-    if (newTransactionForm.value) {
-      newTransactionForm.value.resetValidation();
-    }
   } catch (error) {
     logException(error, {
       module: "AddTransaction",
@@ -133,7 +128,6 @@ async function onSubmit(event: SubmitEventPromise) {
 }
 
 function resetForm() {
-  if (newTransactionForm.value) newTransactionForm.value.reset();
 
   const today = new Date();
 
@@ -149,6 +143,12 @@ function resetForm() {
   displayAmount.value = "";
   dateError.value = null;
   dateMenu.value = false;
+
+  if (newTransactionForm.value) {
+    nextTick(() => {
+      newTransactionForm.value.resetValidation();
+    });
+  }
 }
 </script>
 
@@ -238,7 +238,7 @@ function resetForm() {
     </v-form>
 
     <v-dialog v-model="showKeyboardShortcuts" max-width="400">
-      <KeyboardShortcutsDialog
+      <KeyboardShortcuts
         v-if="showKeyboardShortcuts"
         @close="showKeyboardShortcuts = false"
       />

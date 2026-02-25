@@ -20,7 +20,7 @@
     "@sentry/hub": "^7.120.4",
     "@sentry/vue": "^10.32.1",
     "@supabase/supabase-js": "^2.89.0",
-    "date-fns": "^4.1.0",
+    "date-fns": "^3.6.0",
     "pinia": "^3.0.4",
     "posthog-js": "^1.313.0",
     "vue-i18n": "^11.2.8",
@@ -29,13 +29,19 @@
     "vuetify": "^3.11.0"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@pinia/testing": "^1.0.3",
     "@types/vue": "^1.0.31",
+    "@typescript-eslint/eslint-plugin": "^8.56.1",
+    "@typescript-eslint/parser": "^8.56.1",
     "@vitejs/plugin-vue": "^6.0.2",
     "@vitest/coverage-v8": "^1.6.1",
     "@vue/runtime-core": "^3.5.26",
     "@vue/test-utils": "^2.4.6",
     "cross-env": "^10.1.0",
+    "eslint": "^10.0.1",
+    "eslint-plugin-vue": "^10.8.0",
+    "globals": "^17.3.0",
     "identity-obj-proxy": "^3.0.0",
     "jsdom": "^27.2.0",
     "ts-node": "^10.9.2",
@@ -43,6 +49,7 @@
     "vite-plugin-css-injected-by-js": "^3.5.2",
     "vite-tsconfig-paths": "^5.1.4",
     "vitest": "^1.6.1",
-    "vue": "^3.5.26"
+    "vue": "^3.5.26",
+    "vue-eslint-parser": "^10.4.0"
   }
 }

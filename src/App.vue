@@ -19,7 +19,7 @@ watch(
   locale,
   (newLocale) => {
     const lang = newLocale.split("-")[0];
-    const isRTL = RTL_LOCALES.includes(newLocale);
+    const isRTL = RTL_LOCALES.includes(lang);
     document.documentElement.dir = isRTL ? "rtl" : "ltr";
     document.documentElement.lang = newLocale;
     vuetifyLocale.value = newLocale;
@@ -45,7 +45,7 @@ const bootApp = async () => {
     fatalError.value = false;
     // This now awaits Auth, Settings, and Transactions because of our UserStore changes!
     await userStore.initializeAuth();
-  } catch (error) {
+  } catch {
     fatalError.value = true;
     //logException already called in UserStore, no need to log again
   }
@@ -104,7 +104,9 @@ onMounted(() => {
       :key="notificationStore.snackbarKey"
       v-model="notificationStore.isVisible"
       :color="notificationStore.color"
-      :timeout="settingsStore.snackbarTimeout === -1 ? -1 : settingsStore.snackbarTimeout * 1000"
+      :timeout="
+        settingsStore.messageTimeoutSeconds === -1 ? -1 : settingsStore.messageTimeoutSeconds * 1000
+      "
     >
       {{ notificationStore.text }}
 

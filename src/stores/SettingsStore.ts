@@ -6,14 +6,20 @@ import type { Database } from "../lib/supabase";
 import { useUserStore } from "@/stores/UserStore";
 import { logException, logSuccess } from "@/lib/Logger";
 import { i18n } from "@/i18n";
-import type { CurrencyCode, SupportedLocale } from "@/types/CommonTypes";
+import type { SupportedCurrency, SupportedLocale } from "@/types/CommonTypes";
 
+// NOTE: The 'as any' cast on i18n.global is intentional.
+// useI18n() requires a Vue component setup context and cannot be called outside of one.
+// Accessing i18n.global directly is the correct pattern for translating strings outside
+// of components. The cast is necessary because vue-i18n does not export a public type
+// for the global composer object.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = (i18n.global as any).t;
-type SettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
+export type SettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
 type SettingsInsert = Database["public"]["Tables"]["system_settings"]["Insert"];
 
 // Locale to default currency mapping
-export const localeToCurrency: Record<SupportedLocale, CurrencyCode> = {
+export const localeToCurrency: Record<SupportedLocale, SupportedCurrency> = {
   "en-US": "USD",
   "en-CA": "CAD",
   "en-GB": "GBP",
@@ -37,8 +43,8 @@ export const useSettingsStore = defineStore("settingsStore", () => {
 
   // --- State ---
   const locale = ref<SupportedLocale>("en-US");
-  const currency = ref<CurrencyCode>("USD");
-  const snackbarTimeout = ref<number>(-1); // Persist until manual close
+  const currency = ref<SupportedCurrency>("USD");
+  const messageTimeoutSeconds = ref<number>(-1); // Persist until manual close
   const isLoading = ref(false);
 
   // --- Watchers ---
@@ -47,19 +53,12 @@ export const useSettingsStore = defineStore("settingsStore", () => {
   watch(
     locale,
     (newVal) => {
-      (i18n.global as any).locale.value = newVal;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (i18n.global as any).locale.value = newVal; // See i18n.global comment above
       document.querySelector("html")?.setAttribute("lang", newVal);
     },
     { immediate: true }
   );
-
-  // Auto-update currency when locale changes
-  /*   watch(locale, (newLocale) => {
-    const defaultCurrency = localeToCurrency[newLocale];
-    if (defaultCurrency) {
-      currency.value = defaultCurrency;
-    }
-  }); */
 
   // --- Actions ---
 
@@ -69,7 +68,7 @@ export const useSettingsStore = defineStore("settingsStore", () => {
   function restoreDefaults() {
     locale.value = "en-US";
     currency.value = "USD";
-    snackbarTimeout.value = -1;
+    messageTimeoutSeconds.value = -1;
   }
 
   /**
@@ -92,8 +91,8 @@ export const useSettingsStore = defineStore("settingsStore", () => {
         locale.value = record.locale_value as SupportedLocale;
         // Note: currency will auto-update via the locale watcher
         // But we still load it in case user manually changed it
-        currency.value = record.currency_value as CurrencyCode;
-        snackbarTimeout.value = record.timeout_value;
+        currency.value = record.currency_value as SupportedCurrency;
+        messageTimeoutSeconds.value = record.timeout_value;
       } else {
         await saveToDb();
       }
@@ -116,11 +115,17 @@ export const useSettingsStore = defineStore("settingsStore", () => {
       user_id: userStore.userId,
       locale_value: locale.value,
       currency_value: currency.value,
-      timeout_value: snackbarTimeout.value,
+      timeout_value: messageTimeoutSeconds.value,
     };
 
     try {
-      const { error } = await (supabase.from("system_settings") as any).upsert(payload as any, {
+      // NOTE: The 'as any' cast on supabase.from() is intentional.
+      // Supabase's TypeScript client collapses chained query builder return types to 'never'
+      // when using a typed Database schema. This is a known limitation of @supabase/supabase-js
+      // (see github.com/supabase/supabase-js). The cast is safe because the Database type
+      // in supabase.ts fully defines the expected shape of all data returned from these queries.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { error } = await (supabase.from("system_settings") as any).upsert(payload as any, { // Double-cast required; see function JSDoc above
         onConflict: "user_id",
       });
 
@@ -141,6 +146,12 @@ export const useSettingsStore = defineStore("settingsStore", () => {
     if (!userStore.userId) return;
     isLoading.value = true;
     try {
+      // NOTE: The 'as any' cast on supabase.from() is intentional.
+      // Supabase's TypeScript client collapses chained query builder return types to 'never'
+      // when using a typed Database schema. This is a known limitation of @supabase/supabase-js
+      // (see github.com/supabase/supabase-js). The cast is safe because the Database type
+      // in supabase.ts fully defines the expected shape of all data returned from these queries.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase.from("system_settings") as any)
         .delete()
         .eq("user_id", userStore.userId);
@@ -160,7 +171,7 @@ export const useSettingsStore = defineStore("settingsStore", () => {
   return {
     locale,
     currency,
-    snackbarTimeout,
+    messageTimeoutSeconds: messageTimeoutSeconds,
     isLoading,
     loadSettings,
     saveToDb,

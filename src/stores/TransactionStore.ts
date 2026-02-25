@@ -6,20 +6,17 @@ import { useUserStore } from "@/stores/UserStore";
 import type { Transaction, NewTransaction } from "@/types/Transaction";
 import { TransactionTypeValues } from "@/types/Transaction";
 import { logException, logInfo, logSuccess } from "@/lib/Logger";
-import { i18n } from "@/i18n";
+import { i18n } from "@/i18n/index";
 
-const t = (i18n.global as any).t;
 type TransactionInsert = Database["public"]["Tables"]["transactions"]["Insert"];
 
 export class TransactionError extends Error {
-  constructor(
-    message: string,
-    public code?: string,
-    public details?: string,
-    public hint?: string
-  ) {
+  code?: string;
+
+  constructor(message: string, code?: string) {
     super(message);
     this.name = "TransactionError";
+    this.code = code;
   }
 }
 
@@ -56,7 +53,12 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
     return userStore.userId;
   };
 
-  function handleSupabaseError(supabaseError: any, operation: string): never {
+  // NOTE: supabaseError is typed as a plain object rather than 'any' to preserve
+  // type safety while accommodating Supabase's inconsistent error type exports.
+  function handleSupabaseError(
+    supabaseError: { code: string; details: string; hint: string; message: string },
+    operation: string
+  ): never {
     const errorMessages: Record<string, string> = {
       "23505": "This transaction already exists.",
       "42501": "Permission denied.",
@@ -68,7 +70,6 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
     logException(supabaseError, {
       module: "TransactionStore",
       action: operation,
-      //TODO
       slug: `db.${supabaseError.code || "unknown"}`,
       data: { details: supabaseError.details, hint: supabaseError.hint },
     });
@@ -78,12 +79,24 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
 
   // --- Actions ---
 
+  // NOTE: The 'as any' cast on supabase.from() is intentional throughout this store.
+  // Supabase's TypeScript client collapses chained query builder return types to 'never'
+  // when using a typed Database schema. This is a known limitation of @supabase/supabase-js
+  // (see github.com/supabase/supabase-js). The cast is safe because the Database type
+  // in supabase.ts fully defines the expected shape of all data returned from these queries.
+
+  // NOTE: The 'as any' cast on i18n.global is intentional throughout this store.
+  // useI18n() requires a Vue component setup context and cannot be called at the top
+  // level of a Pinia store. Accessing i18n.global directly is the correct pattern for
+  // translating strings outside of components. The cast is necessary because vue-i18n
+  // does not export a public type for the global composer object.
+
   async function fetchTransactions() {
     loading.value = true;
     error.value = null;
     try {
       const userId = getRequiredUserId();
-      // Fix: Cast 'from' to any to bypass the 'never' type collapse
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error: supabaseError } = await (supabase.from("transactions") as any)
         .select("*")
         .eq("user_id", userId)
@@ -105,12 +118,14 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
   }
 
   async function addTransaction(newTx: Omit<NewTransaction, "user_id">) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t = (i18n.global as any).t;
     loading.value = true;
     try {
       const userId = getRequiredUserId();
-      // Explicitly type the payload to maintain safety despite the cast below
       const payload: TransactionInsert = { ...newTx, user_id: userId };
 
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error: supabaseError } = await (supabase.from("transactions") as any)
         .insert([payload])
         .select();
@@ -122,8 +137,7 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
 
       logSuccess(t("transactionStore.added"), {
         module: "TransactionStore",
-        action: "addTransaction",
-        data: { id: data[0].id }, // Error 2 Fix: Casting above makes 'data' accessible
+        action: "addTransaction"
       });
 
       return data[0];
@@ -142,11 +156,14 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
   }
 
   async function updateTransaction(id: number, updates: Partial<NewTransaction>) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t = (i18n.global as any).t;
     loading.value = true;
     try {
       const userId = getRequiredUserId();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { data, error: supabaseError } = await (supabase.from("transactions") as any)
-        .update(updates) // Error 3 Fix: Casting from table to 'any'
+        .update(updates)
         .eq("id", id)
         .eq("user_id", userId)
         .select();
@@ -158,8 +175,7 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
 
       logSuccess(t("transactionStore.updated"), {
         module: "TransactionStore",
-        action: "updateTransaction",
-        data: { id },
+        action: "updateTransaction"
       });
 
       return data[0];
@@ -178,9 +194,12 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
   }
 
   async function deleteTransaction(id: number) {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t = (i18n.global as any).t;
     loading.value = true;
     try {
       const userId = getRequiredUserId();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: supabaseError } = await (supabase.from("transactions") as any)
         .delete()
         .eq("id", id)
@@ -192,8 +211,7 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
 
       logSuccess(t("transactionStore.deleteOne"), {
         module: "TransactionStore",
-        action: "deleteTransaction",
-        data: { id },
+        action: "deleteTransaction"
       });
     } catch (err) {
       if (!(err instanceof TransactionError)) {
@@ -210,9 +228,12 @@ export const useTransactionStore = defineStore("storeTransaction", () => {
   }
 
   async function deleteAllTransactions() {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const t = (i18n.global as any).t;
     loading.value = true;
     try {
       const userId = getRequiredUserId();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error: supabaseError } = await (supabase.from("transactions") as any)
         .delete()
         .eq("user_id", userId);

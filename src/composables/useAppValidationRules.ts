@@ -6,16 +6,22 @@ import { parseCurrency } from "@/utils/currencyParser";
 import { useNumberFormatHints } from "@/composables/useNumberFormatHints";
 
 export function useAppValidationRules() {
+// NOTE: The 'as any' cast on i18n.global is intentional.
+// useI18n() requires a Vue component setup context and cannot be called outside of one.
+// Accessing i18n.global directly is the correct pattern for translating strings outside
+// of components. The cast is necessary because vue-i18n does not export a public type
+// for the global composer object.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
   const t = (i18n.global as any).t;
   const settingsStore = useSettingsStore();
   const { hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
-  const required = (v: any) => !!v || t("useApp.reqd");
+  const required = (v: unknown) => !!v || t("useApp.reqd");
 
-  const transactionTypeRequired = (v: any) =>
+  const transactionTypeRequired = (v: string) =>
     ["Income", "Expense"].includes(v) || t("useApp.transReqd");
 
-  const amountRules = (v: any) => {
+  const amountRules = (v: unknown) => {
     if (!v && v !== 0) return t("useApp.reqdZeroOk");
     if (!hasCorrectSeparator(String(v)))
       return t("useApp.wrongSeparator", { separator: decimalSeparator.value });
@@ -69,7 +75,7 @@ export function useAppValidationRules() {
     return true;
   };
 
-  const otherTabRules = (v: any) => {
+  const otherTabRules = (v: unknown) => {
     if (v === null || v === undefined || v === "") return t("useApp.reqd");
 
     const num = Number(v);

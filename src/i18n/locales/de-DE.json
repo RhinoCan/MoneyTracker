@@ -36,7 +36,9 @@
     "locale": "Gebietsschema",
     "currency": "Währung",
     "persistMsg": "Nachrichten beibehalten, bis Sie sie manuell schließen",
-    "timeoutMsg": "Nachrichtendauer über den Schieberegler festlegen"
+    "timeoutMsg": "Nachrichtendauer über den Schieberegler festlegen",
+    "persistMsgInfoOn": "Nachrichten bleiben auf dem Bildschirm, bis Sie sie manuell schließen. Schalten Sie den Schalter aus, um stattdessen einen Timeout festzulegen.",
+    "persistMsgInfoOff": "Nachrichten verschwinden automatisch nach der am Schieberegler eingestellten Anzahl von Sekunden. Schalten Sie den Schalter ein, um sie bis zum manuellen Schließen sichtbar zu halten."
   },
   "settingsStore": {
     "updated": "Einstellungen aktualisiert.",
@@ -129,7 +131,8 @@
     "data": "Datenverwaltung",
     "textLive": "Live (GitHub Pages)",
     "textDev": "Entwicklungsserver",
-    "logoff": "Abmelden"
+    "logoff": "Abmelden",
+    "logout_failed": "Abmeldung fehlgeschlagen. Bitte versuchen Sie es erneut."
   },
   "history": {
     "title": "Transaktionsverlauf",
@@ -163,14 +166,14 @@
     "wrongSeparator": "Bitte verwenden Sie {separator} als Dezimaltrennzeichen."
   },
   "transactionStore": {
-    "added": "Transaktion mit der ID {id} erfolgreich hinzugefügt.",
-    "add_failed": "Fehler beim Hinzufügen der Transaktion mit der ID {id}.",
-    "updated": "Transaktion mit der ID {id} erfolgreich aktualisiert.",
-    "update_failed": "Fehler beim Aktualisieren der Transaktion mit der ID {id}.",
-    "deleteOne": "Transaktion mit der ID {id} erfolgreich gelöscht.",
-    "deleteOne_failed": "Fehler beim Löschen der Transaktion mit der ID {id}.",
-    "deleteAll": "Alle Transaktionen wurden erfolgreich gelöscht.",
-    "deleteAll_failed": "Fehler beim Löschen aller Transaktionen."
+    "added": "Transaktion erfolgreich hinzugefügt.",
+    "add_failed": "Transaktion konnte nicht hinzugefügt werden.",
+    "updated": "Transaktion erfolgreich aktualisiert.",
+    "update_failed": "Transaktion konnte nicht aktualisiert werden.",
+    "deleteOne": "Transaktion erfolgreich gelöscht.",
+    "deleteOne_failed": "Transaktion konnte nicht gelöscht werden.",
+    "deleteAll": "Alle Transaktionen erfolgreich gelöscht.",
+    "deleteAll_failed": "Alle Transaktionen konnten nicht gelöscht werden."
   },
   "login": {
     "title": "Anmelden",
@@ -184,8 +187,8 @@
     "button": "Anmelden",
     "go_register": "Registrieren",
     "success": "Anmeldung erfolgreich.",
-    "auth_login_failed": "",
-    "auth_unexpected": ""
+    "auth_login_failed": "Anmeldeversuch fehlgeschlagen.",
+    "auth_unexpected": "Unerwarteter Fehler bei der Anmeldung."
   },
   "register": {
     "title": "Registrieren",
@@ -209,10 +212,10 @@
     "parseValidatorMismatch": "Der Validator mochte das Format des Betrags nicht."
   },
   "router": {
-    "auth_check_failed": ""
+    "auth_check_failed": "Authentifizierungsprüfung während der Navigation fehlgeschlagen."
   },
   "localeList": {
-    "intl_supported_values_failed": ""
+    "intl_supported_values_failed": "Die Sprachliste konnte nicht geladen werden. Eine Standardliste wird verwendet."
   },
   "appInit": {
     "hydration_failed": "Die Hydratation von AppInitializer ist fehlgeschlagen."

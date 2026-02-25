@@ -6,12 +6,12 @@ import DeleteTransaction from "@/components/DeleteTransaction.vue";
 import UpdateTransaction from "@/components/UpdateTransaction.vue";
 import Money from "@/components/Money.vue";
 import { Transaction } from "@/types/Transaction";
-import { i18n } from "@/i18n";
+import { useI18n } from "vue-i18n";
 import { useLocale, type DataTableHeader } from "vuetify";
 
 const storeTransaction = useTransactionStore();
 
-const t = (i18n.global as any).t;
+const { t } = useI18n();
 
 const { isRtl } = useLocale();
 

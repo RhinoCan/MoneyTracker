@@ -36,7 +36,9 @@
     "locale": "Configuración regional",
     "currency": "Divisa",
     "persistMsg": "Mantener los mensajes hasta que los cierre manualmente",
-    "timeoutMsg": "Establecer la duración del mensaje mediante el control deslizante"
+    "timeoutMsg": "Establecer la duración del mensaje mediante el control deslizante",
+    "persistMsgInfoOn": "Los mensajes permanecerán en pantalla hasta que los cierre manualmente. Desactive el interruptor para establecer un tiempo de espera.",
+    "persistMsgInfoOff": "Los mensajes desaparecerán automáticamente después del número de segundos establecido en el control deslizante. Active el interruptor para mantenerlos visibles hasta cerrarlos manualmente."
   },
   "settingsStore": {
     "updated": "Configuración actualizada.",
@@ -129,7 +131,8 @@
     "data": "Gestión de datos",
     "textLive": "En vivo (GitHub Pages)",
     "textDev": "Servidor de desarrollo",
-    "logoff": "Cerrar sesión"
+    "logoff": "Cerrar sesión",
+    "logout_failed": "Error al cerrar sesión. Por favor, inténtelo de nuevo."
   },
   "history": {
     "title": "Historial de transacciones",
@@ -163,13 +166,13 @@
     "wrongSeparator": "Por favor, utilice {separator} como separador decimal."
   },
   "transactionStore": {
-    "added": "Transacción con ID {id} añadida correctamente.",
-    "add_failed": "Error al añadir la transacción con ID {id}.",
-    "updated": "Transacción con ID {id} actualizada correctamente.",
-    "update_failed": "Error al actualizar la transacción con ID {id}.",
-    "deleteOne": "Transacción con ID {id} eliminada correctamente.",
-    "deleteOne_failed": "Error al eliminar la transacción con ID {id}.",
-    "deleteAll": "Todas las transacciones han sido eliminadas correctamente.",
+    "added": "Transacción añadida con éxito.",
+    "add_failed": "Error al añadir la transacción.",
+    "updated": "Transacción actualizada con éxito.",
+    "update_failed": "Error al actualizar la transacción.",
+    "deleteOne": "Transacción eliminada con éxito.",
+    "deleteOne_failed": "Error al eliminar la transacción.",
+    "deleteAll": "Todas las transacciones eliminadas con éxito.",
     "deleteAll_failed": "Error al eliminar todas las transacciones."
   },
   "login": {
@@ -184,8 +187,8 @@
     "button": "Iniciar sesión",
     "go_register": "Registrarse",
     "success": "Inicio de sesión exitoso.",
-    "auth_login_failed": "",
-    "auth_unexpected": ""
+    "auth_login_failed": "Intento de inicio de sesión fallido.",
+    "auth_unexpected": "Error inesperado durante el inicio de sesión."
   },
   "register": {
     "title": "Registrarse",
@@ -209,10 +212,10 @@
     "parseValidatorMismatch": "Al validador no le gustó el formato del importe."
   },
   "router": {
-    "auth_check_failed": ""
+    "auth_check_failed": "Error al verificar la autenticación durante la navegación."
   },
   "localeList": {
-    "intl_supported_values_failed": ""
+    "intl_supported_values_failed": "No se pudo cargar la lista de idiomas. Se usará una lista predeterminada."
   },
   "appInit": {
     "hydration_failed": "La hidratación de AppInitializer ha fallado."

@@ -36,7 +36,9 @@
     "locale": "ロケール",
     "currency": "通貨",
     "persistMsg": "手動で閉じるまでメッセージを表示し続ける",
-    "timeoutMsg": "スライダーでメッセージの表示時間を設定する"
+    "timeoutMsg": "スライダーでメッセージの表示時間を設定する",
+    "persistMsgInfoOn": "メッセージは手動で閉じるまで画面に表示されます。タイムアウトを設定するにはスイッチをオフにしてください。",
+    "persistMsgInfoOff": "メッセージはスライダーで設定した秒数後に自動的に消えます。手動で閉じるまで表示し続けるにはスイッチをオンにしてください。"
   },
   "settingsStore": {
     "updated": "設定が更新されました。",
@@ -129,7 +131,8 @@
     "data": "データ管理",
     "textLive": "本番環境（GitHub Pages）",
     "textDev": "開発サーバー",
-    "logoff": "ログアウト"
+    "logoff": "ログアウト",
+    "logout_failed": "ログアウトに失敗しました。もう一度お試しください。"
   },
   "history": {
     "title": "取引履歴",
@@ -163,13 +166,13 @@
     "wrongSeparator": "小数点記号として {separator} を使用してください。"
   },
   "transactionStore": {
-    "added": "ID {id} の取引が正常に追加されました。",
-    "add_failed": "ID {id} の取引の追加に失敗しました。",
-    "updated": "ID {id} の取引が正常に更新されました。",
-    "update_failed": "ID {id} の取引の更新に失敗しました。",
-    "deleteOne": "ID {id} の取引が正常に削除されました。",
-    "deleteOne_failed": "ID {id} の取引の削除に失敗しました。",
-    "deleteAll": "すべての取引が正常に削除されました。",
+    "added": "取引を正常に追加しました。",
+    "add_failed": "取引の追加に失敗しました。",
+    "updated": "取引を正常に更新しました。",
+    "update_failed": "取引の更新に失敗しました。",
+    "deleteOne": "取引を正常に削除しました。",
+    "deleteOne_failed": "取引の削除に失敗しました。",
+    "deleteAll": "すべての取引を正常に削除しました。",
     "deleteAll_failed": "すべての取引の削除に失敗しました。"
   },
   "login": {
@@ -184,8 +187,8 @@
     "button": "サインイン",
     "go_register": "新規登録",
     "success": "ログインに成功しました。",
-    "auth_login_failed": "",
-    "auth_unexpected": ""
+    "auth_login_failed": "ログイン試行に失敗しました。",
+    "auth_unexpected": "ログイン中に予期しないエラーが発生しました。"
   },
   "register": {
     "title": "新規登録",
@@ -209,10 +212,10 @@
     "parseValidatorMismatch": "バリデーターが金額の形式を受け入れませんでした。"
   },
   "router": {
-    "auth_check_failed": ""
+    "auth_check_failed": "ナビゲーション中の認証確認に失敗しました"
   },
   "localeList": {
-    "intl_supported_values_failed": ""
+    "intl_supported_values_failed": "言語リストを読み込めませんでした。デフォルトのリストを使用します。"
   },
   "appInit": {
     "hydration_failed": "AppInitializer のハイドレーションに失敗しました。"

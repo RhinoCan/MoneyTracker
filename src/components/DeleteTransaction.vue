@@ -50,7 +50,7 @@ const deleteTransaction = async () => {
     });
 
     model.value = null;
-  } catch (error) {
+  } catch {
     logException(new Error("The delete failed because of an error in the UI."), {
       module: "DeleteTransaction",
       action: "delete_failed",

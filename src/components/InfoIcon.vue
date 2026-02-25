@@ -10,7 +10,7 @@ interface Props {
   maxWidth?: string | number;
 }
 
-const props = defineProps<Props>();
+defineProps<Props>();
 
 function handleClick(event: Event) {
   // Prevent clicks from triggering parent elements (like list items or cards)

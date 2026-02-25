@@ -10,30 +10,18 @@ import { useSettingsStore } from "@/stores/SettingsStore";
 import { logException } from "@/lib/Logger";
 import { i18n } from "@/i18n";
 
+// NOTE: The 'as any' cast on i18n.global is intentional.
+// useI18n() requires a Vue component setup context and cannot be called outside of one.
+// Accessing i18n.global directly is the correct pattern for translating strings outside
+// of components. The cast is necessary because vue-i18n does not export a public type
+// for the global composer object.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = (i18n.global as any).t;
-
-interface FormFields {
-  transaction: Ref<Transaction | null>;
-  formattedAmount: Ref<string>;
-  formattedDate: Ref<string>;
-  resetForm: () => void;
-  rules: {
-    date: any[];
-    amount: any[];
-    category: any[];
-  };
-  displayAmount: Ref<string>;
-  isFocused: Ref<boolean>;
-  colorClass: Ref<string>;
-  handleFocus: () => void;
-  handleBlur: () => void;
-  dateMenu: Ref<boolean>;
-  closeDatePicker: () => void;
-}
 
 export function useTransactionFormFields(
   externalTransaction?: Ref<Transaction | null>
-): FormFields {
+) {
+
   const settingsStore = useSettingsStore();
   const { displayMoney } = useCurrencyFormatter();
   const { formatForUI, toISODateString } = useDateFormatter();
@@ -161,8 +149,8 @@ export function useTransactionFormFields(
   }
 
   const rules = {
-    date: [required, (v: any) => dateRules(v)],
-    amount: [required, (v: any) => amountRules(v)],
+    date: [required, (v: unknown) => dateRules(v as string)],
+    amount: [required, (v: unknown) => amountRules(v)],
     category: [required],
   };
 

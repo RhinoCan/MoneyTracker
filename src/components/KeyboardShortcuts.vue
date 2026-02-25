@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /**
- * KeyboardShortcutsDialog.vue
+ * KeyboardShortcuts.vue
  * Displays a quick reference guide for form interaction.
  */
 import { useI18n } from "vue-i18n";

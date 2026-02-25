@@ -2,9 +2,10 @@
 import { computed } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore";
 import Money from "@/components/Money.vue";
-import { i18n } from "@/i18n";
 
-const t = (i18n.global as any).t;
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const storeTransaction = useTransactionStore();
 

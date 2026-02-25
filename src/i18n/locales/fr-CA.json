@@ -36,7 +36,9 @@
     "locale": "Paramètres régionaux",
     "currency": "Devise",
     "persistMsg": "Conserver les messages jusqu'à ce que vous les fermiez manuellement",
-    "timeoutMsg": "Définir la durée du message via le curseur"
+    "timeoutMsg": "Définir la durée du message via le curseur",
+    "persistMsgInfoOn": "Les messages demeureront à l'écran jusqu'à ce que vous les fermiez manuellement. Désactivez le commutateur pour définir un délai d'expiration.",
+    "persistMsgInfoOff": "Les messages disparaîtront automatiquement après le nombre de secondes défini sur le curseur. Activez le commutateur pour les garder visibles jusqu'à fermeture manuelle."
   },
   "settingsStore": {
     "updated": "Paramètres mis à jour.",
@@ -129,7 +131,8 @@
     "data": "Gestion des données",
     "textLive": "En ligne (GitHub Pages)",
     "textDev": "Serveur de développement",
-    "logoff": "Déconnexion"
+    "logoff": "Déconnexion",
+    "logout_failed": "La déconnexion a échoué. Veuillez réessayer."
   },
   "history": {
     "title": "Historique des transactions",
@@ -163,12 +166,12 @@
     "wrongSeparator": "Veuillez utiliser {separator} comme séparateur décimal."
   },
   "transactionStore": {
-    "added": "Transaction avec l'ID {id} ajoutée avec succès.",
-    "add_failed": "Échec de l'ajout de la transaction avec l'ID {id}.",
-    "updated": "Transaction avec l'ID {id} mise à jour avec succès.",
-    "update_failed": "Échec de la mise à jour de la transaction avec l'ID {id}.",
-    "deleteOne": "Transaction avec l'ID {id} supprimée avec succès.",
-    "deleteOne_failed": "Échec de la suppression de la transaction avec l'ID {id}.",
+    "added": "Transaction ajoutée avec succès.",
+    "add_failed": "Échec de l'ajout de la transaction.",
+    "updated": "Transaction mise à jour avec succès.",
+    "update_failed": "Échec de la mise à jour de la transaction.",
+    "deleteOne": "Transaction supprimée avec succès.",
+    "deleteOne_failed": "Échec de la suppression de la transaction.",
     "deleteAll": "Toutes les transactions ont été supprimées avec succès.",
     "deleteAll_failed": "Échec de la suppression de toutes les transactions."
   },
@@ -184,8 +187,8 @@
     "button": "Se connecter",
     "go_register": "S'inscrire",
     "success": "Connexion réussie.",
-    "auth_login_failed": "",
-    "auth_unexpected": ""
+    "auth_login_failed": "Échec de la tentative de connexion.",
+    "auth_unexpected": "Erreur inattendue lors de la connexion."
   },
   "register": {
     "title": "Inscription",
@@ -209,10 +212,10 @@
     "parseValidatorMismatch": "Le validateur n'a pas aimé le format du montant."
   },
   "router": {
-    "auth_check_failed": ""
+    "auth_check_failed": "Échec de la vérification de l'authentification lors de la navigation."
   },
   "localeList": {
-    "intl_supported_values_failed": ""
+    "intl_supported_values_failed": "Impossible de charger la liste des langues. Une liste par défaut sera utilisée."
   },
   "appInit": {
     "hydration_failed": "L'hydratation de AppInitializer a échoué."

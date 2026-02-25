@@ -36,7 +36,9 @@
     "locale": "Locale",
     "currency": "Currency",
     "persistMsg": "Persist messages until you close them manually",
-    "timeoutMsg": "Set the duration of the message via the slider"
+    "timeoutMsg": "Set the duration of the message via the slider",
+    "persistMsgInfoOn": "Messages will stay on screen until you close them manually. Turn the switch off to set a timeout instead.",
+    "persistMsgInfoOff": "Messages will disappear automatically after the number of seconds set on the slider. Turn the switch on to keep them visible until manually closed."
   },
   "settingsStore": {
     "updated": "Settings updated.",
@@ -129,7 +131,8 @@
     "data": "Data Management",
     "textLive": "Live (GitHub Pages)",
     "textDev": "Dev Server",
-    "logoff": "Logoff"
+    "logoff": "Logoff",
+    "logout_failed": "Logout failed. Please try again."
   },
   "history": {
     "title": "Transaction History",
@@ -163,12 +166,12 @@
     "wrongSeparator": "Please use {separator} as the decimal separator."
   },
   "transactionStore": {
-    "added": "Successfully added the transaction with ID {id}.",
-    "add_failed": "Failed to add the transaction with ID {id}.",
-    "updated": "Succesfully updated the transaction with ID {id}.",
-    "update_failed": "Failed to update the transaction with ID {id}.",
-    "deleteOne": "Successfully deleted the transaction with ID {id}.",
-    "deleteOne_failed": "Failed to delete the transaction with ID {id}.",
+    "added": "Successfully added the transaction.",
+    "add_failed": "Failed to add the transaction.",
+    "updated": "Successfully updated the transaction.",
+    "update_failed": "Failed to update the transaction.",
+    "deleteOne": "Successfully deleted the transaction.",
+    "deleteOne_failed": "Failed to delete the transaction.",
     "deleteAll": "Successfully deleted all of the transactions.",
     "deleteAll_failed": "Failed to delete all of the transactions."
   },
@@ -184,8 +187,8 @@
     "button": "Sign In",
     "go_register": "Register",
     "success": "Login successful.",
-    "auth_login_failed": "",
-    "auth_unexpected": ""
+    "auth_login_failed": "Authentication login attempt failed.",
+    "auth_unexpected": "Unexpected error during login."
   },
   "register": {
     "title": "Register",
@@ -209,10 +212,10 @@
     "parseValidatorMismatch": "The validator didn't like the format of the amount."
   },
   "router": {
-    "auth_check_failed": ""
+    "auth_check_failed": "Authentication check failed during navigation."
   },
   "localeList": {
-    "intl_supported_values_failed": ""
+    "intl_supported_values_failed": "Unable to load the language list. A default list will be used instead."
   },
   "appInit": {
     "hydration_failed": "The hydration of AppInitializer failed."

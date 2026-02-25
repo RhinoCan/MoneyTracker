@@ -1,5 +1,6 @@
-# As of Feb 22, 2026 with all of the translations done, the following deficiencies have been noted in casual user testing:
-- Grouping of numbers in Hindi and Chinese - lakhs, crores, and the Chinese convention
+# Next session with Claude
+
+"I'm working on a Vue 3 + Vuetify 3 + TypeScript + i18n portfolio project. We've just finished RTL support for Arabic, pagination fixes, Income/Expense translation, and a Prettier formatting pass. Next steps are: eyeballing all modules for inconsistencies, ESLint setup, then Vitest unit tests, then Playwright e2e tests. Can you help me continue?"
 
 
 ## RTL

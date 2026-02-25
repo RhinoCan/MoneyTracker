@@ -36,7 +36,9 @@
     "locale": "区域设置",
     "currency": "货币",
     "persistMsg": "保留消息直到您手动关闭",
-    "timeoutMsg": "通过滑块设置消息持续时间"
+    "timeoutMsg": "通过滑块设置消息持续时间",
+    "persistMsgInfoOn": "消息将保留在屏幕上，直到您手动关闭。关闭开关可改为设置超时时间。",
+    "persistMsgInfoOff": "消息将在滑块设置的秒数后自动消失。打开开关可使消息保持显示，直到手动关闭。"
   },
   "settingsStore": {
     "updated": "设置已更新。",
@@ -129,7 +131,8 @@
     "data": "数据管理",
     "textLive": "在线版（GitHub Pages）",
     "textDev": "开发服务器",
-    "logoff": "退出"
+    "logoff": "退出",
+    "logout_failed": "ログアウトに失敗しました。もう一度お試しください。"
   },
   "history": {
     "title": "交易历史",
@@ -163,14 +166,14 @@
     "wrongSeparator": "请使用 {separator} 作为小数分隔符。"
   },
   "transactionStore": {
-    "added": "ID 为 {id} 的交易已成功添加。",
-    "add_failed": "添加 ID 为 {id} 的交易失败。",
-    "updated": "ID 为 {id} 的交易已成功更新。",
-    "update_failed": "更新 ID 为 {id} 的交易失败。",
-    "deleteOne": "ID 为 {id} 的交易已成功删除。",
-    "deleteOne_failed": "删除 ID 为 {id} 的交易失败。",
-    "deleteAll": "所有交易已成功删除。",
-    "deleteAll_failed": "删除所有交易失败。"
+    "added": "交易添加成功。",
+    "add_failed": "交易添加失败。",
+    "updated": "交易更新成功。",
+    "update_failed": "交易更新失败。",
+    "deleteOne": "交易删除成功。",
+    "deleteOne_failed": "交易删除失败。",
+    "deleteAll": "所有交易删除成功。",
+    "deleteAll_failed": "所有交易删除失败。"
   },
   "login": {
     "title": "登录",
@@ -184,8 +187,8 @@
     "button": "登录",
     "go_register": "注册",
     "success": "登录成功。",
-    "auth_login_failed": "",
-    "auth_unexpected": ""
+    "auth_login_failed": "登录尝试失败。",
+    "auth_unexpected": "登录时发生意外错误。"
   },
   "register": {
     "title": "注册",
@@ -209,10 +212,10 @@
     "parseValidatorMismatch": "验证器不接受该金额格式。"
   },
   "router": {
-    "auth_check_failed": ""
+    "auth_check_failed": "导航时身份验证检查失败。"
   },
   "localeList": {
-    "intl_supported_values_failed": ""
+    "intl_supported_values_failed": "无法加载语言列表，将使用默认列表。"
   },
   "appInit": {
     "hydration_failed": "AppInitializer 水合失败。"

@@ -3,9 +3,10 @@ import { ref, computed, watch } from "vue";
 import { useSettingsStore, localeToCurrency } from "@/stores/SettingsStore";
 import { generateLocaleList } from "@/utils/localeList";
 import { useI18n } from "vue-i18n";
-import { CurrencyCode, SupportedLocale } from "@/types/CommonTypes";
+import { SupportedCurrency, SupportedLocale } from "@/types/CommonTypes";
 import { getCurrencyDisplayNames } from "@/utils/SystemDefaults";
 import { useLocale } from "vuetify";
+import InfoIcon from "@/components/InfoIcon.vue";
 
 const { current: vuetifyLocale } = useLocale();
 const emit = defineEmits(["close"]);
@@ -14,8 +15,8 @@ const settingsStore = useSettingsStore();
 
 // --- Local draft state ---
 const localLocale = ref<SupportedLocale>(settingsStore.locale);
-const localCurrency = ref<CurrencyCode>(settingsStore.currency);
-const localTimeout = ref<number>(settingsStore.snackbarTimeout);
+const localCurrency = ref<SupportedCurrency>(settingsStore.currency);
+const localTimeout = ref<number>(settingsStore.messageTimeoutSeconds);
 
 // --- Dropdown items ---
 const locales = computed(() =>
@@ -25,7 +26,7 @@ const locales = computed(() =>
   }))
 );
 
-const supportedCurrencies: CurrencyCode[] = [
+const supportedCurrencies: SupportedCurrency[] = [
   "USD",
   "CAD",
   "GBP",
@@ -79,12 +80,12 @@ async function handleSave() {
   try {
     settingsStore.locale = localLocale.value;
     settingsStore.currency = localCurrency.value;
-    settingsStore.snackbarTimeout = localTimeout.value;
+    settingsStore.messageTimeoutSeconds = localTimeout.value;
     locale.value = localLocale.value; //triggers App.vue RTL watcher
     vuetifyLocale.value = localLocale.value;
     await settingsStore.saveToDb();
     emit("close");
-  } catch (error) {
+  } catch {
     // error logged by store; dialog remains open
   } finally {
     savingSettings.value = false;
@@ -125,13 +126,22 @@ watch(localLocale, (newLocale) => {
       />
 
       <!-- Persistent snackbar toggle -->
-      <v-switch
-        v-model="isMessagePersistent"
-        :label="isMessagePersistent ? t('settings.persistMsg') : t('settings.timeoutMsg')"
-        color="primary"
-        prepend-icon="mdi-pin-outline"
-      />
-
+      <div class="d-flex" style="align-items: flex-start">
+        <v-switch
+          v-model="isMessagePersistent"
+          :label="isMessagePersistent ? t('settings.persistMsg') : t('settings.timeoutMsg')"
+          color="primary"
+          prepend-icon="mdi-pin-outline"
+        />
+        <div style="padding-top: 15px">
+        <InfoIcon
+          :text="
+            isMessagePersistent ? t('settings.persistMsgInfoOn') : t('settings.persistMsgInfoOff')
+          "
+          :max-width="280"
+        />
+        </div>
+      </div>
       <!-- Slider appears only when NOT persistent -->
       <v-expand-transition>
         <div v-if="!isMessagePersistent">

@@ -5,6 +5,12 @@ import router from "./router";
 import vuetify from "./plugins/vuetify";
 import { i18n } from "./i18n/index";
 
+// NOTE: The 'as any' cast on i18n.global is intentional.
+// useI18n() requires a Vue component setup context and cannot be called outside of one.
+// Accessing i18n.global directly is the correct pattern for translating strings outside
+// of components. The cast is necessary because vue-i18n does not export a public type
+// for the global composer object.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const t = (i18n.global as any).t;
 
 // 1. IMPORT GLOBAL CSS
