@@ -1,6 +1,215 @@
 # Next session with Claude
 
-"I'm working on a Vue 3 + Vuetify 3 + TypeScript + i18n portfolio project. We've just finished RTL support for Arabic, pagination fixes, Income/Expense translation, and a Prettier formatting pass. Next steps are: eyeballing all modules for inconsistencies, ESLint setup, then Vitest unit tests, then Playwright e2e tests. Can you help me continue?"
+No problem, rest well! Here's the summary:
+
+---
+
+## MoneyTracker Audit — Session Summary
+
+### Completed This Session
+All files from `git diff --name-only` have been audited and repaired:
+
+- ✅ `vuetify.ts` — VuetifyDateAdapter retained, locale messages fix applied
+- ✅ `DataManagement.vue` — storeTransaction→transactionStore, slug fixes, duplicate JSDoc removed
+- ✅ `TrackerHeader.vue` — isLive computed, slug fix
+- ✅ `Login.vue` — slug fixes
+- ✅ `Register.vue` — error.message removed from user notification
+- ✅ `AddTransaction.vue` — formatForUI→formatToMediumDate, toISODateString→formatToIsoDateOnly, storeTransaction→transactionStore, useTransactionFormFields() no params, slug fixes
+- ✅ `useAnalytics.ts` — clean
+- ✅ `useAppValidationRules.ts` — clean
+- ✅ `useCurrencyFormatter.ts` — slug fix (done manually)
+- ✅ `useDateFormatter.ts` — clean
+- ✅ `useTransactionFormFields.ts` — slug fix (done manually), t parameter removed
+- ✅ `SettingsStore.ts` — clean
+- ✅ `TransactionStore.ts` — slug fixes (done manually)
+- ✅ `UserStore.ts` — clean
+- ✅ `SystemDefaults.ts` — clean
+- ✅ `currencyParser.ts` — slug fix (done manually)
+- ✅ `AccountSummary.vue` — clean
+- ✅ `TrackerAbout.vue` — clean
+- ✅ `TransactionHistory.vue` — v-model fix for DeleteTransaction and UpdateTransaction dialogs
+- ✅ `UpdateTransaction.vue` — storeTransaction→transactionStore, displayMoney→formatCurrency, formatForUI→formatToMediumDate, toISODateString→formatToIsoDateOnly, useTransactionFormFields() no params, noChanges logic, slug fix, aria-label typo
+- ✅ `DeleteTransaction.vue` — formatForUI→formatToMediumDate, storeTransaction→transactionStore, Money→Amount, slug fixes, aria-label typo
+- ✅ `App.vue` — clean
+- ✅ `main.ts` — slug fix (done manually)
+- ✅ `env.d.ts` — clean
+- ✅ `posthog.ts` — clean
+- ✅ `router/index.ts` — slug fix (done manually)
+- ✅ `localeList.ts` — slug fix, i18n/t imports removed, eslint-disable comment restored
+
+---
+
+### Outstanding Bugs to Fix
+
+**Bug #1 — Amount change not detected in UpdateTransaction**
+Amount comparison needs `Number()` normalization on both sides:
+```typescript
+if (Number(localTransaction.value.amount) !== Number(model.value.amount)) {
+```
+
+**Bug #2 — Delete Everything clears localStorage, logging user out**
+Remove these two lines from `DataManagement.vue`:
+```typescript
+localStorage.clear();
+sessionStorage.clear();
+```
+
+**Bug #3 — AddTransaction not saving chosen date**
+Needs investigation — paste current `AddTransaction.vue` from disk first.
+
+**Bug #4 — Pagination missing start/end values**
+Fix `en-US.json`:
+```json
+"pageText": "{start}-{end} of {total}"
+```
+(and replicate across all 16 locale files)
+
+---
+
+### Still To Do
+- `en-US.json` — fix `history.pageText`, remove stale keys `appInit.hydration_failed` and `defaults.currency_detection_failed`, rename `useTrans.parseValidatorMismatch` → `useTrans.parseError`
+- Replicate all i18n changes across 16 locale files
+- Full test suite rewrite
+- Settings.vue — not yet reviewed this session (was marked clean previously but may have reverted)
+
+---
+
+Sleep well, and give the cat a pat from me!
+
+---
+
+I'm working on a Vue 3 + Vuetify 3 + TypeScript + Pinia + Supabase + vue-i18n portfolio project called MoneyTracker. We've been doing a systematic audit and cleanup of the codebase after a previous AI (Gemini) made a mix of good improvements and breaking changes. We are working through a checklist of modules, reviewing each one, proposing changes, getting my approval, then producing complete corrected files for download.
+
+**Ground Rules:**
+- Propose changes and wait for my approval before writing any code
+- Produce complete files (not diffs or snippets) so I can download and replace them
+- I will download files and paste their content into VS Code — do not rely on copy/paste from the preview window as it introduces encoding errors
+- For small single-line fixes, just tell me exactly what to type rather than producing a download
+- Present files one at a time, not in groups, so each gets its own download link
+- New i18n translation keys can be introduced freely — I'll do a single translation pass across all 16 locales at the end using i18n-ally
+
+**Key Architectural Decisions:**
+- "Store throws, component logs" — stores throw errors, components catch them and call the logger
+- `formatCurrency` in `useCurrencyFormatter` is a plain function, not a computed ref — call it as `formatCurrency(amount)` not `formatCurrency.value(amount)`
+- `useDateFormatter` exports `formatToMediumDate` and `formatToIsoDateOnly` (renamed from `formatForUI` and `toISODateString`)
+- `useTransactionFormFields` types its `transaction` ref as `NewTransaction` (no `id`, `user_id`, or `created_at`). `UpdateTransaction.vue` works around this by storing the editing transaction's id in a separate `const editingTransactionId = ref<number | null>(null)`
+- `useTransactionFormFields` accepts `t` as a parameter of type `ComposerTranslation` — callers must pass `t` from their own `useI18n()` call
+- The VSCode ellipsis autocomplete bug means we avoid spread operators (`...`) — instead we list object properties explicitly
+- PostHog and Sentry are both in use: `logException` uses `$send_beacon: true` (only function that does), `logInfo` writes a Sentry breadcrumb, `logSuccess` and `logValidation` are user-facing and require translatable i18n keys as their message argument
+- Outside component setup (stores, composables, utilities, router), i18n is accessed via `(i18n.global as unknown as { t: ComposerTranslation }).t` — never `(i18n.global as any).t`
+- `TransactionError` carries `code`, `details`, and `hint` fields so components have full diagnostic data when logging
+- Transaction count after fetch is logged via `logInfo` in `UserStore.runFullInitialization`, not in `TransactionStore`
+- Thousands separators in user input are not supported — users type every digit
+- `eslint-disable` comments must always have an explanation above them — never bare
+- This is a portfolio project with only the developer as a real user — full transaction data (PII) is intentionally logged to PostHog/Sentry
+- Store getters: `getTotalIncome`, `getTotalExpense`, `getNetBalance` (not `getIncome`, `getExpense`, `getBalance`)
+- Component for displaying amounts is `Amount.vue` (not `Money.vue`)
+- Store variable name is `transactionStore` (not `storeTransaction`)
+- Dialog components use `:transaction` prop and `@close` event (not `v-model`)
+
+**Important note on git:** A `git filter-repo` run during the session to remove `.env` from history caused all uncommitted changes to revert. All corrected files were re-downloaded. The `.env` file is now in `.gitignore` and keys have been rotated. The repo is public on GitHub.
+
+**Stack:** Vue 3, Vuetify 3.11, TypeScript, vue-i18n 11, Pinia, Supabase, Vite, ESLint, Prettier, VuetifyDateAdapter, 16 locale files
+
+---
+
+**CHECKLIST:**
+
+```
+PLUMBING
+[x] src/main.ts — DONE: hardcoded keys moved to env vars, initPosthog() used, t helper tightened
+[x] src/App.vue — DONE: TrackerHeader import removed, onMounted awaits bootApp, locale watcher comments added
+[x] src/router/index.ts — DONE: t helper tightened, requiresAuth:false removed from public routes
+[x] src/i18n/index.ts — DONE
+[x] src/lib/supabase.ts — DONE: no changes needed, types verified
+[x] src/lib/Logger.ts — DONE
+[x] src/plugins/vuetify.ts — DONE
+[x] src/posthog.ts — DONE: misleading comment corrected
+
+STORES
+[x] src/stores/UserStore.ts — DONE: try/finally fixed, onAuthStateChange comment added, logInfo for transaction count added
+[x] src/stores/SettingsStore.ts — DONE: relative imports fixed, i18n cast tightened, Supabase as any block NOTE added, JSDoc added
+[x] src/stores/TransactionStore.ts — DONE: TransactionError gains details/hint, spread removed, addTransaction type fixed, updateTransaction guard added, t helper tightened, JSDoc restored, NOTE comments restored
+[x] src/stores/NotificationStore.ts — DONE: no changes needed
+
+COMPOSABLES
+[x] src/composables/useDateFormatter.ts — DONE: formatForUI→formatToMediumDate, toISODateString→formatToIsoDateOnly
+[x] src/composables/useCurrencyFormatter.ts — DONE
+[x] src/composables/useTransactionFormFields.ts — DONE: useI18n() removed, t passed as ComposerTranslation, NewTransaction imported from types, displayAmount blank on empty/zero
+[x] src/composables/useNumberFormatHints.ts — DONE: design decision comment added (manual edit)
+[x] src/composables/useAppValidationRules.ts — DONE: logWarning removed, t helper tightened
+[x] src/composables/useAnalytics.ts — DONE: page() removed (dead code)
+
+UTILITIES
+[x] src/utils/currencyParser.ts — DONE: redundant group separator code removed, t helper tightened
+[x] src/utils/AppInitializer.ts — DELETED: dead code
+[x] src/utils/localeList.ts — DONE: t helper tightened, Intl cast tightened, eslint-disable explained
+[x] src/utils/SystemDefaults.ts — DONE: broken currency detection removed, dead types removed
+
+TYPES
+[x] src/types/Transaction.ts — DONE
+[x] src/types/CommonTypes.ts — DONE: filename comment corrected (manual edit)
+
+COMPONENTS
+[ ] src/components/AccountSummary.vue — file produced, needs replacing on disk
+[x] src/components/AddTransaction.vue — DONE
+[ ] src/components/Amount.vue — not yet examined
+[ ] src/components/DataManagement.vue — not yet examined
+[x] src/components/DeleteTransaction.vue — DONE
+[ ] src/components/InfoIcon.vue — not yet examined
+[ ] src/components/KeyboardShortcuts.vue — not yet examined
+[ ] src/components/Settings.vue — not yet examined
+[ ] src/components/TrackerAbout.vue — not yet examined
+[ ] src/components/TrackerHeader.vue — not yet examined
+[x] src/components/TransactionHistory.vue — DONE
+[x] src/components/UpdateTransaction.vue — DONE
+
+PAGES
+[ ] src/pages/Home.vue — not yet examined
+[ ] src/pages/Login.vue — not yet examined
+[ ] src/pages/Register.vue — not yet examined
+
+STALE I18N KEYS TO REMOVE
+[ ] appInit.hydration_failed — AppInitializer deleted
+[ ] defaults.currency_detection_failed — currency detection removed from SystemDefaults
+
+TESTING (after code stabilizes)
+[ ] tests/ — full suite
+
+I18N
+[ ] Single translation pass across all 16 locales
+```
+
+---
+
+[More work done]
+
+Here's what's left:
+
+Components (mostly unexamined):
+
+Amount.vue — not yet examined
+DataManagement.vue — not yet examined
+InfoIcon.vue — not yet examined
+KeyboardShortcuts.vue — not yet examined
+Settings.vue — not yet examined (heavily modified by Gemini)
+TrackerAbout.vue — not yet examined
+TrackerHeader.vue — not yet examined
+
+Pages (all unexamined):
+
+Home.vue
+Login.vue
+Register.vue
+
+That's it for source code. Everything else is done.
+Then:
+
+Delete all existing tests and write fresh ones
+Single i18n translation pass across all 16 locales
+Remove stale keys appInit.hydration_failed and defaults.currency_detection_failed
+
+Honestly we're very close. The remaining components and pages are likely to be quick — most issues we'll find are the same patterns we've already fixed (old names, Money → Amount, etc.). Settings.vue is the wildcard since Gemini heavily modified it.
 
 
 ## RTL

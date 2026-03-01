@@ -1,16 +1,12 @@
 import { logException } from "@/lib/Logger";
-import { i18n } from "@/i18n";
-
-// NOTE: The 'as any' cast on i18n.global is intentional.
-// useI18n() requires a Vue component setup context and cannot be called outside of one.
-// Accessing i18n.global directly is the correct pattern for translating strings outside
-// of components. The cast is necessary because vue-i18n does not export a public type
-// for the global composer object.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = (i18n.global as any).t;
 
 /**
- * Parses a localized currency string into a numeric value.
+ * parseCurrency
+ * Converts a localized currency string back into a numeric 'Source of Truth'.
+ * Logic Flow:
+ * 1. Probes the locale to find the decimal character.
+ * 2. Strips currency symbols, whitespace, and thousands separators.
+ * 3. Normalizes the decimal to a standard "." for parseFloat.
  */
 export function parseCurrency(formattedString: string, locale: string): number | null {
   if (!formattedString || typeof formattedString !== "string") {
@@ -18,42 +14,46 @@ export function parseCurrency(formattedString: string, locale: string): number |
   }
 
   try {
-    // 1. Identify locale-specific separators
+    // 1. Probe locale-specific decimal separator
     const parts = new Intl.NumberFormat(locale).formatToParts(1111.11);
     const decimalSeparator = parts.find((p) => p.type === "decimal")?.value ?? ".";
-    const groupSeparator = parts.find((p) => p.type === "group")?.value ?? ",";
 
     let rawString = formattedString.trim();
 
-    // 2. Escape separators for Regex safety
+    // 2. Escape decimal separator for Regex safety
     const escapedDecimal = decimalSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-    const escapedGroup = groupSeparator.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-    // 3. Remove group separators (thousands)
-    rawString = rawString.replace(new RegExp(escapedGroup, "g"), "");
+    // 3. Strip everything except digits, the decimal separator, and the minus sign.
+    // This removes currency symbols ($, €, £), whitespace, and thousands separators.
+    const cleanupRegex = new RegExp(`[^\\d${escapedDecimal}-]`, "g");
+    rawString = rawString.replace(cleanupRegex, "");
 
-    // 4. Clean up non-numeric characters except the decimal and minus sign
-    const keepRegex = new RegExp(`[^\\d${escapedDecimal}-]`, "g");
-    rawString = rawString.replace(keepRegex, "");
-
-    // 5. Normalize decimal separator to standard "." for parseFloat
+    // 4. Normalize to standard JS decimal point
     if (decimalSeparator !== ".") {
-      rawString = rawString.replace(decimalSeparator, ".");
+      rawString = rawString.replace(new RegExp(escapedDecimal, "g"), ".");
     }
 
-    // 6. Final Validation & Parsing
-    if ((rawString.match(/\./g) || []).length > 1) {
+    // 5. Integrity Check: Ensure we haven't ended up with multiple decimals
+    const decimalMatches = rawString.match(/\./g);
+    if (decimalMatches && decimalMatches.length > 1) {
       return null;
     }
 
     const parsedValue = parseFloat(rawString);
 
-    return isNaN(parsedValue) || parsedValue <= 0 ? null : parsedValue;
+    // 6. Validation: Return null if parsing failed or results in an invalid number
+    if (isNaN(parsedValue)) {
+      return null;
+    }
+
+    // In this app context, transactions must be positive numbers.
+    return parsedValue > 0 ? parsedValue : null;
+
   } catch (error) {
     logException(error, {
       module: "currencyParser",
       action: "parseCurrency",
-      slug: t("currParser.parser_failure"),
+      slug: "currParser.parser_failure",
       data: { formattedString, locale },
     });
     return null;

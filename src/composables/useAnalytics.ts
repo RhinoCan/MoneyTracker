@@ -3,7 +3,7 @@ import posthog from "posthog-js";
 
 /**
  * useAnalytics
- * Composable wrapper for PostHog event tracking and page views.
+ * Composable wrapper for PostHog event tracking.
  */
 export function useAnalytics() {
   /**
@@ -16,19 +16,5 @@ export function useAnalytics() {
     posthog.capture(event, props);
   }
 
-  /**
-   * page
-   * Manually captures a page view. Useful for SPAs where navigation
-   * doesn't trigger a full browser reload.
-   * @param name - The name/path of the page
-   * @param props - Additional data context
-   */
-  function page(name: string, props?: Record<string, unknown>) {
-    posthog.capture("$pageview", {
-      name,
-      ...props,
-    });
-  }
-
-  return { track, page };
+  return { track };
 }

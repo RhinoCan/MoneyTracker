@@ -33,7 +33,7 @@ async function handleLogin() {
     });
 
     if (error) {
-      // Map specific Supabase errors to localized messages or clear strings
+      // Map specific Supabase errors to localized messages
       let userMessage = t("login.fail_generic");
 
       if (error.message.includes("Email not confirmed")) {
@@ -48,7 +48,7 @@ async function handleLogin() {
       logException(error, {
         module: "Login",
         action: "handleLogin",
-        slug: t("login.auth_login_failed"),
+        slug: "login.auth_login_failed",
         data: { email: email.value },
       });
       return;
@@ -63,7 +63,7 @@ async function handleLogin() {
     logException(err, {
       module: "Login",
       action: "handleLogin_catch",
-      slug: t("login.auth_unexpected"),
+      slug: "login.auth_unexpected",
     });
     notificationStore.showMessage(t("login.error_unexpected"), "error");
   } finally {

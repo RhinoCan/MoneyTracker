@@ -11,10 +11,10 @@ const emit = defineEmits(["close"]);
 const { t } = useI18n();
 
 // Initialize all stores
-const storeTransaction = useTransactionStore();
+const transactionStore = useTransactionStore();
 const settingsStore = useSettingsStore();
 
-const transactions = computed(() => storeTransaction.transactions);
+const transactions = computed(() => transactionStore.transactions);
 
 /**
  * handleDeleteAllTransactions
@@ -23,7 +23,7 @@ const transactions = computed(() => storeTransaction.transactions);
 const handleDeleteAllTransactions = async () => {
   if (confirm(t("management.confirmDeleteAllTransactions"))) {
     try {
-      await storeTransaction.deleteAllTransactions();
+      await transactionStore.deleteAllTransactions();
       emit("close");
     } catch {
       //do nothing; store has already handled any exceptions.
@@ -33,10 +33,7 @@ const handleDeleteAllTransactions = async () => {
 
 /**
  * handleDeleteAllSettings
- * Resets all settings stores to defaults and persists them to the DB.
- */
-/**
- * Path B: Restore Only Settings
+ * Path B: Restore Only Settings.
  * Resets local states and overwrites the DB with defaults.
  */
 const handleDeleteAllSettings = async () => {
@@ -46,7 +43,6 @@ const handleDeleteAllSettings = async () => {
       settingsStore.restoreDefaults();
 
       // 2. Persist those defaults to the DB
-      // Note: We await saveToDb which we defined in the new SettingsStore
       await settingsStore.saveToDb();
 
       logInfo("The settings were all restored to their default values.", {
@@ -54,14 +50,12 @@ const handleDeleteAllSettings = async () => {
         action: "restore_defaults",
       });
 
-      // We don't necessarily need to close if the user just wants to reset and keep working,
-      // but keeping your emit("close") for consistency.
       emit("close");
     } catch (error) {
       logException(error, {
         module: "ManagementDialog",
         action: "handleDeleteAllSettings",
-        slug: t("management.restore_settings_failed"),
+        slug: "management.restore_settings_failed",
       });
     }
   }
@@ -69,10 +63,7 @@ const handleDeleteAllSettings = async () => {
 
 /**
  * handleDeleteAllData
- * Nuclear option: Clears everything (Transactions + Settings).
- */
-/**
- * Path C: Nuclear Option
+ * Path C: Nuclear Option.
  * Clears Transactions + Settings and reloads the app.
  */
 const handleDeleteAllData = async () => {
@@ -80,13 +71,9 @@ const handleDeleteAllData = async () => {
     try {
       // Clear all DB tables for this user concurrently
       await Promise.all([
-        storeTransaction.deleteAllTransactions(),
-        settingsStore.clearFromDb(), // This function now exists in our new store
+        transactionStore.deleteAllTransactions(),
+        settingsStore.clearFromDb(),
       ]);
-
-      // Clear any remaining traces
-      localStorage.clear();
-      sessionStorage.clear();
 
       logInfo("All transactions deleted and all settings reset to defaults.", {
         module: "ManagementDialog",
@@ -99,14 +86,14 @@ const handleDeleteAllData = async () => {
       logException(error, {
         module: "ManagementDialog",
         action: "handleDeleteAllData",
-        slug: t("management.full_wipe_failed"),
+        slug: "management.full_wipe_failed",
       });
     }
   }
 };
 
 const handleExport = () => {
-  const dataToExport = storeTransaction.transactions;
+  const dataToExport = transactionStore.transactions;
   if (dataToExport.length === 0) return;
 
   // Header row

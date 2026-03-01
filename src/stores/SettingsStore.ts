@@ -1,82 +1,82 @@
-// @/stores/SettingsStore.ts
 import { defineStore } from "pinia";
 import { ref, watch } from "vue";
-import { supabase } from "../lib/supabase";
-import type { Database } from "../lib/supabase";
+import { supabase } from "@/lib/supabase";
+import type { Database } from "@/lib/supabase";
 import { useUserStore } from "@/stores/UserStore";
-import { logException, logSuccess } from "@/lib/Logger";
 import { i18n } from "@/i18n";
 import type { SupportedCurrency, SupportedLocale } from "@/types/CommonTypes";
 
-// NOTE: The 'as any' cast on i18n.global is intentional.
-// useI18n() requires a Vue component setup context and cannot be called outside of one.
-// Accessing i18n.global directly is the correct pattern for translating strings outside
-// of components. The cast is necessary because vue-i18n does not export a public type
-// for the global composer object.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = (i18n.global as any).t;
 export type SettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
 type SettingsInsert = Database["public"]["Tables"]["system_settings"]["Insert"];
 
-// Locale to default currency mapping
 export const localeToCurrency: Record<SupportedLocale, SupportedCurrency> = {
-  "en-US": "USD",
-  "en-CA": "CAD",
-  "en-GB": "GBP",
-  "fr-FR": "EUR",
-  "fr-CA": "CAD",
-  "fr-CH": "CHF",
-  "es-ES": "EUR",
-  "de-DE": "EUR",
-  "zh-CN": "CNY",
-  "ja-JP": "JPY",
-  "ko-KR": "KRW",
-  "hi-IN": "INR",
-  "ar-SA": "SAR",
-  "ru-RU": "RUB",
-  "pt-BR": "BRL",
-  "it-IT": "EUR",
+  "en-US": "USD", "en-CA": "CAD", "en-GB": "GBP", "fr-FR": "EUR",
+  "fr-CA": "CAD", "fr-CH": "CHF", "es-ES": "EUR", "de-DE": "EUR",
+  "zh-CN": "CNY", "ja-JP": "JPY", "ko-KR": "KRW", "hi-IN": "INR",
+  "ar-SA": "SAR", "ru-RU": "RUB", "pt-BR": "BRL", "it-IT": "EUR",
 };
 
 export const useSettingsStore = defineStore("settingsStore", () => {
   const userStore = useUserStore();
 
-  // --- State ---
+  // --- STATE ---
   const locale = ref<SupportedLocale>("en-US");
   const currency = ref<SupportedCurrency>("USD");
-  const messageTimeoutSeconds = ref<number>(-1); // Persist until manual close
-  const isLoading = ref(false);
+  const messageTimeoutSeconds = ref<number>(-1);
+  const isSyncing = ref(false);
 
-  // --- Watchers ---
-
-  // Update i18n and HTML lang attribute when locale changes
+  // --- WATCHERS (The Auto-Hydration for UI) ---
   watch(
     locale,
-    (newVal) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (i18n.global as any).locale.value = newVal; // See i18n.global comment above
-      document.querySelector("html")?.setAttribute("lang", newVal);
+    (newLocale) => {
+      // Accessing i18n.global directly is the correct pattern outside component setup.
+      // The cast is necessary because vue-i18n does not export a public type for the
+      // global composer object.
+      (i18n.global as unknown as { locale: { value: string } }).locale.value = newLocale;
+      const htmlElement = document.querySelector("html");
+      if (htmlElement) {
+        htmlElement.setAttribute("lang", newLocale);
+      }
     },
     { immediate: true }
   );
 
-  // --- Actions ---
+  // --- ACTIONS ---
+
+  // NOTE: The 'as any' cast on supabase.from() is intentional throughout this store.
+  // Supabase's TypeScript client collapses chained query builder return types to 'never'
+  // when using a typed Database schema. This is a known limitation of @supabase/supabase-js
+  // (see github.com/supabase/supabase-js). The cast is safe because the Database type
+  // in supabase.ts fully defines the expected shape of all data returned from these queries.
 
   /**
-   * Resets local state to your defined default values.
+   * seedToDb
+   * Internal helper to create the initial settings record for a new user.
    */
-  function restoreDefaults() {
-    locale.value = "en-US";
-    currency.value = "USD";
-    messageTimeoutSeconds.value = -1;
+  async function seedToDb() {
+    if (!userStore.userId) return;
+
+    const payload: SettingsInsert = {
+      user_id: userStore.userId,
+      locale_value: locale.value,
+      currency_value: currency.value,
+      timeout_value: messageTimeoutSeconds.value,
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const { error } = await (supabase.from("system_settings") as any).insert([payload]);
+    if (error) throw error;
   }
 
   /**
-   * Loads settings from Supabase.
+   * loadSettings
+   * HYDRATION: Fetches DB settings and populates local state.
+   * If no settings exist, it triggers seedToDb.
    */
   async function loadSettings() {
     if (!userStore.userId) return;
-    isLoading.value = true;
+
+    isSyncing.value = true;
     try {
       const { data, error } = await supabase
         .from("system_settings")
@@ -87,30 +87,28 @@ export const useSettingsStore = defineStore("settingsStore", () => {
       if (error) throw error;
 
       if (data) {
+        // HYDRATION: Mapping DB columns back to Ref state
         const record = data as SettingsRow;
-        locale.value = record.locale_value as SupportedLocale;
-        // Note: currency will auto-update via the locale watcher
-        // But we still load it in case user manually changed it
-        currency.value = record.currency_value as SupportedCurrency;
-        messageTimeoutSeconds.value = record.timeout_value;
+        locale.value = (record.locale_value as SupportedLocale) || "en-US";
+        currency.value = (record.currency_value as SupportedCurrency) || "USD";
+        messageTimeoutSeconds.value = record.timeout_value ?? -1;
       } else {
-        await saveToDb();
+        // SEEDING: New user found, create their record
+        await seedToDb();
       }
-    } catch (error) {
-      logException(error, { module: "SettingsStore", action: "loadSettings" });
     } finally {
-      isLoading.value = false;
+      isSyncing.value = false;
     }
   }
 
   /**
-   * Persists current state to the database.
-   * Uses double-casting to bypass 'never' type-resolution issues.
+   * saveToDb
+   * The primary write operation. Silent on success.
    */
   async function saveToDb() {
     if (!userStore.userId) return;
-    isLoading.value = true;
 
+    isSyncing.value = true;
     const payload: SettingsInsert = {
       user_id: userStore.userId,
       locale_value: locale.value,
@@ -119,60 +117,54 @@ export const useSettingsStore = defineStore("settingsStore", () => {
     };
 
     try {
-      // NOTE: The 'as any' cast on supabase.from() is intentional.
-      // Supabase's TypeScript client collapses chained query builder return types to 'never'
-      // when using a typed Database schema. This is a known limitation of @supabase/supabase-js
-      // (see github.com/supabase/supabase-js). The cast is safe because the Database type
-      // in supabase.ts fully defines the expected shape of all data returned from these queries.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const { error } = await (supabase.from("system_settings") as any).upsert(payload as any, { // Double-cast required; see function JSDoc above
+      const { error } = await (supabase.from("system_settings") as any).upsert(payload, {
         onConflict: "user_id",
       });
 
       if (error) throw error;
-      logSuccess(t("settingsStore.updated"), { module: "SettingsStore", action: "saveToDb" });
-    } catch (error) {
-      logException(error, { module: "SettingsStore", action: "saveToDb" });
-      throw error;
     } finally {
-      isLoading.value = false;
+      isSyncing.value = false;
     }
   }
 
   /**
-   * Deletes settings from DB and resets local state.
+   * clearFromDb
+   * Deletes the current user's settings record from the database and restores local defaults.
    */
   async function clearFromDb() {
     if (!userStore.userId) return;
-    isLoading.value = true;
+
+    isSyncing.value = true;
     try {
-      // NOTE: The 'as any' cast on supabase.from() is intentional.
-      // Supabase's TypeScript client collapses chained query builder return types to 'never'
-      // when using a typed Database schema. This is a known limitation of @supabase/supabase-js
-      // (see github.com/supabase/supabase-js). The cast is safe because the Database type
-      // in supabase.ts fully defines the expected shape of all data returned from these queries.
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const { error } = await (supabase.from("system_settings") as any)
         .delete()
         .eq("user_id", userStore.userId);
 
       if (error) throw error;
-
       restoreDefaults();
-      logSuccess(t("settingsStore.cleared"), { module: "SettingsStore", action: "clearFromDb" });
-    } catch (error) {
-      logException(error, { module: "SettingsStore", action: "clearFromDb" });
-      throw error;
     } finally {
-      isLoading.value = false;
+      isSyncing.value = false;
     }
+  }
+
+  /**
+   * restoreDefaults
+   * Resets all settings state to their hardcoded default values.
+   * Called on sign-out and after clearFromDb.
+   */
+  function restoreDefaults() {
+    locale.value = "en-US";
+    currency.value = "USD";
+    messageTimeoutSeconds.value = -1;
   }
 
   return {
     locale,
     currency,
-    messageTimeoutSeconds: messageTimeoutSeconds,
-    isLoading,
+    messageTimeoutSeconds,
+    isLoading: isSyncing,
     loadSettings,
     saveToDb,
     restoreDefaults,

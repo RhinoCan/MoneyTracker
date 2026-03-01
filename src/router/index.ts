@@ -2,15 +2,6 @@
 import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import { supabase } from "@/lib/supabase";
 import { logException } from "@/lib/Logger";
-import { i18n } from "@/i18n";
-
-// NOTE: The 'as any' cast on i18n.global is intentional.
-// useI18n() requires a Vue component setup context and cannot be called outside of one.
-// Accessing i18n.global directly is the correct pattern for translating strings outside
-// of components. The cast is necessary because vue-i18n does not export a public type
-// for the global composer object.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = (i18n.global as any).t;
 
 // 1. Define Routes with RouteRecordRaw for full TS support
 const routes: Array<RouteRecordRaw> = [
@@ -26,13 +17,11 @@ const routes: Array<RouteRecordRaw> = [
     path: "/login",
     name: "login",
     component: () => import("@/pages/Login.vue"),
-    meta: { requiresAuth: false },
   },
   {
     path: "/register",
     name: "register",
     component: () => import("@/pages/Register.vue"),
-    meta: { requiresAuth: false },
   },
 ];
 
@@ -75,7 +64,7 @@ router.beforeEach(async (to, from, next) => {
     logException(error, {
       module: "Router",
       action: "navigationGuard",
-      slug: t("router.auth_check_failed"),
+      slug: "router.auth_check_failed",
     });
 
     // Recovery: Send to login unless they are already trying to go there

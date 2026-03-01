@@ -1,72 +1,57 @@
-// @/stores/UserStore.ts
 import { defineStore } from "pinia";
 import { ref, computed } from "vue";
-import { supabase, type Database } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase";
 import posthog from "posthog-js";
-import { logException, logInfo } from "@/lib/Logger";
 import type { User, Session } from "@supabase/supabase-js";
-import { i18n } from "@/i18n";
 
 // --- ORCHESTRATION IMPORTS ---
 import { useSettingsStore } from "@/stores/SettingsStore";
 import { useTransactionStore } from "@/stores/TransactionStore";
 
-// NOTE: The 'as any' cast on i18n.global is intentional.
-// useI18n() requires a Vue component setup context and cannot be called outside of one.
-// Accessing i18n.global directly is the correct pattern for translating strings outside
-// of components. The cast is necessary because vue-i18n does not export a public type
-// for the global composer object.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = (i18n.global as any).t;
-
-export type SystemSetting = Database["public"]["Tables"]["system_settings"]["Row"];
-
+/**
+ * useUserStore
+ * The central authority for authentication and application hydration.
+ */
 export const useUserStore = defineStore("user", () => {
   // --- STATE ---
   const user = ref<User | null>(null);
   const session = ref<Session | null>(null);
   const loading = ref(true);
+  const isInitialized = ref(false);
 
   // --- GETTERS ---
   const isAuthenticated = computed(() => !!session.value);
   const userEmail = computed(() => user.value?.email ?? null);
   const userId = computed<string | null>(() => user.value?.id ?? null);
-  const isInitialized = ref(false);
 
   /**
    * runFullInitialization
-   * The core sequence: Auth -> Settings -> Transactions
+   * The critical sequence that must succeed for the app to be 'ready'.
+   * 1. Settings hydration
+   * 2. Transaction fetching
    */
   async function runFullInitialization() {
+    if (isInitialized.value) return;
+
     try {
-      if (isInitialized.value) return; //prevent re-runs
       isInitialized.value = true;
 
-      // 1. Settings (Hydrate existing or Seed defaults)
       const settingsStore = useSettingsStore();
       await settingsStore.loadSettings();
 
-      // 2. Data (Fetch the user's transactions)
       const transactionStore = useTransactionStore();
       await transactionStore.fetchTransactions();
 
-      logInfo("Application data sequence complete.", {
-        module: "UserStore",
-        action: "runFullInitialization",
-      });
+      // Success is logged by the component/view calling this, or observed via state.
     } catch (error) {
-      isInitialized.value = false; //reset on failure so it can retry
-      logException(error, {
-        module: "UserStore",
-        action: "runFullInitialization",
-        slug: t("userStore.initChainFailed"),
-      });
+      isInitialized.value = false; // Allow retry on failure
+      throw error; // Propagate to caller
     }
   }
 
   /**
    * initializeAuth
-   * Sets up the session and the persistent listener for auth changes.
+   * Sets up the session and the persistent listener for auth state changes.
    */
   async function initializeAuth() {
     loading.value = true;
@@ -80,46 +65,44 @@ export const useUserStore = defineStore("user", () => {
       session.value = initialSession;
       user.value = initialSession?.user ?? null;
 
-      // Handle the "Refresh" case where session already exists
       if (initialSession?.user) {
+        posthog.identify(initialSession.user.id, {
+          email: initialSession.user.email,
+        });
         await runFullInitialization();
       }
 
-      // Set up the listener for Login/Logout events
+      // Listener for Login/Logout/Refresh events.
+      // The callback is not awaited by Supabase, so errors cannot propagate to a
+      // caller. Re-throwing from the async callback surfaces them as unhandled
+      // rejections, which are caught by the global handler registered in main.ts.
       supabase.auth.onAuthStateChange(async (event, newSession) => {
+        const oldUserId = user.value?.id;
         session.value = newSession;
         user.value = newSession?.user ?? null;
 
         if (newSession?.user) {
-          posthog.identify(newSession.user.id, {
-            email: newSession.user.email,
-          });
+          if (newSession.user.id !== oldUserId) {
+            posthog.identify(newSession.user.id, {
+              email: newSession.user.email,
+            });
+          }
 
-          logInfo(`Auth event: ${event}`, {
-            module: "UserStore",
-            action: "onAuthStateChange",
-            data: { event, userId: newSession.user.id },
-          });
-
-          // Run the full setup sequence on login (but not token refreshes)
           if (event === "SIGNED_IN") {
             await runFullInitialization();
           }
-        } else {
+        } else if (event === "SIGNED_OUT") {
+          // Reset all user-specific state on sign-out
           posthog.reset();
-          isInitialized.value = false; //allow re-initialization on next login
-          // Clear local data on logout if necessary
+          isInitialized.value = false;
+
           const transactionStore = useTransactionStore();
           transactionStore.transactions = [];
+
+          const settingsStore = useSettingsStore();
+          settingsStore.restoreDefaults();
         }
       });
-    } catch (error) {
-      logException(error, {
-        module: "UserStore",
-        action: "initializeAuth",
-        slug: t("userStore.authFailed"),
-      });
-      throw error;
     } finally {
       loading.value = false;
     }
@@ -127,21 +110,15 @@ export const useUserStore = defineStore("user", () => {
 
   /**
    * signOut
+   * Ends the Supabase session. Cleanup is handled by the onAuthStateChange listener.
    */
   async function signOut() {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+    const { error } = await supabase.auth.signOut();
+    if (error) throw error;
 
-      user.value = null;
-      session.value = null;
-    } catch (error) {
-      logException(error, {
-        module: "UserStore",
-        action: "signOut",
-        slug: t("userStore.signoutFailed"),
-      });
-    }
+    // Local state clear as a secondary safety measure
+    user.value = null;
+    session.value = null;
   }
 
   return {
@@ -151,6 +128,7 @@ export const useUserStore = defineStore("user", () => {
     isAuthenticated,
     userEmail,
     userId,
+    isInitialized,
     initializeAuth,
     signOut,
   };

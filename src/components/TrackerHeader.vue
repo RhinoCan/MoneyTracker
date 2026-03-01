@@ -13,12 +13,14 @@ const router = useRouter();
 
 /**
  * Environment Detection
- * Logic: Checks custom VITE_APP_ENV first.
- * If truthy, we assume the Live environment.
+ * Checks VITE_APP_ENV directly (truthy = Live, falsy = Dev).
+ * We compare the raw env var rather than the translated string so the
+ * chip color remains correct in all locales.
  */
+const isLive = computed(() => !!import.meta.env.VITE_APP_ENV);
+
 const appEnvironment = computed(() => {
-  const envValue = import.meta.env.VITE_APP_ENV;
-  return envValue ? t("header.textLive") : t("header.textDev");
+  return isLive.value ? t("header.textLive") : t("header.textDev");
 });
 
 async function handleLogout() {
@@ -29,7 +31,7 @@ async function handleLogout() {
     logException(error, {
       module: "TrackerHeader",
       action: "handleLogout",
-      slug: t("header.logout_failed"),
+      slug: "header.logout_failed",
     });
   }
 }
@@ -47,7 +49,7 @@ const showDataManagement = ref(false);
     <v-spacer />
 
     <v-chip
-      :color="appEnvironment.includes('Dev') ? 'warning' : 'success'"
+      :color="isLive ? 'success' : 'warning'"
       variant="elevated"
       size="small"
       class="mr-2 font-weight-bold"

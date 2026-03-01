@@ -5,8 +5,9 @@ import { aliases, mdi } from "vuetify/iconsets/mdi";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import { VDateInput } from "vuetify/labs/VDateInput";
-import DateFnsAdapter from "@date-io/date-fns";
-import { enUS } from "date-fns/locale";
+import { VuetifyDateAdapter } from "vuetify/date/adapters/vuetify";
+// Vuetify's own internal UI strings (clear button, calendar labels, etc.)
+import { en } from "vuetify/locale";
 
 // 1. Define your custom light theme with a strict type
 const light: ThemeDefinition = {
@@ -26,6 +27,8 @@ const light: ThemeDefinition = {
 export default createVuetify({
   locale: {
     locale: "en",
+    fallback: "en",
+    messages: { en },
     rtl: { ar: true, "ar-SA": true },
   },
   components: {
@@ -34,10 +37,7 @@ export default createVuetify({
   },
   directives,
   date: {
-    adapter: DateFnsAdapter,
-    locale: {
-      en: enUS,
-    },
+    adapter: VuetifyDateAdapter,
   },
   icons: {
     defaultSet: "mdi",

@@ -1,19 +1,10 @@
 // @/utils/SystemDefaults.ts
-import { i18n } from "@/i18n";
-
-// NOTE: The 'as any' cast on i18n.global is intentional.
-// useI18n() requires a Vue component setup context and cannot be called outside of one.
-// Accessing i18n.global directly is the correct pattern for translating strings outside
-// of components. The cast is necessary because vue-i18n does not export a public type
-// for the global composer object.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = (i18n.global as any).t;
 
 /**
  * Global App Constants
  */
 export const appName = import.meta.env.VITE_APP_NAME || "money-tracker";
-export const defaultSystemTimeout = 0; // 0ms = persistent until dismissed
+export const defaultSystemTimeout = 0; // 0 = persistent until dismissed
 
 // --- Type Definitions ---
 export type CurrencyDisplay = "symbol" | "code" | "name" | "narrowSymbol";
@@ -46,32 +37,17 @@ const localeParts = defaultLocale.split("-");
 export const defaultCountry =
   localeParts.length > 1 ? localeParts[localeParts.length - 1].toUpperCase() : "US";
 
-// --- 2. Determine Default Currency Code ---
-let detectedCurrency = "USD";
+// --- 2. Default Currency ---
+// Default currency before any user preference is known.
+// Locale-to-currency mapping happens in SettingsStore when the user selects a locale.
+export const defaultCurrencyCode = "USD";
 
-try {
-  // We use a dummy format to see if the browser can resolve a currency for the locale
-  const formatter = new Intl.NumberFormat(defaultLocale, {
-    style: "currency",
-    currency: "USD", // Required by the constructor
-  });
-
-  // resolvedOptions().currency usually reflects the input, but we check for environment safety
-  detectedCurrency = formatter.resolvedOptions().currency ?? "USD";
-} catch (e) {
-  // DYNAMIC IMPORT: Prevents circular dependency during initialization
-  import("@/lib/Logger").then((m) =>
-    m.logException(e, {
-      module: "SystemDefaults",
-      action: "detectCurrency",
-      slug: t("defaults.currency_detection_failed"),
-      data: { locale: defaultLocale },
-    })
-  );
-}
-
-export const defaultCurrencyCode = detectedCurrency;
-
+/**
+ * getCurrencyDisplayNames
+ * Returns the currency code along with its English and localized display names.
+ * @param currency - ISO 4217 currency code (e.g., 'USD', 'JPY')
+ * @param locale - The locale to use for the localized name (e.g., 'ja-JP')
+ */
 export function getCurrencyDisplayNames(currency: string, locale: string) {
   const english = new Intl.DisplayNames("en", { type: "currency" });
   const local = new Intl.DisplayNames(locale, { type: "currency" });

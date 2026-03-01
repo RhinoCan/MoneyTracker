@@ -1,14 +1,10 @@
 // @/utils/localeList.ts
 import { logException } from "@/lib/Logger";
-import { i18n } from "@/i18n";
 
-// NOTE: The 'as any' cast on i18n.global is intentional.
-// useI18n() requires a Vue component setup context and cannot be called outside of one.
-// Accessing i18n.global directly is the correct pattern for translating strings outside
-// of components. The cast is necessary because vue-i18n does not export a public type
-// for the global composer object.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const t = (i18n.global as any).t;
+// ESLint incorrectly flags the parameter name in this type definition as unused.
+// TypeScript requires a name here syntactically; there is no valid workaround.
+// eslint-disable-next-line no-unused-vars
+type IntlWithSupportedValuesOf = typeof Intl & { supportedValuesOf: (type: string) => string[] };
 
 /**
  * Curated list of base language codes we want to support in the UI.
@@ -54,9 +50,7 @@ export function generateLocaleList(displayLocale: string = "en"): LocaleItem[] {
   try {
     // Modern way to get browser-supported locales
     if (typeof Intl !== "undefined" && "supportedValuesOf" in Intl) {
-      // Use cast instead of @ts-ignore for better type safety
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      localeCodes = (Intl as any).supportedValuesOf("language"); // Intl.supportedValuesOf is not yet in TypeScript's type definitions
+      localeCodes = (Intl as IntlWithSupportedValuesOf).supportedValuesOf("language");
     } else {
       throw new Error("Intl.supportedValuesOf not supported");
     }
@@ -66,7 +60,7 @@ export function generateLocaleList(displayLocale: string = "en"): LocaleItem[] {
       logException(e, {
         module: "localeList",
         action: "generateLocaleList",
-        slug: t("localeList.intl_supported_values_failed"),
+        slug: "localeList.intl_supported_values_failed",
       });
     }
 

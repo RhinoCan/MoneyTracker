@@ -5,7 +5,7 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 
 // Global mock for the Logger to keep the console clean
-vi.mock("@/utils/Logger", () => ({
+vi.mock("@/lib/Logger", () => ({
   logWarning: vi.fn(),
   logException: vi.fn(),
   logInfo: vi.fn(),

@@ -19,6 +19,7 @@ const techStack = [
   { logo: "sentry-logo.png", key: "about.textSentry" },
   { logo: "posthog-logo.png", key: "about.textPostHog" },
   { logo: "supabase-logo.png", key: "about.textSupabase" },
+  { logo: "i18n-ally-logo.png", key: "about.textI18n-ally"}
 ];
 </script>
 
@@ -34,7 +35,7 @@ const techStack = [
 
       <v-expansion-panel-text class="pa-4">
         <v-card flat class="mx-auto maincard-width mb-6">
-          <div class="maincard-title text-primary">{{ t("about.origins") }}</div>
+          <v-card-title class="maincard-title text-primary">{{ t("about.origins") }}</v-card-title>
 
           <i18n-t keypath="about.introParagraph" tag="p" class="text-body-1 mb-4">
             <template #linkTraversy>
@@ -55,16 +56,15 @@ const techStack = [
           </ul>
         </v-card>
 
-        <v-card flat class="mx-auto maincard-width">
-          <div class="maincard-title text-primary">{{ t("about.packages") }}</div>
-
+        <v-card flat class="mx-auto maincard-width mb-8">
+          <v-card-title class="maincard-title text-primary">{{ t('about.packages') }}</v-card-title>
           <v-row dense>
             <v-col v-for="tech in techStack" :key="tech.key" cols="6" sm="4" md="2">
               <v-card
                 variant="outlined"
                 class="pa-2 text-center h-100 d-flex flex-column align-center border-opacity-25"
               >
-                <div class="logo-container d-flex align-center justify-center mb-2">
+                <div class="logo-container d-flex align-center justify-center">
                   <img :src="tech.logo" :alt="t(tech.key)" class="logo-img" />
                 </div>
                 <v-card-text class="pa-0 text-caption font-weight-bold">
@@ -73,6 +73,10 @@ const techStack = [
               </v-card>
             </v-col>
           </v-row>
+        </v-card>
+        <v-card flat class="mx-auto maincard=width">
+          <v-card-title class="maincard-title text-primary">{{ t('about.kudosTitle') }}</v-card-title>
+          <v-card-text>{{ t('about.kudos') }}</v-card-text>
         </v-card>
       </v-expansion-panel-text>
     </v-expansion-panel>

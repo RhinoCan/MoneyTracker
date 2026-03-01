@@ -1,20 +1,13 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useTransactionStore } from "@/stores/TransactionStore";
-import Money from "@/components/Money.vue";
-
+import Amount from "@/components/Amount.vue";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
+const transactionStore = useTransactionStore();
 
-const storeTransaction = useTransactionStore();
-
-// Capture totals from the store's getters
-const income = computed(() => storeTransaction.getIncome);
-const expense = computed(() => storeTransaction.getExpense);
-const balance = computed(() => storeTransaction.getBalance);
-
-const hasTransactions = computed(() => storeTransaction.transactions.length > 0);
+const hasTransactions = computed(() => transactionStore.transactions.length > 0);
 </script>
 
 <template>
@@ -41,7 +34,7 @@ const hasTransactions = computed(() => storeTransaction.transactions.length > 0)
           <tbody>
             <tr>
               <td class="amount">
-                <Money :amount="income" type="Income" />
+                <Amount :amount="transactionStore.getTotalIncome" type="Income" />
               </td>
               <td class="label">{{ t("accountSummary.income") }}</td>
             </tr>
@@ -49,7 +42,7 @@ const hasTransactions = computed(() => storeTransaction.transactions.length > 0)
             <tr>
               <td class="amount">
                 <span class="mr-1">-</span>
-                <Money :amount="expense" type="Expense" />
+                <Amount :amount="transactionStore.getTotalExpense" type="Expense" />
               </td>
               <td class="label">{{ t("accountSummary.expense") }}</td>
             </tr>
@@ -63,7 +56,7 @@ const hasTransactions = computed(() => storeTransaction.transactions.length > 0)
 
             <tr>
               <td class="amount text-h6 font-weight-bold">
-                <Money :amount="balance" type="Balance" />
+                <Amount :amount="transactionStore.getNetBalance" type="Balance" />
               </td>
               <td class="label text-h6 font-weight-bold">
                 {{ t("accountSummary.balance") }}

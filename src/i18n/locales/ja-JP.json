@@ -7,67 +7,63 @@
     "addNew": "新しい取引を追加",
     "Income": "収入",
     "Expense": "支出",
-    "description": "説明",
+    "description": "内容",
     "date": "日付",
     "type": "取引タイプ",
     "amount": "金額",
     "error_unexpected": "エラーが発生しました。後でもう一度お試しください。",
-    "fill_all_fields": "すべてのフィールドを入力してください。",
-    "format": "形式：{example}。",
-    "wrongSeparator": "小数点には {separator} を使用してください。",
+    "fill_all_fields": "すべての項目を入力してください。",
+    "format": "形式: {example}",
+    "wrongSeparator": "小数点は {separator} を使用してください。",
     "invalidAmount": "保存する前に金額の形式を修正してください。"
   },
   "app": {
-    "fatalHeadline": "アプリケーションの起動に失敗しました",
-    "noStart": "アプリケーションを起動できませんでした。接続を確認して、もう一度お試しください。",
-    "retry": "再接続する。"
+    "fatalHeadline": "アプリの起動に失敗しました",
+    "noStart": "アプリを起動できませんでした。接続を確認して再試行してください。",
+    "retry": "接続を再試行"
   },
   "main": {
-    "global_vue_crash": "Vue が main.ts で重大なクラッシュを起こしました"
+    "global_vue_crash": "main.ts で Vue が重大なクラッシュを起こしました"
   },
   "deleteDialog": {
-    "title": "削除を確認またはキャンセル",
-    "error_no_trans": "取引が存在しないため、削除できませんでした。",
-    "error_UI": "ユーザーインターフェースレベルで削除に失敗しました。",
+    "title": "削除の確認またはキャンセル",
+    "error_no_trans": "取引が存在しないため削除できませんでした。",
+    "error_UI": "ユーザーインターフェース層で削除に失敗しました。",
     "confirmBtn": "取引を削除"
   },
   "settings": {
     "title": "設定",
-    "locale": "ロケール",
+    "locale": "言語と地域",
     "currency": "通貨",
     "persistMsg": "手動で閉じるまでメッセージを表示し続ける",
-    "timeoutMsg": "スライダーでメッセージの表示時間を設定する",
-    "persistMsgInfoOn": "メッセージは手動で閉じるまで画面に表示されます。タイムアウトを設定するにはスイッチをオフにしてください。",
-    "persistMsgInfoOff": "メッセージはスライダーで設定した秒数後に自動的に消えます。手動で閉じるまで表示し続けるにはスイッチをオンにしてください。"
-  },
-  "settingsStore": {
-    "updated": "設定が更新されました。",
-    "cleared": "設定がデータベースから削除されました。"
+    "timeoutMsg": "スライダーでメッセージの表示時間を設定",
+    "persistMsgInfoOn": "手動で閉じるまでメッセージが画面に表示されます。タイムアウトを設定するにはオフにしてください。",
+    "persistMsgInfoOff": "設定した秒数後にメッセージが自動的に消えます。"
   },
   "management": {
     "title": "データ管理",
-    "exportTitle": "データのエクスポート",
-    "exportText": "バックアップやスプレッドシートで使用するために、取引をCSVファイルに保存します。",
+    "exportTitle": "データをエクスポート",
+    "exportText": "バックアップやスプレッドシート用に取引のコピーをCSVで保存します。",
     "btnExport": "CSVをエクスポート",
-    "dangerZone": "危険ゾーン",
+    "dangerZone": "危険エリア",
     "deleteTransTitle": "すべての取引を削除",
-    "deleteTransText": "すべての取引を削除しますが、設定（言語、通貨、メッセージタイムアウト）は保持されます。",
+    "deleteTransText": "すべての取引を削除しますが、設定（言語、通貨など）は保持されます。",
     "btnDeleteTrans": "すべての取引を削除",
-    "restoreSettingsTitle": "すべての設定をデフォルトに戻す",
-    "restoreSettingsText": "すべての設定（言語、通貨、日付形式）をデフォルトに戻しますが、すべての取引は保持されます。",
-    "btnRestoreSettings": "すべての設定をデフォルトに戻す",
+    "restoreSettingsTitle": "設定をデフォルトに戻す",
+    "restoreSettingsText": "設定を初期状態に戻しますが、取引データは保持されます。",
+    "btnRestoreSettings": "設定をデフォルトに戻す",
     "deleteEverythingTitle": "すべての取引と設定を削除",
-    "deleteEverythingText": "すべての取引とすべての設定を削除し、デフォルト設定でアプリを再起動します。",
-    "btnDeleteEverything": "すべての取引*と*設定を削除",
-    "confirmDeleteAllTransactions": "よろしいですか？すべての取引が削除されますが、設定は保持されます。この操作は元に戻せません。続行しますか？",
-    "confirmRestoreAllSettings": "よろしいですか？すべての設定がデフォルトに戻されますが、取引は保持されます。この操作は元に戻せません。続行しますか？",
-    "confirmDeleteEverything": "警告：すべての取引とすべての設定が完全に削除されます。この操作は元に戻せません。続行しますか？",
-    "restore_settings_failed": "すべての設定をデフォルトに戻すことに失敗しました。",
-    "full_wipe_failed": "すべての取引の削除とすべての設定のデフォルト復元に失敗しました。"
+    "deleteEverythingText": "すべての取引と設定を削除し、アプリを初期状態で再起動します。",
+    "btnDeleteEverything": "すべての取引と設定を削除",
+    "confirmDeleteAllTransactions": "よろしいですか？すべての取引が削除され、元に戻せません。",
+    "confirmRestoreAllSettings": "よろしいですか？設定がリセットされますが、取引は保持されます。",
+    "confirmDeleteEverything": "警告：すべての取引と設定が完全に消去されます。元に戻せません。",
+    "restore_settings_failed": "設定のリセットに失敗しました。",
+    "full_wipe_failed": "全データの消去に失敗しました。"
   },
   "accountSummary": {
-    "title": "アカウントサマリー",
-    "alert": "下の {addNew} フォームから少なくとも1件の取引を追加するまで、ここには何も表示されません。",
+    "title": "口座サマリー",
+    "alert": "下の {addNew} フォームから取引を追加するまで、ここには何も表示されません。",
     "income": "総収入",
     "expense": "総支出",
     "balance": "残高"
@@ -76,151 +72,139 @@
     "title": "新しい取引を追加",
     "btnReset": "リセット",
     "btnAdd": "取引を追加",
-    "labelDescription": "説明",
+    "labelDescription": "内容",
     "labelDate": "取引日",
     "labelType": "取引タイプ",
     "labelIncome": "収入",
     "labelExpense": "支出",
     "labelAmount": "金額",
-    "err_missing_or_negative": "金額は空または負の値にできません。",
+    "err_missing_or_negative": "金額を入力してください。マイナスの値は入力できません。",
     "success": "取引が追加されました。",
-    "submit_failed": "新しい取引が送信の検証に失敗しました。"
+    "submit_failed": "取引の送信バリデーションに失敗しました。"
   },
   "keyboard": {
     "title": "キーボードショートカット",
-    "paraEsc": "{iconHelp} アイコンまたはキャンセルボタンを使用する代わりに、キーボードの {Esc} キーを使用してこの更新をキャンセルできます。",
-    "paraEnter": "保存ボタンを使用する代わりに、キーボードの {Enter} キーを使用してここでの変更を保存できます。",
-    "paraTab": "複数のフィールドを含むフォームで、キーボードの {Tab} キーを使用してフィールド間を移動できます。",
+    "paraEsc": "{Esc} キーでキャンセルできます。",
+    "paraEnter": "{Enter} キーで変更を保存できます。",
+    "paraTab": "{Tab} キーで項目間を移動できます。",
     "keyEsc": "Esc",
     "keyEnter": "Enter",
     "keyTab": "Tab"
   },
   "about": {
-    "title": "このアプリについて",
-    "origins": "開発の経緯",
-    "introParagraph": "このアプリは、{linkTraversy} を参考にして最初に作成したアプリの後継版です。その後、以下にまとめた多くの改良を行いました：",
-    "linkText": "Brad Traversy のコースの一つ",
+    "title": "アプリについて",
+    "origins": "由来",
+    "introParagraph": "このアプリは {linkTraversy} に従って作成したものをベースに、大幅なアップグレードを加えたものです：",
+    "linkText": "Brad Traversy 氏のコース",
     "enhancements": [
-      "元の Vue コンポーネントのテストを作成して実行しました。",
-      "Props はほぼすべて Pinia ストアに置き換えられました。",
-      "Vue コンポーネントは Vuetify コンポーネントに置き換えられました。",
-      "JavaScript モジュールは TypeScript に変換されました。",
-      "ロケールに合った正しい形式で金額が表示されるよう、部分的な国際化/ローカライズを行いました。",
-      "選択した取引を本当に削除したいかどうかを確認する確認ダイアログを追加しました。",
-      "AccountBalance と IncomeExpense コンポーネントを AccountSummary という新しいコンポーネントに統合しました。",
-      "入力または編集時を除き、すべての金額インスタンスを表示する Money という新しいコンポーネントを作成しました。",
-      "収入を得た時期や支出が発生した時期をユーザーが記録できるよう、取引定義に取引日を追加しました。",
-      "個々の設定ダイアログをタブ付きの単一設定ダイアログに統合し、その後さらに簡略化しました。",
-      "エラーや警告が適切にログに記録されるよう Sentry を追加しました。",
-      "ユーザーに見える（および聞こえる）すべてのテキストを、さまざまなロケールと広く使われている言語に翻訳しました。",
-      "分析目的で情報や成功メッセージを追跡するために PostHog を追加しました。",
-      "ユーザー認証ができるよう Vue Router と登録/ログインページを追加しました。",
-      "localStorage のすべての使用を Supabase に置き換えました。"
+      "Vueコンポーネントのテストを作成・実行しました。",
+      "propsをPiniaストアに置き換えました。",
+      "Vuetifyコンポーネントを導入しました。",
+      "TypeScriptに移行しました。",
+      "多言語対応（i18n）を行いました。",
+      "削除時の確認ダイアログを追加しました。",
+      "AccountSummaryコンポーネントに統合しました。",
+      "金額表示用のMoneyコンポーネントを作成しました。",
+      "取引日の記録機能を追加しました。",
+      "設定ダイアログを整理し、使いやすくしました。",
+      "Sentryによるエラーログ機能を追加しました。",
+      "ユーザーインターフェースの多言語翻訳を行いました。",
+      "PostHogによる分析機能を追加しました。",
+      "Vue Routerとログイン機能を追加しました。",
+      "localStorageからSupabaseに移行しました。"
     ],
-    "packages": "使用している主なパッケージ",
+    "packages": "主な使用パッケージ",
     "textVue": "Vue 3.x",
     "textVuetify": "Vuetify 3.x",
     "textPinia": "Pinia",
     "textSentry": "Sentry",
     "textPostHog": "PostHog",
-    "textSupabase": "Supabase"
+    "textSupabase": "Supabase",
+    "textI18n-ally": "i18n-ally",
+    "kudosTitle": "謝辞",
+    "kudos": "このプロジェクトは ChatGPT, Google Gemini, そして特に Claude.AI の助けなしでは完成しませんでした。開発者の皆様に感謝いたします。"
   },
   "header": {
-    "title": "家計管理",
+    "title": "マネートラッカー",
     "settings": "設定",
     "data": "データ管理",
-    "textLive": "本番環境（GitHub Pages）",
+    "textLive": "ライブ (GitHub Pages)",
     "textDev": "開発サーバー",
-    "logoff": "ログアウト",
-    "logout_failed": "ログアウトに失敗しました。もう一度お試しください。"
+    "logoff": "ログオフ",
+    "logout_failed": "ログオフに失敗しました。"
   },
   "history": {
     "title": "取引履歴",
     "search": "検索",
-    "alert": "下の {addNew} フォームから取引を追加するまで、ここには取引が表示されません。",
+    "alert": "{addNew} フォームから取引を追加してください。",
     "actions": "操作",
-    "itemsPerPage": "1ページあたりの件数：",
-    "pageText": "{0}〜{1} / {2}件",
+    "itemsPerPage": "ページあたりの項目数:",
+    "pageText": "{total} 件中 {start}-{end}",
     "ariaUpdate": "更新",
     "ariaDelete": "削除"
   },
   "updateDialog": {
     "title": "取引を更新",
     "btnUpdate": "取引を更新",
-    "noChanges": "この取引に変更は加えられなかったため、更新は実行されませんでした。",
+    "noChanges": "変更がないため更新されませんでした。",
     "success": "取引が正常に更新されました。",
-    "failedUI": "ユーザーインターフェースでの更新に失敗しました。"
+    "failedUI": "UI層での更新に失敗しました。"
   },
   "useApp": {
-    "reqd": "このフィールドは必須です。ゼロは許可されていません。",
-    "reqdZeroOk": "このフィールドは必須です。数値フィールドではゼロが許可されています。",
-    "transReqd": "取引タイプを選択する必要があります。",
-    "timeoutMin": "タイムアウトは -1 以上である必要があります。",
-    "timeoutMax": "タイムアウトは 10 以下である必要があります。",
-    "timeoutInteger": "タイムアウトは正の数またはゼロである必要があります。",
+    "reqd": "この項目は必須です。0は許可されません。",
+    "reqdZeroOk": "この項目は必須です。0も許可されます。",
+    "transReqd": "取引タイプを選択してください。",
+    "timeoutMin": "タイムアウトは-1以上である必要があります。",
+    "timeoutMax": "タイムアウトは10以下である必要があります。",
+    "timeoutInteger": "タイムアウトは正の整数である必要があります。",
     "dateReqd": "日付は必須です。",
-    "notFuture": "取引日を将来の日付（明日以降）にすることはできません。",
-    "invalidFmt": "日付の形式が無効です。",
-    "notPrevYear": "取引日を前の暦年 {year} にすることはできません。",
-    "greater": "金額は必須で、ゼロより大きい値である必要があります。",
-    "wrongSeparator": "小数点記号として {separator} を使用してください。"
+    "notFuture": "未来の日付は入力できません。",
+    "invalidFmt": "日付形式が無効です。",
+    "notPrevYear": "前年 {year} の日付は入力できません。",
+    "greater": "金額は0より大きい必要があります。",
+    "wrongSeparator": "小数点は {separator} を使用してください。"
   },
   "transactionStore": {
-    "added": "取引を正常に追加しました。",
-    "add_failed": "取引の追加に失敗しました。",
-    "updated": "取引を正常に更新しました。",
-    "update_failed": "取引の更新に失敗しました。",
-    "deleteOne": "取引を正常に削除しました。",
-    "deleteOne_failed": "取引の削除に失敗しました。",
-    "deleteAll": "すべての取引を正常に削除しました。",
-    "deleteAll_failed": "すべての取引の削除に失敗しました。"
+    "duplicate": "同一の記録が存在するため保存されませんでした。",
+    "null_violation": "必須項目が空のため保存できませんでした。",
+    "denied": "権限がありません。",
+    "connection_failed": "データベースに接続できませんでした。"
   },
   "login": {
     "title": "ログイン",
     "email_label": "メールアドレス",
     "password_label": "パスワード",
-    "no_account": "アカウントをお持ちでない方は",
-    "fail_generic": "ログインに失敗しました。もう一度お試しください。",
-    "fail_unconfirmed": "ログインする前にメールアドレスを確認してください。",
-    "fail_credentials": "メールアドレスまたはパスワードが無効です。",
+    "no_account": "アカウントをお持ちでない場合",
+    "fail_generic": "ログインに失敗しました。",
+    "fail_unconfirmed": "ログイン前にメールを確認してください。",
+    "fail_credentials": "メールアドレスまたはパスワードが正しくありません。",
     "error_unexpected": "ログイン中に予期しないエラーが発生しました。",
     "button": "サインイン",
-    "go_register": "新規登録",
-    "success": "ログインに成功しました。",
-    "auth_login_failed": "ログイン試行に失敗しました。",
-    "auth_unexpected": "ログイン中に予期しないエラーが発生しました。"
+    "go_register": "登録する",
+    "success": "ログインしました。",
+    "auth_login_failed": "認証に失敗しました。",
+    "auth_unexpected": "認証中に予期しないエラーが発生しました。"
   },
   "register": {
-    "title": "新規登録",
+    "title": "登録",
     "fail": "登録を完了できませんでした。",
-    "success_check_email": "登録が完了しました！確認リンクのメールをご確認ください。",
-    "button": "登録する",
+    "success_check_email": "登録成功！確認メールをチェックしてください。",
+    "button": "サインアップ",
     "go_login": "ログインに戻る"
   },
-  "userStore": {
-    "authFailed": "アカウントに接続できませんでした。ページを更新してください。",
-    "signoutFailed": "ログアウトに失敗しました。もう一度お試しください。",
-    "initChainFailed": "初期化チェーンに失敗しました。"
-  },
   "currFormat": {
-    "failed": "通貨のフォーマットに失敗しました。"
+    "failed": "通貨形式の変換に失敗しました。"
   },
   "currParser": {
     "parser_failure": "通貨の解析に失敗しました。"
   },
   "useTrans": {
-    "parseValidatorMismatch": "バリデーターが金額の形式を受け入れませんでした。"
+    "parseError": "金額の形式が正しくありません。"
   },
   "router": {
-    "auth_check_failed": "ナビゲーション中の認証確認に失敗しました"
+    "auth_check_failed": "ナビゲーション中の認証チェックに失敗しました。"
   },
   "localeList": {
-    "intl_supported_values_failed": "言語リストを読み込めませんでした。デフォルトのリストを使用します。"
-  },
-  "appInit": {
-    "hydration_failed": "AppInitializer のハイドレーションに失敗しました。"
-  },
-  "defaults": {
-    "currency_detection_failed": "通貨の検出に失敗しました。"
+    "intl_supported_values_failed": "言語リストの読み込みに失敗しました。"
   }
 }

@@ -2,14 +2,14 @@
 import { ref, computed } from "vue";
 import { useDateFormatter } from "@/composables/useDateFormatter";
 import { useTransactionStore } from "@/stores/TransactionStore";
-import Money from "@/components/Money.vue";
+import Amount from "@/components/Amount.vue";
 import type { Transaction } from "@/types/Transaction";
 import { logException, logInfo } from "@/lib/Logger";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
-const { formatForUI } = useDateFormatter();
-const storeTransaction = useTransactionStore();
+const { formatToMediumDate } = useDateFormatter();
+const transactionStore = useTransactionStore();
 
 const model = defineModel<Transaction | null>();
 const loading = ref(false);
@@ -21,9 +21,8 @@ const dialogOpen = computed({
   },
 });
 
-// Display date in localized format for the text field
 const formattedDisplayDate = computed(() => {
-  return model.value?.date ? formatForUI(model.value.date) : "";
+  return model.value?.date ? formatToMediumDate(model.value.date) : "";
 });
 
 const deleteTransaction = async () => {
@@ -33,7 +32,7 @@ const deleteTransaction = async () => {
     logException(new Error("Could not delete the transaction because it no longer exists."), {
       module: "DeleteTransaction",
       action: "deleteTransaction",
-      slug: t("deleteDialog.error_no_trans"),
+      slug: "deleteDialog.error_no_trans",
     });
     model.value = null;
     return;
@@ -41,12 +40,12 @@ const deleteTransaction = async () => {
 
   loading.value = true;
   try {
-    await storeTransaction.deleteTransaction(item.id);
+    await transactionStore.deleteTransaction(item.id);
 
     logInfo("The transaction was deleted.", {
       module: "DeleteTransaction",
       action: "delete_confirmed",
-      data: { id: item.id }, // We keep the ID in logs for your traceability
+      data: { id: item.id },
     });
 
     model.value = null;
@@ -54,7 +53,7 @@ const deleteTransaction = async () => {
     logException(new Error("The delete failed because of an error in the UI."), {
       module: "DeleteTransaction",
       action: "delete_failed",
-      slug: t("deleteDialog.error_UI"),
+      slug: "deleteDialog.error_UI",
       data: item.id,
     });
   } finally {
@@ -76,7 +75,7 @@ const deleteTransaction = async () => {
           <template v-slot:activator="{ props }">
             <v-btn
               v-bind="props"
-              aria-lable="t('common.close')"
+              :aria-label="t('common.close')"
               icon="mdi-close"
               variant="text"
               size="small"
@@ -132,7 +131,7 @@ const deleteTransaction = async () => {
               {{ t("common.amount") }}
             </v-col>
             <v-col cols="8">
-              <Money
+              <Amount
                 :amount="model.amount"
                 :type="model.transaction_type"
                 class="text-body-1 font-weight-black"

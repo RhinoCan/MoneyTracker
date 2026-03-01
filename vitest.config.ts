@@ -17,7 +17,7 @@ export default mergeConfig(
           "src/main.ts", // Excludes the app entry point
           "src/types/**", // Excludes TypeScript interfaces/types
           "**/*.d.ts", // Excludes declaration files
-          "src/utils/Logger.ts", // Optional: exclude if you don't want to track the wrapper
+          "src/lib/Logger.ts", // Optional: exclude if you don't want to track the wrapper
           "src/main.js",
         ],
         reporter: ["text", "json", "html"],

@@ -40,10 +40,6 @@
     "persistMsgInfoOn": "Messages will stay on screen until you close them manually. Turn the switch off to set a timeout instead.",
     "persistMsgInfoOff": "Messages will disappear automatically after the number of seconds set on the slider. Turn the switch on to keep them visible until manually closed."
   },
-  "settingsStore": {
-    "updated": "Settings updated.",
-    "cleared": "Settings cleared from database."
-  },
   "management": {
     "title": "Data Management",
     "exportTitle": "Export Data",
@@ -51,7 +47,7 @@
     "btnExport": "Export CSV",
     "dangerZone": "Danger Zone",
     "deleteTransTitle": "Delete All Transactions",
-    "deleteTransText": "Deletes every transaction but preserves your settings (language, currency, message timeout).",
+    "deleteTransText": "Deletes every transansaction but preserves your settings (language, currency, message timeout).",
     "btnDeleteTrans": "Delete All Transactions",
     "restoreSettingsTitle": "Restore All Settings to Defaults",
     "restoreSettingsText": "Restores all settings (language, currency, date format) to their defaults but preserves all transactions.",
@@ -98,23 +94,23 @@
   "about": {
     "title": "About",
     "origins": "Origins",
-    "introParagraph": "This app is a descendant of one I originally built whilst following {linkTraversy}. I then made a number of upgrades which are summarised below:",
+    "introParagraph": "This app is a descendant of one I originally built while following {linkTraversy}. I then made a number of upgrades which are summarized below:",
     "linkText": "one of Brad Traversy's courses",
     "enhancements": [
       "Tests were written and executed for the original Vue components.",
       "The props were almost entirely replaced by Pinia stores.",
       "Vue components were replaced by Vuetify components.",
       "Javascript modules were converted to TypeScript.",
-      "Some internationalisation/localisation was done to make monetary amounts appear in the correct format for the locale in which the app is running.",
-      "A confirm dialogue was added to ensure that the user really means to delete the transaction chosen for deletion.",
+      "Some internationalization/localization was done to make monetary amounts appear in the correct format for the locale in which the app is running.",
+      "A confirm dialog was added to ensure that the user really means to delete the transaction chosen for deletion.",
       "The AccountBalance and IncomeExpense components were merged into a single new component called AccountSummary.",
       "A new component called Money was created to display all instances of money except where it is being input or edited.",
-      "A transaction date was added to the Transaction definition so that users could record when the income was made or the expense incurred.",
-      "The various individual Settings dialogues were merged into a single tabbed Settings Dialogue, which was later simplified.",
-      "Added Sentry so that errors and warnings would be properly logged.",
-      "Translated all of the text visible (and audible) to the user into a variety of locales and widely-spoken languages.",
+      "A transaction date was added to the Transaction definition so that users could record when the income was made or the expense incurred. The date is now input in AddTransaction, displayed in TransactionHistory and DeleteTransaction, and both displayed and changed in UpdateTransaction.",
+      "The various individual Settings dialogs were merged into a single tabbed Settings Dialog. This was later simplified to an untabbed dialog that managed fewer settings.",
+      "Added Sentry so that errors and warnings would be properly logged, reassuring users and bringing issues to the attention of administrators.",
+      "Translated all of the text visible (and audible) to the user into a variety of locales and widely-spoken languages so that users could use the app in all of those places.",
       "Added PostHog to track information and success messages for analytical purposes.",
-      "Added Vue Router and Register/Login pages so that users could be authenticated.",
+      "Added Vue Router and Register/Login pages so that users could be authenticated and that a given user's transaction data and settings could be kept separate from all other users.",
       "Replaced all usages of localStorage with Supabase."
     ],
     "packages": "Major Packages Used",
@@ -123,7 +119,10 @@
     "textPinia": "Pinia",
     "textSentry": "Sentry",
     "textPostHog": "PostHog",
-    "textSupabase": "Supabase"
+    "textSupabase": "Supabase",
+    "textI18n-ally": "i18n-ally",
+    "kudosTitle": "Acknowledgements",
+    "kudos": "I could not have completed this project in its present form without the help of three AIs: ChatGPT, Google Gemini, and especially Claude.AI. Many thanks to the people who created them and made them available for me for free!"
   },
   "header": {
     "title": "Money Tracker",
@@ -131,7 +130,7 @@
     "data": "Data Management",
     "textLive": "Live (GitHub Pages)",
     "textDev": "Dev Server",
-    "logoff": "Log Off",
+    "logoff": "Logoff",
     "logout_failed": "Logout failed. Please try again."
   },
   "history": {
@@ -140,7 +139,7 @@
     "alert": "You won't see any transactions here until you add some via the {addNew} form below.",
     "actions": "Actions",
     "itemsPerPage": "Items per page:",
-    "pageText": "{0}-{1} of {2}",
+    "pageText": "{start}-{end} of {total}",
     "ariaUpdate": "Update",
     "ariaDelete": "Delete"
   },
@@ -166,14 +165,10 @@
     "wrongSeparator": "Please use {separator} as the decimal separator."
   },
   "transactionStore": {
-    "added": "Successfully added the transaction.",
-    "add_failed": "Failed to add the transaction.",
-    "updated": "Successfully updated the transaction.",
-    "update_failed": "Failed to update the transaction.",
-    "deleteOne": "Successfully deleted the transaction.",
-    "deleteOne_failed": "Failed to delete the transaction.",
-    "deleteAll": "Successfully deleted all of the transactions.",
-    "deleteAll_failed": "Failed to delete all of the transactions."
+    "duplicate": "This transaction was not saved because an identical record already exists. No action is needed — your existing transaction is unchanged.",
+    "null_violation": "This transaction could not be saved because one or more required fields were empty. Please ensure all mandatory fields are filled in before submitting.",
+    "denied": "You don't have permission to perform this action.",
+    "connection_failed": "Could not connect to the database. Please check your connection and try again."
   },
   "login": {
     "title": "Login",
@@ -187,8 +182,8 @@
     "button": "Sign In",
     "go_register": "Register",
     "success": "Login successful.",
-    "auth_login_failed": "",
-    "auth_unexpected": ""
+    "auth_login_failed": "Authentication login attempt failed.",
+    "auth_unexpected": "Unexpected error during login."
   },
   "register": {
     "title": "Register",
@@ -197,11 +192,6 @@
     "button": "Sign Up",
     "go_login": "Back to Login"
   },
-  "userStore": {
-    "authFailed": "We couldn't connect to your account. Please refresh the page.",
-    "signoutFailed": "Sign out failed. Please try again.",
-    "initChainFailed": "Initialisation chain failed."
-  },
   "currFormat": {
     "failed": "Failed to format currency."
   },
@@ -209,18 +199,12 @@
     "parser_failure": "Failed to parse currency."
   },
   "useTrans": {
-    "parseValidatorMismatch": "The validator didn't like the format of the amount."
+    "parseError": "The validator didn't like the format of the amount."
   },
   "router": {
-    "auth_check_failed": ""
+    "auth_check_failed": "Authentication check failed during navigation."
   },
   "localeList": {
-    "intl_supported_values_failed": ""
-  },
-  "appInit": {
-    "hydration_failed": "The hydration of AppInitializer failed."
-  },
-  "defaults": {
-    "currency_detection_failed": "Failed to detect the currency."
+    "intl_supported_values_failed": "Unable to load the language list. A default list will be used instead."
   }
 }

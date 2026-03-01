@@ -13,8 +13,8 @@ import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
 
-const storeTransaction = useTransactionStore();
-const { formatForUI, toISODateString } = useDateFormatter();
+const transactionStore = useTransactionStore();
+const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
 const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
 const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } =
   useNumberFormatHints();
@@ -40,7 +40,7 @@ const pickerDate = ref<Date>(new Date());
 
 // Display date in localized format for the text field
 const formattedDisplayDate = computed(() => {
-  return transaction.value?.date ? formatForUI(transaction.value.date) : "";
+  return transaction.value?.date ? formatToMediumDate(transaction.value.date) : "";
 });
 
 // Amount format hint
@@ -70,7 +70,7 @@ function onDateSelected(date: Date | Date[] | null) {
 
   // Update the source of truth (YYYY-MM-DD string)
   if (transaction.value) {
-    transaction.value.date = toISODateString(date);
+    transaction.value.date = formatToIsoDateOnly(date);
     pickerDate.value = date;
   }
 
@@ -97,7 +97,7 @@ async function onSubmit(event: SubmitEventPromise) {
       logException(new Error("Validation failed: Amount is missing or negative."), {
         module: "AddTransaction",
         action: "onSubmit",
-        slug: t("addTrans.err_missing_or_negative"),
+        slug: "addTrans.err_missing_or_negative",
       });
       return;
     }
@@ -109,7 +109,7 @@ async function onSubmit(event: SubmitEventPromise) {
       amount: finalAmount,
     };
 
-    await storeTransaction.addTransaction(newTransaction);
+    await transactionStore.addTransaction(newTransaction);
 
     logSuccess(t("addTrans.success"), {
       module: "AddTransaction",
@@ -122,7 +122,7 @@ async function onSubmit(event: SubmitEventPromise) {
     logException(error, {
       module: "AddTransaction",
       action: "onSubmit",
-      slug: t("addTrans.submit_failed"),
+      slug: "addTrans.submit_failed",
     });
   }
 }
@@ -135,7 +135,7 @@ function resetForm() {
   if (transaction.value) {
     transaction.value.description = "";
     transaction.value.amount = 0;
-    transaction.value.date = toISODateString(today); // YYYY-MM-DD format
+    transaction.value.date = formatToIsoDateOnly(today); // YYYY-MM-DD format
     transaction.value.transaction_type = TransactionTypeValues.Expense;
   }
 

@@ -1,46 +1,44 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter";
+import type { TransactionType } from "@/types/Transaction";
 
+// 1. HONESTY: Use the actual TransactionType or specific literals
 interface Props {
   amount?: number | string | null;
-  type?: string;
+  type?: TransactionType | "Balance" | "plus" | "minus";
 }
 
 const props = defineProps<Props>();
-const { displayMoney } = useCurrencyFormatter();
+const { formatCurrency } = useCurrencyFormatter();
 
 /**
- * 1. Safe Numeric Conversion
- * Ensures we always have a valid number even if the prop is messy.
+ * 2. Safe Numeric Conversion
  */
 const numericAmount = computed(() => {
   const val = typeof props.amount === "string" ? parseFloat(props.amount) : props.amount;
-  return val !== null && !isNaN(val as number) ? (val as number) : 0;
+  return typeof val === "number" && !isNaN(val) ? val : 0;
 });
 
-/**
- * 2. Formatted Output
- * displayMoney is a computed function from useCurrencyFormatter.
- */
 const formattedAmount = computed(() => {
-  return displayMoney.value(numericAmount.value);
+  return formatCurrency(numericAmount.value);
 });
 
 /**
- * 3. Color Logic
- * Maps transaction types to semantic CSS classes.
+ * 3. Declarative Color Logic
  */
 const colorClass = computed(() => {
   const t = props.type?.toLowerCase() || "";
 
-  if (t.includes("income") || t === "plus") return "plus";
-  if (t.includes("expense") || t === "minus") return "minus";
+  // Explicit mapping
+  if (t === "income" || t === "plus") return "money-plus";
+  if (t === "expense" || t === "minus") return "money-minus";
 
-  // For "Balance", the color depends on the final value
-  if (t.includes("balance")) {
-    return numericAmount.value < 0 ? "minus" : "plus";
+  // Balance logic remains dynamic
+  if (t === "balance") {
+    return numericAmount.value < 0 ? "money-minus" : "money-plus";
   }
+
   return "";
 });
 </script>
@@ -53,20 +51,20 @@ const colorClass = computed(() => {
 
 <style scoped>
 .money-display {
-  font-size: 1.25rem; /* 20px equivalent */
+  font-size: 1.25rem;
   letter-spacing: 1px;
   font-weight: 700;
   white-space: nowrap;
   display: inline-block;
-  /* Tabular nums ensure numbers don't jump when values change */
   font-variant-numeric: tabular-nums;
 }
 
-.plus {
+/* 4. Consistent naming with your Add/Update components */
+.money-plus {
   color: rgb(var(--v-theme-success)) !important;
 }
 
-.minus {
+.money-minus {
   color: rgb(var(--v-theme-error)) !important;
 }
 </style>

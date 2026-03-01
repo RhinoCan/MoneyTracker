@@ -35,7 +35,8 @@ async function handleRegister() {
         action: "handleRegister",
         slug: "register.auth_register_failed",
       });
-      notificationStore.showMessage(`${t("register.fail")}: ${error.message}`, "error");
+      // Raw Supabase error message is logged above; show a clean localized message to the user
+      notificationStore.showMessage(t("register.fail"), "error");
       return;
     }
 

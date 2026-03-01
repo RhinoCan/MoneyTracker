@@ -2,7 +2,7 @@
 import { ref, onMounted, watch } from "vue";
 import { useUserStore } from "@/stores/UserStore";
 import { useSettingsStore } from "@/stores/SettingsStore";
-import TrackerHeader from "@/components/TrackerHeader.vue";
+import { useNotificationStore } from "@/stores/NotificationStore";
 import { useI18n } from "vue-i18n";
 import { useLocale } from "vuetify";
 
@@ -10,11 +10,12 @@ const { current: vuetifyLocale } = useLocale();
 const { t, locale } = useI18n();
 const userStore = useUserStore();
 const settingsStore = useSettingsStore();
-const RTL_LOCALES = ["ar", "he", "fa", "ur"];
-import { useNotificationStore } from "@/stores/NotificationStore";
 const notificationStore = useNotificationStore();
+const RTL_LOCALES = ["ar", "he", "fa", "ur"];
 const fatalError = ref(false);
 
+// Watcher 1: Responds to i18n locale changes (driven by SettingsStore's own watcher).
+// Handles RTL direction, html lang attribute, and Vuetify locale sync.
 watch(
   locale,
   (newLocale) => {
@@ -27,6 +28,8 @@ watch(
   { immediate: true }
 );
 
+// Watcher 2: Responds directly to SettingsStore locale changes to keep Vuetify
+// in sync during the initial hydration cycle, before the i18n watcher above fires.
 watch(
   () => settingsStore.locale,
   (newLocale) => {
@@ -43,11 +46,11 @@ watch(
 const bootApp = async () => {
   try {
     fatalError.value = false;
-    // This now awaits Auth, Settings, and Transactions because of our UserStore changes!
+    // This awaits Auth, Settings, and Transactions via UserStore.
+    // logException is called inside UserStore on failure; no need to log again here.
     await userStore.initializeAuth();
   } catch {
     fatalError.value = true;
-    //logException already called in UserStore, no need to log again
   }
 };
 
@@ -55,8 +58,8 @@ const retryInit = () => {
   window.location.reload();
 };
 
-onMounted(() => {
-  bootApp();
+onMounted(async () => {
+  await bootApp();
 });
 </script>
 
@@ -99,7 +102,7 @@ onMounted(() => {
 
     <!--If the timeout value is any number greater than 0, it is a number of seconds and needs to be multiplied by
     1000 to be turned into milliseconds; if the timeout value is -1, it should not be multiplied so that Vuetify
-    understands it to mean that it the snackbar needs to be persisted until the user closes it manually. -->
+    understands it to mean that the snackbar needs to be persisted until the user closes it manually. -->
     <v-snackbar
       :key="notificationStore.snackbarKey"
       v-model="notificationStore.isVisible"
