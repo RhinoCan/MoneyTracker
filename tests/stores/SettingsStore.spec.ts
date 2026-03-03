@@ -4,9 +4,6 @@ import { setActivePinia, createPinia } from "pinia";
 import { useSettingsStore } from "@/stores/SettingsStore";
 import { useUserStore } from "@/stores/UserStore";
 
-// -------------------------------------------------------------------------
-// Mock Supabase
-// -------------------------------------------------------------------------
 const mockSupabaseChain = {
   insert: vi.fn().mockResolvedValue({ error: null }),
   upsert: vi.fn().mockResolvedValue({ error: null }),
@@ -22,9 +19,6 @@ vi.mock("@/lib/supabase", () => ({
   },
 }));
 
-// -------------------------------------------------------------------------
-// Mock i18n to avoid DOM/locale side effects in the locale watcher
-// -------------------------------------------------------------------------
 vi.mock("@/i18n", () => ({
   i18n: {
     global: {
@@ -38,18 +32,14 @@ vi.mock("@/i18n", () => ({
 describe("SettingsStore", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
-    // Reset all supabase mock call history between tests
     vi.clearAllMocks();
-    // Reset the mock chain defaults
     mockSupabaseChain.insert.mockResolvedValue({ error: null });
     mockSupabaseChain.upsert.mockResolvedValue({ error: null });
+    mockSupabaseChain.delete.mockReturnThis();
     mockSupabaseChain.eq.mockReturnThis();
     mockSupabaseChain.maybeSingle.mockResolvedValue({ data: null, error: null });
   });
 
-  // -------------------------------------------------------------------------
-  // Initial state
-  // -------------------------------------------------------------------------
   describe("initial state", () => {
     it("locale defaults to en-US", () => {
       const store = useSettingsStore();
@@ -72,9 +62,6 @@ describe("SettingsStore", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // restoreDefaults
-  // -------------------------------------------------------------------------
   describe("restoreDefaults", () => {
     it("resets locale to en-US", () => {
       const store = useSettingsStore();
@@ -98,13 +85,9 @@ describe("SettingsStore", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // loadSettings — no userId guard
-  // -------------------------------------------------------------------------
   describe("loadSettings", () => {
     it("does nothing when userId is null", async () => {
       const store = useSettingsStore();
-      // UserStore userId defaults to null with no logged-in user
       await store.loadSettings();
       const { supabase } = await import("@/lib/supabase");
       expect(supabase.from).not.toHaveBeenCalled();
@@ -112,15 +95,11 @@ describe("SettingsStore", () => {
 
     it("hydrates state from database record when one exists", async () => {
       const userStore = useUserStore();
-      // @ts-ignore — set computed userId via underlying user ref
+      // @ts-ignore
       userStore.user = { id: "user-123" };
 
       mockSupabaseChain.maybeSingle.mockResolvedValue({
-        data: {
-          locale_value: "fr-FR",
-          currency_value: "EUR",
-          timeout_value: 3,
-        },
+        data: { locale_value: "fr-FR", currency_value: "EUR", timeout_value: 3 },
         error: null,
       });
 
@@ -130,6 +109,24 @@ describe("SettingsStore", () => {
       expect(store.locale).toBe("fr-FR");
       expect(store.currency).toBe("EUR");
       expect(store.messageTimeoutSeconds).toBe(3);
+    });
+
+    it("falls back to en-US, USD, and -1 for null fields in the database record", async () => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
+
+      mockSupabaseChain.maybeSingle.mockResolvedValue({
+        data: { locale_value: null, currency_value: null, timeout_value: null },
+        error: null,
+      });
+
+      const store = useSettingsStore();
+      await store.loadSettings();
+
+      expect(store.locale).toBe("en-US");
+      expect(store.currency).toBe("USD");
+      expect(store.messageTimeoutSeconds).toBe(-1);
     });
 
     it("seeds a new record when no settings exist for the user", async () => {
@@ -172,9 +169,6 @@ describe("SettingsStore", () => {
     });
   });
 
-  // -------------------------------------------------------------------------
-  // saveToDb
-  // -------------------------------------------------------------------------
   describe("saveToDb", () => {
     it("does nothing when userId is null", async () => {
       const store = useSettingsStore();
@@ -216,11 +210,22 @@ describe("SettingsStore", () => {
 
       expect(store.isLoading).toBe(false);
     });
+
+    it("throws and sets isLoading to false when upsert returns an error", async () => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
+
+      mockSupabaseChain.upsert.mockResolvedValueOnce({
+        error: { message: "upsert failed" },
+      });
+
+      const store = useSettingsStore();
+      await expect(store.saveToDb()).rejects.toThrow();
+      expect(store.isLoading).toBe(false);
+    });
   });
 
-  // -------------------------------------------------------------------------
-  // clearFromDb
-  // -------------------------------------------------------------------------
   describe("clearFromDb", () => {
     it("does nothing when userId is null", async () => {
       const store = useSettingsStore();
@@ -254,11 +259,22 @@ describe("SettingsStore", () => {
 
       expect(store.isLoading).toBe(false);
     });
+
+    it("throws and sets isLoading to false when delete returns an error", async () => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
+
+      mockSupabaseChain.eq.mockResolvedValueOnce({
+        error: { message: "delete failed" },
+      });
+
+      const store = useSettingsStore();
+      await expect(store.clearFromDb()).rejects.toThrow();
+      expect(store.isLoading).toBe(false);
+    });
   });
 
-  // -------------------------------------------------------------------------
-  // localeToCurrency mapping
-  // -------------------------------------------------------------------------
   describe("localeToCurrency export", () => {
     it("maps en-US to USD", async () => {
       const { localeToCurrency } = await import("@/stores/SettingsStore");
@@ -281,3 +297,4 @@ describe("SettingsStore", () => {
     });
   });
 });
+

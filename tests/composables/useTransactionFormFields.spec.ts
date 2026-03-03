@@ -1,13 +1,13 @@
 // tests/composables/useTransactionFormFields.spec.ts
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import { ref } from "vue";
+import { ref, nextTick } from "vue";
 
 // -------------------------------------------------------------------------
 // Mock all composable dependencies before importing the target
 // -------------------------------------------------------------------------
 const mockFormatCurrency = vi.fn((amount: number) => `$${amount}`);
-const mockFormatToMediumDate = vi.fn((date: string) => date ? `formatted:${date}` : "");
+const mockFormatToMediumDate = vi.fn((date: string) => (date ? `formatted:${date}` : ""));
 const mockFormatToIsoDateOnly = vi.fn(() => "2025-06-15");
 const mockHasCorrectSeparator = vi.fn(() => true);
 
@@ -51,7 +51,7 @@ describe("useTransactionFormFields", () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     mockFormatToIsoDateOnly.mockReturnValue("2025-06-15");
-    mockFormatToMediumDate.mockImplementation((date: string) => date ? `formatted:${date}` : "");
+    mockFormatToMediumDate.mockImplementation((date: string) => (date ? `formatted:${date}` : ""));
     mockHasCorrectSeparator.mockReturnValue(true);
     mockFormatCurrency.mockImplementation((amount: number) => `$${amount}`);
   });
@@ -93,6 +93,24 @@ describe("useTransactionFormFields", () => {
     it("dateMenu starts as false", () => {
       const { dateMenu } = useTransactionFormFields();
       expect(dateMenu.value).toBe(false);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // formattedAmount computed (lines 38–41)
+  // -------------------------------------------------------------------------
+  describe("formattedAmount", () => {
+    it("returns displayAmount directly when focused", () => {
+      const { isFocused, displayAmount, formattedAmount } = useTransactionFormFields();
+      isFocused.value = true;
+      displayAmount.value = "99.99";
+      expect(formattedAmount.value).toBe("99.99");
+    });
+
+    it("returns formatted currency when not focused", () => {
+      const { transaction, formattedAmount } = useTransactionFormFields();
+      transaction.value.amount = 42;
+      expect(formattedAmount.value).toBe("$42");
     });
   });
 
@@ -189,6 +207,14 @@ describe("useTransactionFormFields", () => {
       handleFocus();
       expect(displayAmount.value).toBe("1234.56");
     });
+
+    it("treats null amount as 0 and leaves displayAmount empty", () => {
+      const { transaction, displayAmount, handleFocus } = useTransactionFormFields();
+      // @ts-ignore — force null to hit the ?? 0 fallback on line 70
+      transaction.value.amount = null;
+      handleFocus();
+      expect(displayAmount.value).toBe("");
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -248,6 +274,19 @@ describe("useTransactionFormFields", () => {
       transaction.value.date = "2025-06-15";
       const _ = formattedDate.value;
       expect(mockFormatToMediumDate).toHaveBeenCalledWith("2025-06-15");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // closeDatePicker (lines 117–121)
+  // -------------------------------------------------------------------------
+  describe("closeDatePicker", () => {
+    it("sets dateMenu to false after nextTick", async () => {
+      const { dateMenu, closeDatePicker } = useTransactionFormFields();
+      dateMenu.value = true;
+      closeDatePicker();
+      await nextTick();
+      expect(dateMenu.value).toBe(false);
     });
   });
 });

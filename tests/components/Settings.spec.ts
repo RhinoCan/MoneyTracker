@@ -143,4 +143,32 @@ describe("Settings.vue", () => {
       expect((wrapper.vm as any).localCurrency).toBe("JPY");
     });
   });
+
+  describe("isMessagePersistent setter", () => {
+    it("sets localTimeout to 5 when isMessagePersistent is set to false (covers line 55)", async () => {
+      mockSettingsStore({ messageTimeoutSeconds: -1 });
+      const wrapper = mount(Settings);
+
+      // Confirm we start in persistent mode (timeout = -1)
+      expect((wrapper.vm as any).localTimeout).toBe(-1);
+
+      // Trigger the setter with false — exercises the `on ? -1 : 5` false branch
+      (wrapper.vm as any).isMessagePersistent = false;
+      await wrapper.vm.$nextTick();
+
+      expect((wrapper.vm as any).localTimeout).toBe(5);
+    });
+
+    it("sets localTimeout to -1 when isMessagePersistent is set to true (covers line 55 true branch)", async () => {
+      mockSettingsStore({ messageTimeoutSeconds: 5 });
+      const wrapper = mount(Settings);
+
+      expect((wrapper.vm as any).localTimeout).toBe(5);
+
+      (wrapper.vm as any).isMessagePersistent = true;
+      await wrapper.vm.$nextTick();
+
+      expect((wrapper.vm as any).localTimeout).toBe(-1);
+    });
+  });
 });

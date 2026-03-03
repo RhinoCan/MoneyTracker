@@ -1,0 +1,173 @@
+     1	import { defineStore } from "pinia";
+     2	import { ref, watch } from "vue";
+     3	import { supabase } from "@/lib/supabase";
+     4	import type { Database } from "@/lib/supabase";
+     5	import { useUserStore } from "@/stores/UserStore";
+     6	import { i18n } from "@/i18n";
+     7	import type { SupportedCurrency, SupportedLocale } from "@/types/CommonTypes";
+     8	
+     9	export type SettingsRow = Database["public"]["Tables"]["system_settings"]["Row"];
+    10	type SettingsInsert = Database["public"]["Tables"]["system_settings"]["Insert"];
+    11	
+    12	export const localeToCurrency: Record<SupportedLocale, SupportedCurrency> = {
+    13	  "en-US": "USD", "en-CA": "CAD", "en-GB": "GBP", "fr-FR": "EUR",
+    14	  "fr-CA": "CAD", "fr-CH": "CHF", "es-ES": "EUR", "de-DE": "EUR",
+    15	  "zh-CN": "CNY", "ja-JP": "JPY", "ko-KR": "KRW", "hi-IN": "INR",
+    16	  "ar-SA": "SAR", "ru-RU": "RUB", "pt-BR": "BRL", "it-IT": "EUR",
+    17	};
+    18	
+    19	export const useSettingsStore = defineStore("settingsStore", () => {
+    20	  const userStore = useUserStore();
+    21	
+    22	  // --- STATE ---
+    23	  const locale = ref<SupportedLocale>("en-US");
+    24	  const currency = ref<SupportedCurrency>("USD");
+    25	  const messageTimeoutSeconds = ref<number>(-1);
+    26	  const isSyncing = ref(false);
+    27	
+    28	  // --- WATCHERS (The Auto-Hydration for UI) ---
+    29	  watch(
+    30	    locale,
+    31	    (newLocale) => {
+    32	      // Accessing i18n.global directly is the correct pattern outside component setup.
+    33	      // The cast is necessary because vue-i18n does not export a public type for the
+    34	      // global composer object.
+    35	      (i18n.global as unknown as { locale: { value: string } }).locale.value = newLocale;
+    36	      const htmlElement = document.querySelector("html");
+    37	      if (htmlElement) {
+    38	        htmlElement.setAttribute("lang", newLocale);
+    39	      }
+    40	    },
+    41	    { immediate: true }
+    42	  );
+    43	
+    44	  // --- ACTIONS ---
+    45	
+    46	  // NOTE: The 'as any' cast on supabase.from() is intentional throughout this store.
+    47	  // Supabase's TypeScript client collapses chained query builder return types to 'never'
+    48	  // when using a typed Database schema. This is a known limitation of @supabase/supabase-js
+    49	  // (see github.com/supabase/supabase-js). The cast is safe because the Database type
+    50	  // in supabase.ts fully defines the expected shape of all data returned from these queries.
+    51	
+    52	  /**
+    53	   * seedToDb
+    54	   * Internal helper to create the initial settings record for a new user.
+    55	   */
+    56	  async function seedToDb() {
+    57	    if (!userStore.userId) return;
+    58	
+    59	    const payload: SettingsInsert = {
+    60	      user_id: userStore.userId,
+    61	      locale_value: locale.value,
+    62	      currency_value: currency.value,
+    63	      timeout_value: messageTimeoutSeconds.value,
+    64	    };
+    65	
+    66	    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    67	    const { error } = await (supabase.from("system_settings") as any).insert([payload]);
+    68	    if (error) throw error;
+    69	  }
+    70	
+    71	  /**
+    72	   * loadSettings
+    73	   * HYDRATION: Fetches DB settings and populates local state.
+    74	   * If no settings exist, it triggers seedToDb.
+    75	   */
+    76	  async function loadSettings() {
+    77	    if (!userStore.userId) return;
+    78	
+    79	    isSyncing.value = true;
+    80	    try {
+    81	      const { data, error } = await supabase
+    82	        .from("system_settings")
+    83	        .select("*")
+    84	        .eq("user_id", userStore.userId)
+    85	        .maybeSingle();
+    86	
+    87	      if (error) throw error;
+    88	
+    89	      if (data) {
+    90	        // HYDRATION: Mapping DB columns back to Ref state
+    91	        const record = data as SettingsRow;
+    92	        locale.value = (record.locale_value as SupportedLocale) || "en-US";
+    93	        currency.value = (record.currency_value as SupportedCurrency) || "USD";
+    94	        messageTimeoutSeconds.value = record.timeout_value ?? -1;
+    95	      } else {
+    96	        // SEEDING: New user found, create their record
+    97	        await seedToDb();
+    98	      }
+    99	    } finally {
+   100	      isSyncing.value = false;
+   101	    }
+   102	  }
+   103	
+   104	  /**
+   105	   * saveToDb
+   106	   * The primary write operation. Silent on success.
+   107	   */
+   108	  async function saveToDb() {
+   109	    if (!userStore.userId) return;
+   110	
+   111	    isSyncing.value = true;
+   112	    const payload: SettingsInsert = {
+   113	      user_id: userStore.userId,
+   114	      locale_value: locale.value,
+   115	      currency_value: currency.value,
+   116	      timeout_value: messageTimeoutSeconds.value,
+   117	    };
+   118	
+   119	    try {
+   120	      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   121	      const { error } = await (supabase.from("system_settings") as any).upsert(payload, {
+   122	        onConflict: "user_id",
+   123	      });
+   124	
+   125	      if (error) throw error;
+   126	    } finally {
+   127	      isSyncing.value = false;
+   128	    }
+   129	  }
+   130	
+   131	  /**
+   132	   * clearFromDb
+   133	   * Deletes the current user's settings record from the database and restores local defaults.
+   134	   */
+   135	  async function clearFromDb() {
+   136	    if (!userStore.userId) return;
+   137	
+   138	    isSyncing.value = true;
+   139	    try {
+   140	      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+   141	      const { error } = await (supabase.from("system_settings") as any)
+   142	        .delete()
+   143	        .eq("user_id", userStore.userId);
+   144	
+   145	      if (error) throw error;
+   146	      restoreDefaults();
+   147	    } finally {
+   148	      isSyncing.value = false;
+   149	    }
+   150	  }
+   151	
+   152	  /**
+   153	   * restoreDefaults
+   154	   * Resets all settings state to their hardcoded default values.
+   155	   * Called on sign-out and after clearFromDb.
+   156	   */
+   157	  function restoreDefaults() {
+   158	    locale.value = "en-US";
+   159	    currency.value = "USD";
+   160	    messageTimeoutSeconds.value = -1;
+   161	  }
+   162	
+   163	  return {
+   164	    locale,
+   165	    currency,
+   166	    messageTimeoutSeconds,
+   167	    isLoading: isSyncing,
+   168	    loadSettings,
+   169	    saveToDb,
+   170	    restoreDefaults,
+   171	    clearFromDb,
+   172	  };
+   173	});

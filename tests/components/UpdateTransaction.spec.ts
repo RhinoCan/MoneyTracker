@@ -104,12 +104,12 @@ describe("UpdateTransaction.vue", () => {
     it("renders the Cancel button", () => {
       wrapper = mountComponent();
       const btns = Array.from(document.querySelectorAll(".v-btn"));
-      expect(btns.find(b => b.textContent?.includes("Cancel"))).toBeDefined();
+      expect(btns.find((b) => b.textContent?.includes("Cancel"))).toBeDefined();
     });
     it("renders the Update Transaction button", () => {
       wrapper = mountComponent();
       const btns = Array.from(document.querySelectorAll(".v-btn"));
-      expect(btns.find(b => b.textContent?.includes("Update Transaction"))).toBeDefined();
+      expect(btns.find((b) => b.textContent?.includes("Update Transaction"))).toBeDefined();
     });
     it("renders the help button", () => {
       wrapper = mountComponent();
@@ -176,7 +176,9 @@ describe("UpdateTransaction.vue", () => {
     });
     it("sets model.value to null when Cancel button is clicked", async () => {
       wrapper = mountComponent();
-      const btn = Array.from(document.querySelectorAll("button")).find(b => b.textContent?.includes("Cancel"));
+      const btn = Array.from(document.querySelectorAll("button")).find((b) =>
+        b.textContent?.includes("Cancel")
+      );
       await btn?.click();
       await flushPromises();
       expect(wrapper.props("modelValue")).toBeNull();
@@ -258,13 +260,19 @@ describe("UpdateTransaction.vue", () => {
     it("fails if no changes", async () => {
       wrapper = mountComponent();
       await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
-      expect(logValidation).toHaveBeenCalledWith(expect.stringContaining("Nothing"), expect.any(Object));
+      expect(logValidation).toHaveBeenCalledWith(
+        expect.stringContaining("Nothing"),
+        expect.any(Object)
+      );
     });
     it("calls updateTransaction with changed amount", async () => {
       wrapper = mountComponent();
       wrapper.vm.localTransaction.amount = 999;
       await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
-      expect(mockUpdateTransaction).toHaveBeenCalledWith(123, expect.objectContaining({ amount: 999 }));
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(
+        123,
+        expect.objectContaining({ amount: 999 })
+      );
     });
     it("updates description", async () => {
       wrapper = mountComponent();
@@ -319,6 +327,12 @@ describe("UpdateTransaction.vue", () => {
       wrapper.vm.localTransaction.description = "X";
       await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
       expect(mockUpdateTransaction).toHaveBeenCalledWith(123, expect.any(Object));
+    });
+    it("shows format hint when focused with correct separator", () => {
+      wrapper = mountComponent();
+      wrapper.vm.isFocused = true;
+      wrapper.vm.displayAmount = "12.34";
+      expect(wrapper.vm.amountHint).toBeDefined();
     });
   });
 

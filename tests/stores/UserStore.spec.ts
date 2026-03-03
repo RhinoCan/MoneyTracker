@@ -277,16 +277,10 @@ describe("UserStore", () => {
       const store = useUserStore();
       await store.initializeAuth();
 
-      // Clear call counts after first init
       mockLoadSettings.mockClear();
       mockFetchTransactions.mockClear();
 
-      // Manually trigger runFullInitialization again via a second initializeAuth
-      // won't re-run because isInitialized is already true
-      // We test this by calling it directly on a fresh store that we manually mark initialized
       store.isInitialized = true;
-      // Since initializeAuth calls runFullInitialization which guards on isInitialized,
-      // a second sign-in event for the same user should not re-run
       expect(mockLoadSettings).not.toHaveBeenCalled();
       expect(mockFetchTransactions).not.toHaveBeenCalled();
     });
@@ -300,6 +294,85 @@ describe("UserStore", () => {
       const store = useUserStore();
       await expect(store.initializeAuth()).rejects.toThrow("Settings load failed");
       expect(store.isInitialized).toBe(false);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // onAuthStateChange callback (covers lines 80–104)
+  // -------------------------------------------------------------------------
+  describe("onAuthStateChange callback", () => {
+    let authCallback: Function;
+
+    beforeEach(() => {
+      // Capture the callback passed to onAuthStateChange
+      mockOnAuthStateChange.mockImplementation((cb: Function) => {
+        authCallback = cb;
+        return { data: { subscription: { unsubscribe: vi.fn() } } };
+      });
+    });
+
+    it("SIGNED_IN with a new user id calls posthog.identify and runFullInitialization (covers lines 85–92)", async () => {
+      const store = useUserStore();
+      await store.initializeAuth();
+
+      mockLoadSettings.mockClear();
+      mockFetchTransactions.mockClear();
+      mockPosthogIdentify.mockClear();
+
+      const newSession = makeSession("new-user-456", "new@example.com");
+      await authCallback("SIGNED_IN", newSession);
+
+      expect(mockPosthogIdentify).toHaveBeenCalledWith("new-user-456", expect.objectContaining({
+        email: "new@example.com",
+      }));
+      expect(mockLoadSettings).toHaveBeenCalled();
+      expect(mockFetchTransactions).toHaveBeenCalled();
+    });
+
+    it("SIGNED_IN with the same user id skips posthog.identify (covers line 85 false branch)", async () => {
+      // Start with a session already set so oldUserId matches
+      mockGetSession.mockResolvedValue({ data: { session: makeSession("user-123") }, error: null });
+
+      const store = useUserStore();
+      await store.initializeAuth();
+
+      mockPosthogIdentify.mockClear();
+
+      // Fire callback with same user id — should not re-identify
+      const sameSession = makeSession("user-123");
+      await authCallback("SIGNED_IN", sameSession);
+
+      expect(mockPosthogIdentify).not.toHaveBeenCalled();
+    });
+
+    it("SIGNED_OUT resets posthog, clears transactions, and restores settings defaults (covers lines 94–104)", async () => {
+      const store = useUserStore();
+      await store.initializeAuth();
+
+      // Simulate a signed-in state first
+      // @ts-ignore
+      store.user = { id: "user-123", email: "test@example.com" };
+      store.isInitialized = true;
+
+      await authCallback("SIGNED_OUT", null);
+
+      expect(mockPosthogReset).toHaveBeenCalled();
+      expect(store.isInitialized).toBe(false);
+      expect(mockTransactions.value).toEqual([]);
+      expect(mockRestoreDefaults).toHaveBeenCalled();
+    });
+
+    it("SIGNED_OUT clears user and session state (covers lines 81–82)", async () => {
+      const store = useUserStore();
+      await store.initializeAuth();
+
+      // @ts-ignore
+      store.user = { id: "user-123", email: "test@example.com" };
+
+      await authCallback("SIGNED_OUT", null);
+
+      expect(store.user).toBeNull();
+      expect(store.session).toBeNull();
     });
   });
 

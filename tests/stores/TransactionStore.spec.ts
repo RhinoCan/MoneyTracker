@@ -293,6 +293,18 @@ describe("TransactionStore", () => {
       ).rejects.toBeInstanceOf(TransactionError);
     });
 
+    it("throws TransactionError on database error (covers line 136)", async () => {
+      mockSupabaseChain.select.mockResolvedValue({
+        data: null,
+        error: { code: "23505", message: "duplicate", details: "", hint: "" },
+      });
+
+      const store = useTransactionStore();
+      await expect(
+        store.addTransaction({ description: "x", date: "2025-01-01", transaction_type: "Expense", amount: 10 })
+      ).rejects.toBeInstanceOf(TransactionError);
+    });
+
     it("sets loading to false after completion", async () => {
       const newTx = makeTransaction({ id: 99 });
       mockSupabaseChain.select.mockResolvedValue({ data: [newTx], error: null });
@@ -346,6 +358,18 @@ describe("TransactionStore", () => {
       await expect(store.updateTransaction(1, { amount: 50 })).rejects.toBeInstanceOf(TransactionError);
     });
 
+    it("throws TransactionError on database error (covers line 161)", async () => {
+      mockSupabaseChain.select.mockResolvedValue({
+        data: null,
+        error: { code: "42501", message: "permission denied", details: "", hint: "" },
+      });
+
+      const store = useTransactionStore();
+      store.transactions = [makeTransaction()];
+
+      await expect(store.updateTransaction(1, { amount: 50 })).rejects.toBeInstanceOf(TransactionError);
+    });
+
     it("sets loading to false after completion", async () => {
       const updated = makeTransaction({ id: 1, amount: 250 });
       mockSupabaseChain.select.mockResolvedValue({ data: [updated], error: null });
@@ -366,14 +390,14 @@ describe("TransactionStore", () => {
       const userStore = useUserStore();
       // @ts-ignore
       userStore.user = { id: "user-123" };
-      // deleteTransaction chains .delete().eq("id").eq("user_id")
-      // First eq returns this, second eq resolves
-      mockSupabaseChain.eq
-        .mockReturnValueOnce(mockSupabaseChain)
-        .mockResolvedValueOnce({ error: null });
+      // No eq mock here — each test sets up its own
     });
 
     it("removes the transaction from the local list", async () => {
+      mockSupabaseChain.eq
+        .mockReturnValueOnce(mockSupabaseChain)
+        .mockResolvedValueOnce({ error: null });
+
       const store = useTransactionStore();
       store.transactions = [
         makeTransaction({ id: 1 }),
@@ -386,7 +410,23 @@ describe("TransactionStore", () => {
       expect(store.transactions[0].id).toBe(2);
     });
 
+    it("throws TransactionError on database error (covers line 187)", async () => {
+      mockSupabaseChain.eq
+        .mockReturnValueOnce(mockSupabaseChain)
+        .mockResolvedValueOnce({ error: { code: "08006", message: "connection failed", details: "", hint: "" } });
+
+      const store = useTransactionStore();
+      store.transactions = [makeTransaction({ id: 1 })];
+
+      await expect(store.deleteTransaction(1)).rejects.toBeInstanceOf(TransactionError);
+      expect(store.loading).toBe(false);
+    });
+
     it("sets loading to false after completion", async () => {
+      mockSupabaseChain.eq
+        .mockReturnValueOnce(mockSupabaseChain)
+        .mockResolvedValueOnce({ error: null });
+
       const store = useTransactionStore();
       store.transactions = [makeTransaction()];
 
@@ -403,11 +443,12 @@ describe("TransactionStore", () => {
       const userStore = useUserStore();
       // @ts-ignore
       userStore.user = { id: "user-123" };
-      // deleteAllTransactions chains .delete().eq("user_id") — single eq resolves
-      mockSupabaseChain.eq.mockResolvedValueOnce({ error: null });
+      // No eq mock here — each test sets up its own
     });
 
     it("clears the local transactions array", async () => {
+      mockSupabaseChain.eq.mockResolvedValueOnce({ error: null });
+
       const store = useTransactionStore();
       store.transactions = [makeTransaction(), makeTransaction({ id: 2 })];
 
@@ -416,7 +457,19 @@ describe("TransactionStore", () => {
       expect(store.transactions).toEqual([]);
     });
 
+    it("throws TransactionError on database error (covers line 207)", async () => {
+      mockSupabaseChain.eq.mockResolvedValueOnce({
+        error: { code: "08006", message: "connection failed", details: "", hint: "" },
+      });
+
+      const store = useTransactionStore();
+      await expect(store.deleteAllTransactions()).rejects.toBeInstanceOf(TransactionError);
+      expect(store.loading).toBe(false);
+    });
+
     it("sets loading to false after completion", async () => {
+      mockSupabaseChain.eq.mockResolvedValueOnce({ error: null });
+
       const store = useTransactionStore();
       await store.deleteAllTransactions();
       expect(store.loading).toBe(false);
@@ -431,13 +484,16 @@ describe("TransactionStore", () => {
       const userStore = useUserStore();
       // @ts-ignore
       userStore.user = { id: "user-123" };
+      // Explicitly reset the full chain so forEach tests don't bleed
+      mockSupabaseChain.select.mockReturnThis();
+      mockSupabaseChain.eq.mockReturnThis();
     });
 
     const errorCodes = ["23505", "23502", "42501", "08006"];
 
     errorCodes.forEach((code) => {
       it(`throws TransactionError for Supabase error code ${code}`, async () => {
-        mockSupabaseChain.order.mockResolvedValue({
+        mockSupabaseChain.order.mockResolvedValueOnce({
           data: null,
           error: { code, message: "db error", details: "", hint: "" },
         });
@@ -448,7 +504,7 @@ describe("TransactionStore", () => {
     });
 
     it("throws TransactionError with the error code preserved", async () => {
-      mockSupabaseChain.order.mockResolvedValue({
+      mockSupabaseChain.order.mockResolvedValueOnce({
         data: null,
         error: { code: "23505", message: "duplicate", details: "", hint: "" },
       });
@@ -459,6 +515,21 @@ describe("TransactionStore", () => {
       } catch (err) {
         expect(err).toBeInstanceOf(TransactionError);
         expect((err as TransactionError).code).toBe("23505");
+      }
+    });
+
+    it("uses fallback message for unknown error code (covers line 82)", async () => {
+      mockSupabaseChain.order.mockResolvedValueOnce({
+        data: null,
+        error: { code: "99999", message: "unknown", details: "", hint: "" },
+      });
+
+      const store = useTransactionStore();
+      try {
+        await store.fetchTransactions();
+      } catch (err) {
+        expect(err).toBeInstanceOf(TransactionError);
+        expect((err as TransactionError).message).toBe("Failed to fetchTransactions.");
       }
     });
   });

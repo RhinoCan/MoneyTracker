@@ -161,6 +161,15 @@ describe("AddTransaction.vue", () => {
       const hint = (wrapper.vm as any).amountHint;
       expect(hint).toContain(".");
     });
+
+    it("shows format hint when focused with correct separator", async () => {
+      const wrapper = mountComponent();
+      (wrapper.vm as any).isFocused = true;
+      (wrapper.vm as any).displayAmount = "1234.56"; // correct decimal separator for en-US
+      await wrapper.vm.$nextTick();
+      const hint = (wrapper.vm as any).amountHint;
+      expect(hint).toContain("1,234.56");
+    });
   });
 
   // -------------------------------------------------------------------------

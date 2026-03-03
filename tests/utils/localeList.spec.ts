@@ -26,10 +26,27 @@ describe("generateLocaleList", () => {
     it("returns items sorted alphabetically by name", () => {
       const result = generateLocaleList();
       for (let i = 1; i < result.length; i++) {
-        expect(
-          result[i - 1].name.localeCompare(result[i].name)
-        ).toBeLessThanOrEqual(0);
+        expect(result[i - 1].name.localeCompare(result[i].name)).toBeLessThanOrEqual(0);
       }
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // display.of() returns falsy for a specific code (line 98)
+  // -------------------------------------------------------------------------
+  describe("display.of() returns falsy for individual locale", () => {
+    it("falls back to the raw code as the name when of() returns undefined", () => {
+      const original = Intl.DisplayNames.prototype.of;
+      Intl.DisplayNames.prototype.of = function (code: string | undefined) {
+        if (code === "en-US") return undefined as unknown as string;
+        return original.call(this, code!);
+      };
+
+      const result = generateLocaleList();
+      const enUS = result.find((item) => item.code === "en-US");
+      expect(enUS?.name).toBe("en-US");
+
+      Intl.DisplayNames.prototype.of = original;
     });
   });
 
@@ -125,6 +142,25 @@ describe("generateLocaleList", () => {
       expect(result).toEqual([{ code: "en-US", name: "English (US)" }]);
 
       spy.mockRestore();
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // display.of() throws for a specific code (lines 101–102)
+  // -------------------------------------------------------------------------
+  describe("display.of() throws for individual locale", () => {
+    it("falls back to using the raw code as the name", () => {
+      const original = Intl.DisplayNames.prototype.of;
+      Intl.DisplayNames.prototype.of = (code: string | undefined) => {
+        if (code === "en-US") throw new Error("of() failed");
+        return original.call(this, code!);
+      };
+
+      const result = generateLocaleList();
+      const enUS = result.find((item) => item.code === "en-US");
+      expect(enUS?.name).toBe("en-US");
+
+      Intl.DisplayNames.prototype.of = original;
     });
   });
 });

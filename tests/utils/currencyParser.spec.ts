@@ -58,6 +58,38 @@ describe("parseCurrency", () => {
     it("strips whitespace", () => {
       expect(parseCurrency("  50.00  ", locale)).toBe(50);
     });
+
+    // -------------------------------------------------------------------------
+    // catch block (lines 53–60)
+    // -------------------------------------------------------------------------
+    describe("catch block", () => {
+      it("returns null and logs when Intl.NumberFormat throws", () => {
+        const spy = vi.spyOn(global.Intl, "NumberFormat").mockImplementationOnce(() => {
+          throw new Error("Intl failure");
+        });
+
+        const result = parseCurrency("123.45", "en-US");
+        expect(result).toBeNull();
+
+        spy.mockRestore();
+      });
+    });
+
+    // -------------------------------------------------------------------------
+    // ?? "." fallback (line 19)
+    // -------------------------------------------------------------------------
+    describe("decimal separator fallback", () => {
+      it('uses "." as fallback when formatToParts returns no decimal part', () => {
+        const spy = vi
+          .spyOn(Intl.NumberFormat.prototype, "formatToParts")
+          .mockReturnValueOnce([{ type: "integer", value: "1111" }]);
+
+        const result = parseCurrency("123.45", "en-US");
+        expect(result).toBe(123.45);
+
+        spy.mockRestore();
+      });
+    });
   });
 
   // -------------------------------------------------------------------------

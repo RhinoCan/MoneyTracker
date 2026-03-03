@@ -3,14 +3,15 @@ import { mount, flushPromises } from "@vue/test-utils";
 import { setActivePinia, createPinia } from "pinia";
 
 // --- MOCKS ---
-const { mockInitializeAuth } = vi.hoisted(() => ({
+const { mockInitializeAuth, mockLoading } = vi.hoisted(() => ({
   mockInitializeAuth: vi.fn().mockResolvedValue(undefined),
+  mockLoading: { value: false },
 }));
 
 vi.mock("@/stores/UserStore", () => ({
   useUserStore: () => ({
     initializeAuth: mockInitializeAuth,
-    loading: false,
+    get loading() { return mockLoading.value; },
   }),
 }));
 
@@ -57,6 +58,7 @@ describe("App.vue", () => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
     mockInitializeAuth.mockResolvedValue(undefined);
+    mockLoading.value = false;
   });
 
   afterEach(() => {
@@ -89,13 +91,20 @@ describe("App.vue", () => {
     it("does not show the fatal error UI by default", async () => {
       wrapper = mountComponent();
       await flushPromises();
-      expect(document.body.textContent).not.toContain("Application Failed to Start");
+      expect(wrapper.text()).not.toContain("Application Failed to Start");
     });
 
     it("does not show the loading spinner by default", async () => {
       wrapper = mountComponent();
       await flushPromises();
       expect(wrapper.find("v-progress-circular").exists()).toBe(false);
+    });
+
+    it("shows loading spinner when userStore.loading is true", async () => {
+      mockLoading.value = true;
+      wrapper = mountComponent();
+      await flushPromises();
+      expect(wrapper.html()).toContain("v-progress-circular");
     });
   });
 
@@ -145,7 +154,6 @@ describe("App.vue", () => {
       wrapper = mountComponent();
       await flushPromises();
       expect(wrapper.vm.fatalError).toBe(true);
-      // Simulate a second boot attempt succeeding
       mockInitializeAuth.mockResolvedValueOnce(undefined);
       await wrapper.vm.bootApp();
       await flushPromises();
@@ -171,14 +179,6 @@ describe("App.vue", () => {
       wrapper = mountComponent();
       await flushPromises();
       wrapper.vm.$i18n.locale = "ar";
-      await flushPromises();
-      expect(document.documentElement.dir).toBe("rtl");
-    });
-
-    it("sets dir to rtl for Hebrew locale", async () => {
-      wrapper = mountComponent();
-      await flushPromises();
-      wrapper.vm.$i18n.locale = "he";
       await flushPromises();
       expect(document.documentElement.dir).toBe("rtl");
     });

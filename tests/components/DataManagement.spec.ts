@@ -5,6 +5,7 @@ import { setActivePinia, createPinia } from "pinia";
 import { useTransactionStore } from "@/stores/TransactionStore";
 import { useSettingsStore } from "@/stores/SettingsStore";
 import DataManagement from "@/components/DataManagement.vue";
+import { logException } from "@/lib/Logger";
 
 // -------------------------------------------------------------------------
 // Hoisted mocks
@@ -50,11 +51,8 @@ describe("DataManagement.vue", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
     vi.clearAllMocks();
-    // Stub window.confirm — default to true (user confirms)
     vi.stubGlobal("confirm", vi.fn(() => true));
-    // Stub URL.createObjectURL for export tests
     vi.stubGlobal("URL", { createObjectURL: vi.fn(() => "blob:mock") });
-    // Stub window.location.reload
     vi.stubGlobal("location", { reload: vi.fn() });
   });
 
@@ -140,6 +138,15 @@ describe("DataManagement.vue", () => {
       await (wrapper.vm as any).handleDeleteAllTransactions();
       expect(mockDeleteAllTransactions).not.toHaveBeenCalled();
     });
+
+    it("swallows error silently when deleteAllTransactions throws (covers lines 28–30)", async () => {
+      mockDeleteAllTransactions.mockRejectedValueOnce(new Error("DB error"));
+      const wrapper = mountComponent();
+      await expect(
+        (wrapper.vm as any).handleDeleteAllTransactions()
+      ).resolves.toBeUndefined();
+      expect(wrapper.emitted("close")).toBeFalsy();
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -164,6 +171,14 @@ describe("DataManagement.vue", () => {
       const wrapper = mountComponent();
       await (wrapper.vm as any).handleDeleteAllSettings();
       expect(mockRestoreDefaults).not.toHaveBeenCalled();
+    });
+
+    it("calls logException and does not emit close when saveToDb throws (covers lines 54–59)", async () => {
+      mockSaveToDb.mockRejectedValueOnce(new Error("Save failed"));
+      const wrapper = mountComponent();
+      await (wrapper.vm as any).handleDeleteAllSettings();
+      expect(logException).toHaveBeenCalled();
+      expect(wrapper.emitted("close")).toBeFalsy();
     });
   });
 
@@ -190,6 +205,14 @@ describe("DataManagement.vue", () => {
       await (wrapper.vm as any).handleDeleteAllData();
       expect(mockDeleteAllTransactions).not.toHaveBeenCalled();
     });
+
+    it("calls logException and does not reload when deleteAllTransactions throws (covers lines 85–90)", async () => {
+      mockDeleteAllTransactions.mockRejectedValueOnce(new Error("Wipe failed"));
+      const wrapper = mountComponent();
+      await (wrapper.vm as any).handleDeleteAllData();
+      expect(logException).toHaveBeenCalled();
+      expect(window.location.reload).not.toHaveBeenCalled();
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -198,7 +221,6 @@ describe("DataManagement.vue", () => {
   describe("handleExport", () => {
     it("does not create a blob when there are no transactions", async () => {
       const wrapper = mountComponent({ transactions: [] });
-      // Button is disabled, call handleExport directly
       (wrapper.vm as any).handleExport();
       expect(URL.createObjectURL).not.toHaveBeenCalled();
     });
@@ -215,7 +237,6 @@ describe("DataManagement.vue", () => {
 
     it("escapes double quotes in description", async () => {
       let capturedContent = "";
-      // Capture what's passed into the Blob constructor
       const OriginalBlob = globalThis.Blob;
       vi.stubGlobal("Blob", class extends OriginalBlob {
         constructor(parts: BlobPart[], options?: BlobPropertyBag) {

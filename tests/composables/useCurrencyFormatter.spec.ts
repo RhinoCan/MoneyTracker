@@ -1,9 +1,10 @@
 // tests/composables/useCurrencyFormatter.spec.ts
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
 import { useSettingsStore } from "@/stores/SettingsStore";
 import { withSetup } from "../test-utils";
 import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter";
+import { logException } from "@/lib/Logger";
 
 // -------------------------------------------------------------------------
 // Mock i18n to suppress locale watcher side effects from SettingsStore
@@ -115,18 +116,46 @@ describe("useCurrencyFormatter", () => {
   // Fallback defaults
   // -------------------------------------------------------------------------
   describe("fallback defaults", () => {
-    it("falls back to en-US and USD when locale and currency are empty", () => {
-      const settingsStore = useSettingsStore();
-      // @ts-ignore — force empty to test fallback
-      settingsStore.locale = "";
-      // @ts-ignore
-      settingsStore.currency = "";
+    it("falls back to en-US and USD when locale and currency are empty strings", () => {
+      const { formatCurrency } = withSetup(() => {
+        const settingsStore = useSettingsStore();
+        // @ts-ignore
+        settingsStore.locale = "";
+        // @ts-ignore
+        settingsStore.currency = "";
+        return useCurrencyFormatter();
+      });
 
-      const { formatCurrency } = withSetup(() => useCurrencyFormatter());
-      // Should not throw — fallback to en-US/USD
       const result = formatCurrency(100);
       expect(typeof result).toBe("string");
       expect(result.length).toBeGreaterThan(0);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // catch block — Intl.NumberFormat throws (covers lines 26–34)
+  // -------------------------------------------------------------------------
+  describe("formatCurrency catch block", () => {
+    it("calls logException and returns amount.toString() when Intl.NumberFormat throws", () => {
+      const settingsStore = useSettingsStore();
+      settingsStore.locale = "en-US";
+      settingsStore.currency = "USD";
+
+      // Force Intl.NumberFormat to throw
+      const originalNumberFormat = Intl.NumberFormat;
+      vi.spyOn(Intl, "NumberFormat").mockImplementationOnce(() => {
+        throw new Error("Intl failure");
+      });
+
+      const { formatCurrency } = withSetup(() => useCurrencyFormatter());
+      const result = formatCurrency(42);
+
+      expect(logException).toHaveBeenCalled();
+      expect(result).toBe("42");
+
+      // Restore is handled automatically by mockImplementationOnce,
+      // but reassign explicitly to be safe
+      vi.restoreAllMocks();
     });
   });
 });

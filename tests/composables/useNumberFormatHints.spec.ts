@@ -90,6 +90,41 @@ describe("useNumberFormatHints", () => {
       expect(amountExample.value).toMatch(/1\.234,56/);
     });
   });
+  // -------------------------------------------------------------------------
+  // decimalSeparator ?? "." fallback (line 13)
+  // -------------------------------------------------------------------------
+  describe("decimalSeparator fallback", () => {
+    it('returns "." when formatToParts returns no decimal part', () => {
+      vi.spyOn(Intl.NumberFormat.prototype, "formatToParts").mockReturnValueOnce([
+        { type: "integer", value: "1" },
+      ]);
+
+      const { decimalSeparator } = withSetup(() => {
+        useSettingsStore().locale = "en-US";
+        return useNumberFormatHints();
+      });
+
+      expect(decimalSeparator.value).toBe(".");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // groupSeparator ?? "," fallback (line 21)
+  // -------------------------------------------------------------------------
+  describe("groupSeparator fallback", () => {
+    it('returns "," when formatToParts returns no group part', () => {
+      vi.spyOn(Intl.NumberFormat.prototype, "formatToParts").mockReturnValueOnce([
+        { type: "integer", value: "1111" },
+      ]);
+
+      const { groupSeparator } = withSetup(() => {
+        useSettingsStore().locale = "en-US";
+        return useNumberFormatHints();
+      });
+
+      expect(groupSeparator.value).toBe(",");
+    });
+  });
 
   // -------------------------------------------------------------------------
   // hasCorrectSeparator

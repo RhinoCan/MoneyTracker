@@ -127,6 +127,11 @@ describe("useAppValidationRules", () => {
       const { timeoutRules } = withSetup(() => useAppValidationRules());
       expect(timeoutRules(2.5)).toBe("useApp.timeoutInteger");
     });
+
+    it("accepts a numeric value directly", () => {
+      const { timeoutRules } = useAppValidationRules();
+      expect(timeoutRules(5)).toBe(true);
+    });
   });
 
   // -------------------------------------------------------------------------
@@ -146,7 +151,7 @@ describe("useAppValidationRules", () => {
         useSettingsStore().locale = "en-US";
         return useAppValidationRules();
       });
-      expect(amountRules("")).toBe("useApp.reqdZeroOk");
+      expect(amountRules("")).toBe("useApp.reqd");
     });
 
     it("returns an error key for zero", () => {

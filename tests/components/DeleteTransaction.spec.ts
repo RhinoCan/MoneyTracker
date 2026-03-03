@@ -4,6 +4,7 @@ import { mount } from "@vue/test-utils";
 import { setActivePinia, createPinia } from "pinia";
 import type { Transaction } from "@/types/Transaction";
 import DeleteTransaction from "@/components/DeleteTransaction.vue";
+import { logException, logInfo } from "@/lib/Logger";
 
 // -------------------------------------------------------------------------
 // Hoisted mocks
@@ -116,7 +117,6 @@ describe("DeleteTransaction.vue", () => {
   describe("content rendering", () => {
     it("renders transaction details", () => {
       const wrapper = mountComponent(sampleTransaction);
-
       expect(wrapper.text()).toContain("Grocery shopping");
       expect(wrapper.text()).toContain("formatted:2025-06-15");
       expect(wrapper.find(".mock-amount").text()).toBe("250");
@@ -135,26 +135,44 @@ describe("DeleteTransaction.vue", () => {
   describe("deleteTransaction", () => {
     it("calls store delete with correct id", async () => {
       const wrapper = mountComponent(sampleTransaction);
-
-      const deleteBtn = wrapper.findAll(".v-btn")
-        .find(b => b.text().includes("Delete"));
-
+      const deleteBtn = wrapper.findAll(".v-btn").find(b => b.text().includes("Delete"));
       await deleteBtn!.trigger("click");
-
       expect(mockDeleteTransaction).toHaveBeenCalledWith(1);
     });
 
     it("emits null after successful delete", async () => {
       const onUpdate = vi.fn();
       const wrapper = mountComponent(sampleTransaction, onUpdate);
-
-      const deleteBtn = wrapper.findAll(".v-btn")
-        .find(b => b.text().includes("Delete"));
-
+      const deleteBtn = wrapper.findAll(".v-btn").find(b => b.text().includes("Delete"));
       await deleteBtn!.trigger("click");
       await wrapper.vm.$nextTick();
-
       expect(onUpdate).toHaveBeenCalledWith(null);
+    });
+
+    it("calls logInfo after successful delete (covers lines 45–49)", async () => {
+      const wrapper = mountComponent(sampleTransaction);
+      const deleteBtn = wrapper.findAll(".v-btn").find(b => b.text().includes("Delete"));
+      await deleteBtn!.trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(logInfo).toHaveBeenCalled();
+    });
+
+    it("calls logException and clears model when item has no id (covers lines 31–38)", async () => {
+      const onUpdate = vi.fn();
+      const noIdTransaction = { ...sampleTransaction, id: undefined } as any;
+      const wrapper = mountComponent(noIdTransaction, onUpdate);
+      await (wrapper.vm as any).deleteTransaction();
+      expect(logException).toHaveBeenCalled();
+      expect(mockDeleteTransaction).not.toHaveBeenCalled();
+      expect(onUpdate).toHaveBeenCalledWith(null);
+    });
+
+    it("calls logException when deleteTransaction throws (covers lines 52–58)", async () => {
+      mockDeleteTransaction.mockRejectedValueOnce(new Error("DB error"));
+      const wrapper = mountComponent(sampleTransaction);
+      await (wrapper.vm as any).deleteTransaction();
+      expect(logException).toHaveBeenCalled();
+      expect(logInfo).not.toHaveBeenCalled();
     });
   });
 
@@ -165,12 +183,8 @@ describe("DeleteTransaction.vue", () => {
     it("emits null when Cancel is clicked", async () => {
       const onUpdate = vi.fn();
       const wrapper = mountComponent(sampleTransaction, onUpdate);
-
-      const cancelBtn = wrapper.findAll(".v-btn")
-        .find(b => b.text().includes("Cancel"));
-
+      const cancelBtn = wrapper.findAll(".v-btn").find(b => b.text().includes("Cancel"));
       await cancelBtn!.trigger("click");
-
       expect(onUpdate).toHaveBeenCalledWith(null);
     });
   });
