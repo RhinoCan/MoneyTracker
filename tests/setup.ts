@@ -3,12 +3,14 @@ import { config } from "@vue/test-utils";
 import { createVuetify } from "vuetify";
 import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
+import { i18n } from "@/i18n";
 
 // Global mock for the Logger to keep the console clean
 vi.mock("@/lib/Logger", () => ({
   logWarning: vi.fn(),
   logException: vi.fn(),
   logInfo: vi.fn(),
+  logValidation: vi.fn(),
   logSuccess: vi.fn(),
 }));
 
@@ -56,8 +58,8 @@ const vuetify = createVuetify({
   directives,
 });
 
-// Install it globally for all tests
-config.global.plugins = [vuetify];
+// Install Vuetify and i18n globally for all tests
+config.global.plugins = [vuetify, i18n];
 
 // Suppress Vue warnings in tests
 const originalWarn = console.warn;

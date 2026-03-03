@@ -16,7 +16,7 @@ const { t } = useI18n();
 const transactionStore = useTransactionStore();
 const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
 const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
-const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } =
+const { amountExample, hasCorrectSeparator, decimalSeparator } =
   useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
@@ -216,7 +216,6 @@ function resetForm() {
       <v-text-field
         v-model="displayAmount"
         :label="t('addTrans.labelAmount')"
-        :placeholder="amountPlaceholder"
         :hint="amountHint"
         persistent-hint
         variant="outlined"

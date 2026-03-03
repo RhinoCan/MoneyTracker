@@ -1,0 +1,153 @@
+     1	/* eslint-disable no-console */
+     2	import * as Sentry from "@sentry/vue";
+     3	import posthog from "posthog-js";
+     4	import { useNotificationStore } from "@/stores/NotificationStore";
+     5	import { i18n } from "@/i18n";
+     6	
+     7	/**
+     8	 * Helper to get locale for Sentry/PostHog tagging.
+     9	 * Pulling directly from localStorage avoids circular dependencies with SettingsStore.
+    10	 */
+    11	const getCurrentLocale = () => localStorage.getItem("user-locale") || "en-US";
+    12	
+    13	export type LoggerMeta = {
+    14	  module: string; // e.g., 'TransactionStore', 'AppInitializer'
+    15	  action: string; // e.g., 'addTransaction', 'loadSettings'
+    16	  slug?: string; // e.g., 'db.23505', 'err.validation_failed'
+    17	  data?: unknown; // Any relevant context (IDs, record counts, etc.)
+    18	  [key: string]: unknown;
+    19	};
+    20	
+    21	/**
+    22	 * translateIfPossible
+    23	 * Helper to check if a string is a translation key.
+    24	 * If i18n has it, return the translation. Otherwise, return the original.
+    25	 */
+    26	// NOTE: logInfo and logWarning are developer-facing only (no snackbar).
+    27	// Their messages do not need to be translation keys.
+    28	// Only logSuccess, logException, and logValidation are user-facing
+    29	// and require translatable messages.
+    30	const translateIfPossible = (message: string): string => {
+    31	  // te() checks if the key exists in your JSON files
+    32	  if (i18n.global.te(message)) {
+    33	    return i18n.global.t(message);
+    34	  }
+    35	  return message;
+    36	};
+    37	
+    38	/**
+    39	 * logException
+    40	 * USE CASE: Handled or unhandled errors that prevent a task from completing.
+    41	 * BEHAVIOR: Sentry (Error), PostHog (Event), Console (Red), Snackbar.
+    42	 * * EXAMPLE:
+    43	 * logException(error, {
+    44	 * module: 'TransactionStore',
+    45	 * action: 'addTransaction',
+    46	 * slug: 'db.constraint_violation',
+    47	 * data: { amount: 500 }
+    48	 * });
+    49	 * === logException is user-facing so translateable messages should be passed in the slug (or in the message if there is no actual exception) ===
+    50	 */
+    51	export const logException = (error: unknown, meta: LoggerMeta) => {
+    52	  const errorMessage = error instanceof Error ? error.message : String(error);
+    53	
+    54	  // Logging - Developer-facing - English
+    55	  Sentry.withScope((scope) => {
+    56	    scope.setTag("locale", getCurrentLocale());
+    57	    if (meta.slug) scope.setTag("slug", meta.slug);
+    58	    scope.setExtras(meta);
+    59	    Sentry.captureException(error);
+    60	  });
+    61	
+    62	  posthog.capture("exception", {
+    63	    message: errorMessage,
+    64	    ...meta,
+    65	    locale: getCurrentLocale(),
+    66	  });
+    67	  console.error(`🔴 [EXCEPTION] ${meta.module} > ${meta.action}:`, error, meta);
+    68	
+    69	  // Notification - user-facing - localized
+    70	  const notify = useNotificationStore();
+    71	  const userMessage = meta.slug ? translateIfPossible(meta.slug) : errorMessage;
+    72	  notify.showMessage(userMessage, "error");
+    73	};
+    74	
+    75	/**
+    76	 * logWarning
+    77	 * USE CASE: Unexpected behavior where the app can still function (fallbacks).
+    78	 * BEHAVIOR: Sentry (Warning), PostHog (Event), Console (Orange). No snackbar.
+    79	 * * EXAMPLE:
+    80	 * logWarning("User profile image failed to load, using placeholder", {
+    81	 * module: 'UserStore',
+    82	 * action: 'loadAvatar',
+    83	 * slug: 'warn.image_fallback'
+    84	 * });
+    85	 */
+    86	export const logWarning = (message: string, meta: LoggerMeta) => {
+    87	  Sentry.withScope((scope) => {
+    88	    scope.setLevel("warning");
+    89	    scope.setTag("locale", getCurrentLocale());
+    90	    scope.setExtras(meta);
+    91	    Sentry.captureMessage(message);
+    92	  });
+    93	
+    94	  posthog.capture("warning", { message, ...meta, locale: getCurrentLocale() });
+    95	  console.warn(`🟠 [WARNING] ${meta.module} > ${meta.action}: ${message}`, meta);
+    96	};
+    97	
+    98	/**
+    99	 * logValidation
+   100	 * USE CASE: User-facing form validation failures.
+   101	 * BEHAVIOR: PostHog (Event), Console (Yellow), Snackbar (warning color).
+   102	 * No Sentry — validation failures are expected user behavior, not application errors.
+   103	 * EXAMPLE:
+   104	 * logValidation("addTrans.wrongSeparator", {
+   105	 *   module: 'AddTransaction',
+   106	 *   action: 'onSubmit'
+   107	 * });
+   108	 * === logValidation is user-facing so translatable keys should be passed as message ===
+   109	 */
+   110	export const logValidation = (message: string, meta: LoggerMeta) => {
+   111	  posthog.capture("validation", { message, ...meta, locale: getCurrentLocale() });
+   112	  console.warn(`🟡 [VALIDATION] ${meta.module} > ${meta.action}: ${message}`, meta);
+   113	
+   114	  const notify = useNotificationStore();
+   115	  notify.showMessage(translateIfPossible(message), "warning");
+   116	};
+   117	
+   118	/**
+   119	 * logInfo
+   120	 * USE CASE: Background system pulses and read-only successes.
+   121	 * BEHAVIOR: PostHog (Event), Console (Blue). No Sentry, no snackbar.
+   122	 * * EXAMPLE:
+   123	 * logInfo("Settings hydrated from database", {
+   124	 * module: 'AppInitializer',
+   125	 * action: 'init',
+   126	 * data: { rowCount: 12 }
+   127	 * });
+   128	 */
+   129	export const logInfo = (message: string, meta: LoggerMeta) => {
+   130	  posthog.capture("info", { message, ...meta, locale: getCurrentLocale() });
+   131	  console.info(`🔵 [INFO] ${meta.module} > ${meta.action}: ${message}`, meta);
+   132	};
+   133	
+   134	/**
+   135	 * logSuccess
+   136	 * USE CASE: Confirmed user-driven data changes (Mutations).
+   137	 * BEHAVIOR: PostHog (Event), Console (Green), Snackbar. No Sentry.
+   138	 * * EXAMPLE:
+   139	 * logSuccess("Transaction deleted successfully", {
+   140	 * module: 'TransactionStore',
+   141	 * action: 'deleteTransaction',
+   142	 * data: { id: 123 }
+   143	 * });
+   144	 * === logSuccess is user-facing so messages should be translated ===
+   145	 */
+   146	export const logSuccess = (message: string, meta: LoggerMeta) => {
+   147	  posthog.capture("success", { message, ...meta, locale: getCurrentLocale() });
+   148	  console.log(`🟢 [SUCCESS] ${meta.module} > ${meta.action}: ${message}`, meta);
+   149	
+   150	  //Notification - user-facing - localized
+   151	  const notify = useNotificationStore();
+   152	  notify.showMessage(translateIfPossible(message), "success");
+   153	};

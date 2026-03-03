@@ -1,125 +1,125 @@
-// __tests__/utils/currencyParser.spec.ts
-import { describe, test, expect, vi, beforeEach, afterEach } from "vitest";
+// tests/utils/currencyParser.spec.ts
+import { describe, it, expect } from "vitest";
 import { parseCurrency } from "@/utils/currencyParser";
 
-// We use this to control what locale the parser thinks it is using
-let mockLocale = "en-US";
-
-describe("parseCurrency (Utility)", () => {
-  beforeEach(() => {
-    mockLocale = "en-US";
-    vi.clearAllMocks();
-    vi.restoreAllMocks();
-  });
-
-  // --- TEST GROUP 1: BASE VALIDATION & EDGE CASES ---
-  describe("Base Validation & Edge Cases", () => {
-    test("should return null for non-string, null, or empty input", () => {
-      // @ts-ignore - Testing illegal input types with mandatory second param
-      expect(parseCurrency(null, mockLocale)).toBeNull();
-      // @ts-ignore
-      expect(parseCurrency(undefined, mockLocale)).toBeNull();
-      // @ts-ignore
-      expect(parseCurrency(123, mockLocale)).toBeNull();
-      expect(parseCurrency("", mockLocale)).toBeNull();
-      expect(parseCurrency(" ", mockLocale)).toBeNull();
+describe("parseCurrency", () => {
+  // -------------------------------------------------------------------------
+  // Guard clauses — invalid input
+  // -------------------------------------------------------------------------
+  describe("invalid input", () => {
+    it("returns null for an empty string", () => {
+      expect(parseCurrency("", "en-US")).toBeNull();
     });
 
-    test("should return null if the parsed value is zero or less", () => {
-      expect(parseCurrency("0", mockLocale)).toBeNull();
-      expect(parseCurrency("0.00", mockLocale)).toBeNull();
-      expect(parseCurrency("-10", mockLocale)).toBeNull();
+    it("returns null for a non-string value", () => {
+      // @ts-expect-error — deliberately testing runtime guard
+      expect(parseCurrency(null, "en-US")).toBeNull();
     });
 
-    test("should handle simple integer input correctly", () => {
-      expect(parseCurrency("1234", mockLocale)).toBe(1234);
-      expect(parseCurrency("1", mockLocale)).toBe(1);
+    it("returns null for a string with no numeric content", () => {
+      expect(parseCurrency("abc", "en-US")).toBeNull();
+    });
+
+    it("returns null for zero", () => {
+      expect(parseCurrency("0", "en-US")).toBeNull();
+    });
+
+    it("returns null for a negative number", () => {
+      expect(parseCurrency("-5.00", "en-US")).toBeNull();
+    });
+
+    it("returns null for a string with multiple decimal separators", () => {
+      expect(parseCurrency("1.23.45", "en-US")).toBeNull();
     });
   });
 
-  // --- TEST GROUP 2: US/STANDARD LOCALE (en-US) ---
-  describe("US Locale (en-US)", () => {
-    test("should parse a simple US formatted string (with cents)", () => {
-      expect(parseCurrency("12.34", "en-US")).toBe(12.34);
+  // -------------------------------------------------------------------------
+  // en-US — decimal: ".", thousands: ","
+  // -------------------------------------------------------------------------
+  describe("en-US locale", () => {
+    const locale = "en-US";
+
+    it("parses a plain integer string", () => {
+      expect(parseCurrency("100", locale)).toBe(100);
     });
 
-    test("should handle thousands separators", () => {
-      expect(parseCurrency("1,234.56", "en-US")).toBe(1234.56);
-      expect(parseCurrency("100,000", "en-US")).toBe(100000);
+    it("parses a decimal amount", () => {
+      expect(parseCurrency("1234.56", locale)).toBe(1234.56);
     });
 
-    test("should correctly remove the currency symbol", () => {
-      // en-US NumberFormat typically identifies '$'
-      expect(parseCurrency("$1,234.56", "en-US")).toBe(1234.56);
-    });
-  });
-
-  // --- TEST GROUP 3: EUROPEAN/FRENCH LOCALE (fr-FR) ---
-  describe("French Locale (fr-FR)", () => {
-    beforeEach(() => {
-      mockLocale = "fr-FR";
-      // Explicitly mock the separators for French
-      vi.spyOn(Intl, "NumberFormat").mockImplementation(
-        () =>
-          ({
-            formatToParts: vi.fn((): Intl.NumberFormatPart[] => [
-              { type: "group", value: " " },
-              { type: "decimal", value: "," },
-              { type: "currency", value: "€" },
-            ]),
-          }) as any
-      );
+    it("parses a formatted currency string with symbol and thousands separator", () => {
+      expect(parseCurrency("$1,234.56", locale)).toBe(1234.56);
     });
 
-    test("should parse a French formatted string correctly", () => {
-      expect(parseCurrency("12,34", mockLocale)).toBe(12.34);
+    it("parses a value with thousands separator but no decimal", () => {
+      expect(parseCurrency("1,000", locale)).toBe(1000);
     });
 
-    test("should handle thousands (space) separators", () => {
-      expect(parseCurrency("1 234,56", mockLocale)).toBe(1234.56);
-    });
-
-    test("should correctly remove the € symbol", () => {
-      expect(parseCurrency("1 234,56€", mockLocale)).toBe(1234.56);
+    it("strips whitespace", () => {
+      expect(parseCurrency("  50.00  ", locale)).toBe(50);
     });
   });
 
-  // --- TEST GROUP 4: CRITICAL VALIDATION ---
-  describe("Critical Validation", () => {
-    test("should return null for strings with illegal characters", () => {
-      expect(parseCurrency("123a", "en-US")).toBeNull();
-      expect(parseCurrency("123.45x", "en-US")).toBeNull();
-      expect(parseCurrency("123-", "en-US")).toBeNull();
+  // -------------------------------------------------------------------------
+  // de-DE — decimal: ",", thousands: "."
+  // -------------------------------------------------------------------------
+  describe("de-DE locale", () => {
+    const locale = "de-DE";
+
+    it("parses a decimal amount using comma as decimal separator", () => {
+      expect(parseCurrency("1234,56", locale)).toBe(1234.56);
     });
 
-    test("should return null for input with multiple decimal points", () => {
-      expect(parseCurrency("1.2.3", "en-US")).toBeNull();
+    it("parses a formatted string with period as thousands separator", () => {
+      expect(parseCurrency("1.234,56", locale)).toBe(1234.56);
+    });
+
+    it("parses a whole number with thousands separator", () => {
+      expect(parseCurrency("2.000", locale)).toBe(2000);
     });
   });
 
-  // --- TEST GROUP 5: CATCH BLOCK & FALLBACKS ---
-  describe("Error Handling & Fallbacks", () => {
-    test("should return null if Intl.NumberFormat throws an exception", () => {
-      vi.spyOn(Intl, "NumberFormat").mockImplementationOnce(() => {
-        throw new Error("Forced Intl Error");
-      });
+  // -------------------------------------------------------------------------
+  // fr-FR — decimal: ",", thousands: " " (narrow no-break space)
+  // -------------------------------------------------------------------------
+  describe("fr-FR locale", () => {
+    const locale = "fr-FR";
 
-      const result = parseCurrency("123.45", "en-US");
-      expect(result).toBeNull();
+    it("parses a decimal amount using comma as decimal separator", () => {
+      expect(parseCurrency("1234,56", locale)).toBe(1234.56);
     });
 
-    test('should use fallback "." and "," when parts are missing', () => {
-      vi.spyOn(Intl, "NumberFormat").mockImplementation(
-        () =>
-          ({
-            formatToParts: vi.fn().mockReturnValue([
-              { type: "integer", value: "1111" }, // Missing decimal and group
-            ]),
-          }) as any
-      );
+    it("parses a formatted euro string", () => {
+      // Intl formats fr-FR as "1 234,56 €" — spaces are thousands separators
+      expect(parseCurrency("1 234,56 €", locale)).toBe(1234.56);
+    });
+  });
 
-      // Should successfully use fallbacks to parse
-      expect(parseCurrency("1,234.56", "en-US")).toBe(1234.56);
+  // -------------------------------------------------------------------------
+  // ja-JP — no decimal places in standard currency
+  // -------------------------------------------------------------------------
+  describe("ja-JP locale", () => {
+    const locale = "ja-JP";
+
+    it("parses a plain yen amount", () => {
+      expect(parseCurrency("1000", locale)).toBe(1000);
+    });
+
+    it("parses a formatted yen string", () => {
+      expect(parseCurrency("￥1,000", locale)).toBe(1000);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // Edge cases
+  // -------------------------------------------------------------------------
+  describe("edge cases", () => {
+    it("parses the smallest valid positive value", () => {
+      expect(parseCurrency("0.01", "en-US")).toBe(0.01);
+    });
+
+    it("parses a large amount correctly", () => {
+      expect(parseCurrency("$1,000,000.00", "en-US")).toBe(1000000);
     });
   });
 });

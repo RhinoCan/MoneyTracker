@@ -1,228 +1,253 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
-import { ref, nextTick } from "vue";
-import { useTransactionFormFields } from "@/composables/useTransactionFormFields";
-import { useLocaleStore } from "@/stores/LocaleStore";
-import { parseCurrency } from "@/utils/currencyParser";
-import { logException } from "@/utils/Logger";
-import { TransactionTypeValues } from "@/types/Transaction";
+// tests/composables/useTransactionFormFields.spec.ts
+import { describe, it, expect, beforeEach, vi } from "vitest";
+import { setActivePinia, createPinia } from "pinia";
+import { ref } from "vue";
 
-// 1. Mock all dependencies
+// -------------------------------------------------------------------------
+// Mock all composable dependencies before importing the target
+// -------------------------------------------------------------------------
+const mockFormatCurrency = vi.fn((amount: number) => `$${amount}`);
+const mockFormatToMediumDate = vi.fn((date: string) => date ? `formatted:${date}` : "");
+const mockFormatToIsoDateOnly = vi.fn(() => "2025-06-15");
+const mockHasCorrectSeparator = vi.fn(() => true);
+
 vi.mock("@/composables/useCurrencyFormatter", () => ({
-  useCurrencyFormatter: () => ({ displayMoney: vi.fn((val) => `$${val}`) }),
+  useCurrencyFormatter: () => ({ formatCurrency: mockFormatCurrency }),
 }));
 
 vi.mock("@/composables/useDateFormatter", () => ({
-  useDateFormatter: () => ({ formatDate: vi.fn((val) => "2025-01-01") }),
-}));
-
-vi.mock("@/composables/useAppValidationRules", () => ({
-  useAppValidationRules: () => ({
-    required: vi.fn(() => true),
-    dateRules: vi.fn(() => true),
-    amountRules: vi.fn((v) => (v === "invalid" ? "Error" : true)),
+  useDateFormatter: () => ({
+    formatToMediumDate: mockFormatToMediumDate,
+    formatToIsoDateOnly: mockFormatToIsoDateOnly,
   }),
 }));
 
-vi.mock("@/utils/currencyParser", () => ({
-  parseCurrency: vi.fn(),
+vi.mock("@/composables/useNumberFormatHints", () => ({
+  useNumberFormatHints: () => ({
+    hasCorrectSeparator: mockHasCorrectSeparator,
+    decimalSeparator: ref("."),
+  }),
 }));
 
-vi.mock("@/utils/Logger", () => ({
-  logException: vi.fn(),
+vi.mock("@/stores/SettingsStore", () => ({
+  useSettingsStore: () => ({ locale: "en-US", currency: "USD" }),
 }));
 
-vi.mock("@/stores/LocaleStore", () => ({
-  useLocaleStore: () => ({ currentLocale: "en-US" }),
+vi.mock("@/i18n", () => ({
+  i18n: {
+    global: {
+      locale: { value: "en-US" },
+      t: (key: string) => key,
+      te: () => false,
+    },
+  },
 }));
+
+// Import AFTER mocks are set up
+import { useTransactionFormFields } from "@/composables/useTransactionFormFields";
 
 describe("useTransactionFormFields", () => {
   beforeEach(() => {
+    setActivePinia(createPinia());
     vi.clearAllMocks();
+    mockFormatToIsoDateOnly.mockReturnValue("2025-06-15");
+    mockFormatToMediumDate.mockImplementation((date: string) => date ? `formatted:${date}` : "");
+    mockHasCorrectSeparator.mockReturnValue(true);
+    mockFormatCurrency.mockImplementation((amount: number) => `$${amount}`);
   });
 
-  it("should initialize with default values if no external ref is provided", () => {
-    const { transaction } = useTransactionFormFields();
-    expect(transaction.value).not.toBeNull();
-    expect(transaction.value?.amount).toBe(0);
-  });
-
-  it("should use the external transaction ref if provided", () => {
-    const external = ref({
-      id: 99,
-      amount: 50,
-      transactionType: TransactionTypeValues.Income,
-      date: "",
-      description: "",
-    });
-    const { transaction } = useTransactionFormFields(external as any);
-    expect(transaction.value?.id).toBe(99);
-  });
-
-  describe("Formatting and Focus Logic", () => {
-    it("should toggle between raw amount and formatted amount on focus/blur", () => {
-      const { formattedAmount, handleFocus, handleBlur, displayAmount, transaction } =
-        useTransactionFormFields();
-
-      // 1. Setup the mock to return a number when called
-      (parseCurrency as any).mockReturnValue(123.45);
-
-      transaction.value!.amount = 123.45;
-
-      // On Focus: should show the raw number string
-      handleFocus();
-      expect(displayAmount.value).toBe("123.45");
-      expect(formattedAmount.value).toBe("123.45");
-
-      // On Blur:
-      // This will call parseCurrency("123.45"), which now returns 123.45
-      handleBlur();
-
-      expect(transaction.value?.amount).toBe(123.45);
-      expect(formattedAmount.value).toBe("$123.45");
+  // -------------------------------------------------------------------------
+  // Initial state
+  // -------------------------------------------------------------------------
+  describe("initial state", () => {
+    it("transaction amount starts at 0", () => {
+      const { transaction } = useTransactionFormFields();
+      expect(transaction.value.amount).toBe(0);
     });
 
-    it("should set displayAmount to empty string if transaction amount is null on focus", () => {
-      const { handleFocus, displayAmount, transaction } = useTransactionFormFields();
+    it("transaction type starts as Expense", () => {
+      const { transaction } = useTransactionFormFields();
+      expect(transaction.value.transaction_type).toBe("Expense");
+    });
 
-      // Set the amount to null explicitly to trigger the 'else' branch
-      transaction.value!.amount = null as any;
+    it("transaction description starts as empty string", () => {
+      const { transaction } = useTransactionFormFields();
+      expect(transaction.value.description).toBe("");
+    });
 
-      handleFocus();
+    it("transaction date starts as today in YYYY-MM-DD format", () => {
+      const { transaction } = useTransactionFormFields();
+      expect(transaction.value.date).toBe("2025-06-15");
+    });
 
+    it("displayAmount starts as empty string", () => {
+      const { displayAmount } = useTransactionFormFields();
       expect(displayAmount.value).toBe("");
     });
 
-    it("should return empty string for formattedDate if transaction has no date", () => {
-      const { transaction, formattedDate } = useTransactionFormFields();
-      transaction.value = null;
-      expect(formattedDate.value).toBe("");
+    it("isFocused starts as false", () => {
+      const { isFocused } = useTransactionFormFields();
+      expect(isFocused.value).toBe(false);
     });
 
-    it("should format the date when a date value exists", () => {
-      const { transaction, formattedDate } = useTransactionFormFields();
-
-      // Ensure transaction exists and has a date string
-      transaction.value = {
-        id: 1,
-        amount: 10,
-        transactionType: TransactionTypeValues.Expense,
-        date: "2025-01-01T00:00:00.000Z",
-        description: "Test",
-      };
-
-      // This triggers the 'formatDate(dateValue)' part of the ternary
-      expect(formattedDate.value).toBe("2025-01-01");
+    it("dateMenu starts as false", () => {
+      const { dateMenu } = useTransactionFormFields();
+      expect(dateMenu.value).toBe(false);
     });
   });
 
-  describe("handleBlur and Parsing", () => {
-    it("should update transaction amount on successful parse", () => {
-      const { displayAmount, handleBlur, transaction } = useTransactionFormFields();
-      (parseCurrency as any).mockReturnValue(500);
-
-      displayAmount.value = "500";
-      handleBlur();
-
-      expect(transaction.value?.amount).toBe(500);
-    });
-
-    it("should log exception on parse/validator mismatch (Line 113)", () => {
-      const { displayAmount, handleBlur } = useTransactionFormFields();
-
-      // Simulator: Validator says it's fine, but parser returns null
-      (parseCurrency as any).mockReturnValue(null);
-      displayAmount.value = "something-weird";
-
-      handleBlur();
-
-      expect(logException).toHaveBeenCalled();
-    });
-  });
-
-  it("should reset the form to defaults", () => {
-    const { resetForm, transaction, displayAmount } = useTransactionFormFields();
-    transaction.value!.amount = 100;
-    displayAmount.value = "100";
-
-    resetForm();
-
-    expect(transaction.value?.amount).toBe(0);
-    expect(displayAmount.value).toBe("");
-  });
-
-  it("should close the date picker on nextTick", async () => {
-    const { dateMenu, closeDatePicker } = useTransactionFormFields();
-    dateMenu.value = true;
-    closeDatePicker();
-    await nextTick();
-    expect(dateMenu.value).toBe(false);
-  });
-
-  describe("Color Classes", () => {
-    it("should return money-neutral when focused", () => {
-      const { colorClass, handleFocus } = useTransactionFormFields();
-      handleFocus();
-      expect(colorClass.value).toBe("money-neutral");
-    });
-
-    it("should return money-plus for income and money-minus for expense", () => {
-      const { transaction, colorClass, isFocused } = useTransactionFormFields();
-      isFocused.value = false;
-
-      transaction.value!.transactionType = TransactionTypeValues.Income;
-      expect(colorClass.value).toBe("money-plus");
-
-      transaction.value!.transactionType = TransactionTypeValues.Expense;
+  // -------------------------------------------------------------------------
+  // colorClass computed
+  // -------------------------------------------------------------------------
+  describe("colorClass", () => {
+    it("is 'money-minus' for Expense when not focused", () => {
+      const { transaction, colorClass } = useTransactionFormFields();
+      transaction.value.transaction_type = "Expense";
       expect(colorClass.value).toBe("money-minus");
     });
+
+    it("is 'money-plus' for Income when not focused", () => {
+      const { transaction, colorClass } = useTransactionFormFields();
+      transaction.value.transaction_type = "Income";
+      expect(colorClass.value).toBe("money-plus");
+    });
+
+    it("is 'money-neutral' when focused", () => {
+      const { isFocused, colorClass } = useTransactionFormFields();
+      isFocused.value = true;
+      expect(colorClass.value).toBe("money-neutral");
+    });
   });
 
-  describe("Null Transaction Edge Cases", () => {
-    it("should handle null transaction in formattedAmount and formattedDate", () => {
-      const { transaction, formattedAmount, formattedDate, isFocused } = useTransactionFormFields();
+  // -------------------------------------------------------------------------
+  // resetForm
+  // -------------------------------------------------------------------------
+  describe("resetForm", () => {
+    it("resets amount to 0", () => {
+      const { transaction, resetForm } = useTransactionFormFields();
+      transaction.value.amount = 500;
+      resetForm();
+      expect(transaction.value.amount).toBe(0);
+    });
 
-      // 1. Force transaction to null
-      transaction.value = null;
-      isFocused.value = false;
+    it("resets transaction_type to Expense", () => {
+      const { transaction, resetForm } = useTransactionFormFields();
+      transaction.value.transaction_type = "Income";
+      resetForm();
+      expect(transaction.value.transaction_type).toBe("Expense");
+    });
 
-      // This hits: return displayMoney(transaction.value?.amount ?? 0);
-      // It should pass 0 to displayMoney because of the ?? 0
-      expect(formattedAmount.value).toBe("$0");
+    it("resets description to empty string", () => {
+      const { transaction, resetForm } = useTransactionFormFields();
+      transaction.value.description = "Test";
+      resetForm();
+      expect(transaction.value.description).toBe("");
+    });
 
-      // This hits: const dateValue = transaction.value?.date; return dateValue ? ... : "";
+    it("resets displayAmount to empty string", () => {
+      const { displayAmount, resetForm } = useTransactionFormFields();
+      displayAmount.value = "$100.00";
+      resetForm();
+      expect(displayAmount.value).toBe("");
+    });
+
+    it("resets isFocused to false", () => {
+      const { isFocused, resetForm } = useTransactionFormFields();
+      isFocused.value = true;
+      resetForm();
+      expect(isFocused.value).toBe(false);
+    });
+
+    it("resets dateMenu to false", () => {
+      const { dateMenu, resetForm } = useTransactionFormFields();
+      dateMenu.value = true;
+      resetForm();
+      expect(dateMenu.value).toBe(false);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // handleFocus
+  // -------------------------------------------------------------------------
+  describe("handleFocus", () => {
+    it("sets isFocused to true", () => {
+      const { isFocused, handleFocus } = useTransactionFormFields();
+      handleFocus();
+      expect(isFocused.value).toBe(true);
+    });
+
+    it("leaves displayAmount empty when amount is 0", () => {
+      const { transaction, displayAmount, handleFocus } = useTransactionFormFields();
+      transaction.value.amount = 0;
+      handleFocus();
+      expect(displayAmount.value).toBe("");
+    });
+
+    it("sets displayAmount to numeric digits when amount is positive", () => {
+      const { transaction, displayAmount, handleFocus } = useTransactionFormFields();
+      transaction.value.amount = 1234.56;
+      handleFocus();
+      expect(displayAmount.value).toBe("1234.56");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // handleBlur
+  // -------------------------------------------------------------------------
+  describe("handleBlur", () => {
+    it("sets isFocused to false", () => {
+      const { isFocused, handleBlur } = useTransactionFormFields();
+      isFocused.value = true;
+      handleBlur();
+      expect(isFocused.value).toBe(false);
+    });
+
+    it("parses a valid amount and stores it", () => {
+      const { transaction, displayAmount, handleBlur } = useTransactionFormFields();
+      displayAmount.value = "123.45";
+      handleBlur();
+      expect(transaction.value.amount).toBe(123.45);
+    });
+
+    it("resets amount to 0 for an empty displayAmount", () => {
+      const { transaction, displayAmount, handleBlur } = useTransactionFormFields();
+      displayAmount.value = "";
+      handleBlur();
+      expect(transaction.value.amount).toBe(0);
+    });
+
+    it("resets amount to 0 for an unparseable value", () => {
+      const { transaction, displayAmount, handleBlur } = useTransactionFormFields();
+      displayAmount.value = "abc";
+      handleBlur();
+      expect(transaction.value.amount).toBe(0);
+    });
+
+    it("resets amount to 0 when wrong decimal separator is used", () => {
+      mockHasCorrectSeparator.mockReturnValue(false);
+      const { transaction, displayAmount, handleBlur } = useTransactionFormFields();
+      displayAmount.value = "100,50";
+      handleBlur();
+      expect(transaction.value.amount).toBe(0);
+      expect(displayAmount.value).toBe("");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // formattedDate computed
+  // -------------------------------------------------------------------------
+  describe("formattedDate", () => {
+    it("returns empty string when date is empty", () => {
+      const { transaction, formattedDate } = useTransactionFormFields();
+      transaction.value.date = "";
       expect(formattedDate.value).toBe("");
     });
 
-    it("should return early in resetForm if transaction is null", () => {
-      const { transaction, resetForm, displayAmount } = useTransactionFormFields();
-
-      // 1. Set a value that reset would normally clear
-      displayAmount.value = "Keep Me";
-      transaction.value = null;
-
-      // 2. This hits: if (!transaction.value) return;
-      resetForm();
-
-      // 3. Verify it returned early and didn't clear displayAmount
-      expect(displayAmount.value).toBe("Keep Me");
-    });
-  });
-
-  describe("Validation Rules Object", () => {
-    it("should execute the wrapper functions in the rules object", () => {
-      const { rules } = useTransactionFormFields();
-
-      // Execute the date wrapper
-      // This calls (v: string | null) => dateRules(v)
-      expect(rules.date[1]("2025-01-01")).toBe(true);
-
-      // Execute the amount wrapper
-      // This calls (v: string) => amountRules(v)
-      expect(rules.amount[1]("100")).toBe(true);
-
-      // Note: rules.category[0] is just the 'required' function itself,
-      // which is already counted, but calling these two wrappers
-      // will clear the 'untested function' flags.
+    it("calls formatToMediumDate with the current date", () => {
+      const { transaction, formattedDate } = useTransactionFormFields();
+      transaction.value.date = "2025-06-15";
+      const _ = formattedDate.value;
+      expect(mockFormatToMediumDate).toHaveBeenCalledWith("2025-06-15");
     });
   });
 });

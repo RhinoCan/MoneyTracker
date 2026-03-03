@@ -1,338 +1,465 @@
+// tests/stores/TransactionStore.spec.ts
 import { describe, it, expect, beforeEach, vi } from "vitest";
 import { setActivePinia, createPinia } from "pinia";
-import { useTransactionStore } from "@/stores/TransactionStore";
-import { Transaction } from "@/types/Transaction";
-import { appName } from "@/utils/SystemDefaults";
+import { useTransactionStore, TransactionError } from "@/stores/TransactionStore";
+import { useUserStore } from "@/stores/UserStore";
+import type { Transaction } from "@/types/Transaction";
 
-// Hoist the mock functions so they're available to the mock factory
-const { mockLogException, mockLogWarning, mockLogInfo, mockLogSuccess } = vi.hoisted(() => ({
-  mockLogException: vi.fn(),
-  mockLogWarning: vi.fn(),
-  mockLogInfo: vi.fn(),
-  mockLogSuccess: vi.fn(),
+// -------------------------------------------------------------------------
+// Mock Supabase
+// All methods return `this` by default so chains work.
+// Terminal methods (select after insert/update, delete chain end) resolve.
+// -------------------------------------------------------------------------
+const mockSupabaseChain = {
+  select: vi.fn().mockReturnThis(),
+  eq: vi.fn().mockReturnThis(),
+  order: vi.fn().mockResolvedValue({ data: [], error: null }),
+  insert: vi.fn().mockReturnThis(),
+  update: vi.fn().mockReturnThis(),
+  delete: vi.fn().mockReturnThis(),
+};
+
+vi.mock("@/lib/supabase", () => ({
+  supabase: {
+    from: vi.fn(() => mockSupabaseChain),
+  },
 }));
 
-// Mock the Logger module using the hoisted functions
-vi.mock("@/utils/Logger", () => ({
-  logException: mockLogException,
-  logWarning: mockLogWarning,
-  logInfo: mockLogInfo,
-  logSuccess: mockLogSuccess,
+// -------------------------------------------------------------------------
+// Mock i18n
+// -------------------------------------------------------------------------
+vi.mock("@/i18n/index", () => ({
+  i18n: {
+    global: {
+      t: (key: string) => key,
+      te: () => false,
+      locale: { value: "en-US" },
+    },
+  },
 }));
 
-// Mock SystemDefaults
-vi.mock("@/utils/SystemDefaults.ts", () => ({
-  appName: "TestApp",
-  defaultToastTimeout: 0,
-}));
-
-type TransactionStoreInstance = ReturnType<typeof useTransactionStore>;
-
-const MOCK_INCOME: Transaction = {
+// -------------------------------------------------------------------------
+// Test fixtures
+// -------------------------------------------------------------------------
+const makeTransaction = (overrides: Partial<Transaction> = {}): Transaction => ({
   id: 1,
-  description: "Salary Deposit",
-  date: "2025-01-01",
-  amount: 5000,
-  transactionType: "Income",
-};
-
-const MOCK_EXPENSE: Transaction = {
-  id: 2,
-  description: "Monthly Rent",
-  date: "2025-01-05",
-  amount: 1500,
-  transactionType: "Expense",
-};
-
-const MOCK_EXPENSE2: Transaction = {
-  id: 9,
-  description: "Flight to Berlin",
-  date: "2025-12-25",
-  amount: 1200,
-  transactionType: "Expense",
-};
-
-const MOCK_EXPENSE3: Transaction = {
-  id: 11,
-  description: "Haircut",
-  date: "2025-12-29",
-  amount: "xxx" as unknown as number,
-  transactionType: "Expense",
-};
-
-const MOCK_TRANSACTIONS: Transaction[] = [MOCK_INCOME, MOCK_EXPENSE];
-
-const MOCK_TRANSACTIONS2: Transaction[] = [MOCK_INCOME, MOCK_EXPENSE2, MOCK_EXPENSE];
+  description: "Test transaction",
+  date: "2025-06-15",
+  transaction_type: "Expense",
+  amount: 100,
+  user_id: "user-123",
+  ...overrides,
+});
 
 describe("TransactionStore", () => {
   beforeEach(() => {
-    vi.resetModules();
     setActivePinia(createPinia());
-    localStorage.clear();
-    mockLogException.mockClear();
-    mockLogWarning.mockClear();
-    mockLogSuccess.mockClear();
+    vi.clearAllMocks();
+
+    // Reset chain defaults
+    mockSupabaseChain.select.mockReturnThis();
+    mockSupabaseChain.eq.mockReturnThis();
+    mockSupabaseChain.order.mockResolvedValue({ data: [], error: null });
+    mockSupabaseChain.insert.mockReturnThis();
+    mockSupabaseChain.update.mockReturnThis();
+    mockSupabaseChain.delete.mockReturnThis();
   });
 
-  describe("Initialization", () => {
-    it("Init > when no localStorage exists, then initialize with an empty array", () => {
+  // -------------------------------------------------------------------------
+  // Initial state
+  // -------------------------------------------------------------------------
+  describe("initial state", () => {
+    it("transactions is an empty array", () => {
       const store = useTransactionStore();
       expect(store.transactions).toEqual([]);
     });
 
-    it("Init > when transactions exist in localStorage, then they should load successfully", () => {
-      const storageKey = `${appName}.Transaction`;
-      localStorage.setItem(storageKey, JSON.stringify([MOCK_INCOME]));
-
+    it("loading is false", () => {
       const store = useTransactionStore();
-      expect(store.transactions.length).toBe(1);
-      expect(store.transactions[0].description).toBe("Salary Deposit");
-    });
-
-    it("Init > when localStorage parsing fails, then log the exception", () => {
-      const storageKey = `${appName}.Transaction`;
-      localStorage.setItem(storageKey, "This is definitely not JSON");
-
-      const store = useTransactionStore();
-      expect(store.transactions.length).toBe(0);
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(SyntaxError),
-        expect.objectContaining({
-          module: "Transaction",
-          action: "read from localStorage",
-        })
-      );
+      expect(store.loading).toBe(false);
     });
   });
 
-  describe("Getters", () => {
-    let store: TransactionStoreInstance;
+  // -------------------------------------------------------------------------
+  // Computed getters
+  // -------------------------------------------------------------------------
+  describe("computed getters", () => {
+    it("getTotalIncome sums only Income transactions", () => {
+      const store = useTransactionStore();
+      store.transactions = [
+        makeTransaction({ transaction_type: "Income", amount: 500 }),
+        makeTransaction({ id: 2, transaction_type: "Income", amount: 300 }),
+        makeTransaction({ id: 3, transaction_type: "Expense", amount: 200 }),
+      ];
+      expect(store.getTotalIncome).toBe(800);
+    });
 
+    it("getTotalExpense sums only Expense transactions", () => {
+      const store = useTransactionStore();
+      store.transactions = [
+        makeTransaction({ transaction_type: "Expense", amount: 150 }),
+        makeTransaction({ id: 2, transaction_type: "Expense", amount: 50 }),
+        makeTransaction({ id: 3, transaction_type: "Income", amount: 500 }),
+      ];
+      expect(store.getTotalExpense).toBe(200);
+    });
+
+    it("getNetBalance is income minus expense", () => {
+      const store = useTransactionStore();
+      store.transactions = [
+        makeTransaction({ transaction_type: "Income", amount: 1000 }),
+        makeTransaction({ id: 2, transaction_type: "Expense", amount: 400 }),
+      ];
+      expect(store.getNetBalance).toBe(600);
+    });
+
+    it("getNetBalance is negative when expenses exceed income", () => {
+      const store = useTransactionStore();
+      store.transactions = [
+        makeTransaction({ transaction_type: "Income", amount: 100 }),
+        makeTransaction({ id: 2, transaction_type: "Expense", amount: 300 }),
+      ];
+      expect(store.getNetBalance).toBe(-200);
+    });
+
+    it("all getters return 0 when transactions is empty", () => {
+      const store = useTransactionStore();
+      expect(store.getTotalIncome).toBe(0);
+      expect(store.getTotalExpense).toBe(0);
+      expect(store.getNetBalance).toBe(0);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // TransactionError class
+  // -------------------------------------------------------------------------
+  describe("TransactionError", () => {
+    it("is an instance of Error", () => {
+      const err = new TransactionError("test");
+      expect(err).toBeInstanceOf(Error);
+    });
+
+    it("has name TransactionError", () => {
+      const err = new TransactionError("test");
+      expect(err.name).toBe("TransactionError");
+    });
+
+    it("stores code, details, and hint", () => {
+      const err = new TransactionError("msg", "23505", "details", "hint");
+      expect(err.code).toBe("23505");
+      expect(err.details).toBe("details");
+      expect(err.hint).toBe("hint");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // userId guard
+  // -------------------------------------------------------------------------
+  describe("userId guard", () => {
+    it("fetchTransactions throws when userId is null", async () => {
+      const store = useTransactionStore();
+      await expect(store.fetchTransactions()).rejects.toThrow("User ID is required");
+    });
+
+    it("addTransaction throws when userId is null", async () => {
+      const store = useTransactionStore();
+      await expect(
+        store.addTransaction({ description: "x", date: "2025-01-01", transaction_type: "Expense", amount: 10 })
+      ).rejects.toThrow("User ID is required");
+    });
+
+    it("updateTransaction throws when userId is null", async () => {
+      const store = useTransactionStore();
+      await expect(store.updateTransaction(1, { amount: 50 })).rejects.toThrow("User ID is required");
+    });
+
+    it("deleteTransaction throws when userId is null", async () => {
+      const store = useTransactionStore();
+      await expect(store.deleteTransaction(1)).rejects.toThrow("User ID is required");
+    });
+
+    it("deleteAllTransactions throws when userId is null", async () => {
+      const store = useTransactionStore();
+      await expect(store.deleteAllTransactions()).rejects.toThrow("User ID is required");
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // fetchTransactions
+  // -------------------------------------------------------------------------
+  describe("fetchTransactions", () => {
     beforeEach(() => {
-      const storageKey = `${appName}.Transaction`;
-      localStorage.setItem(storageKey, JSON.stringify(MOCK_TRANSACTIONS));
-      store = useTransactionStore();
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
     });
 
-    it("Get > getIncome should correctly calculate total income", () => {
-      expect(store.getIncome).toBe(5000.0);
-    });
+    it("populates transactions from database response", async () => {
+      const txList = [makeTransaction(), makeTransaction({ id: 2, amount: 200 })];
+      mockSupabaseChain.order.mockResolvedValue({ data: txList, error: null });
 
-    it("Get > getExpense should correctly calculate total expense", () => {
-      expect(store.getExpense).toBe(1500.0);
-    });
-
-    it("Get > getBalance should calculate the correct balance", () => {
-      expect(store.getBalance).toBe(3500.0);
-    });
-
-    it("Get > when there are existing transactions, then getNewId should return highest ID + 1", () => {
-      expect(store.getNewId).toBe(3);
-    });
-
-    it("Get > when there are multiple existing transactions and they are not in numeric order, then getNewId should return highest ID + 1", () => {
-      setActivePinia(createPinia());
-      localStorage.clear();
-      const storageKey = `${appName}.Transaction`;
-      localStorage.setItem(storageKey, JSON.stringify(MOCK_TRANSACTIONS2));
-      store = useTransactionStore();
-      expect(store.transactions.length).toBe(3);
-      expect(store.getNewId).toBe(10);
-    });
-
-    it("Get > when there are no existing transactions, then getNewId should return 1", () => {
-      setActivePinia(createPinia());
-      localStorage.clear();
       const store = useTransactionStore();
-      expect(store.transactions.length).toBe(0);
-      expect(store.getNewId).toBe(1);
+      await store.fetchTransactions();
+
+      expect(store.transactions).toEqual(txList);
+    });
+
+    it("sets transactions to empty array when data is null", async () => {
+      mockSupabaseChain.order.mockResolvedValue({ data: null, error: null });
+
+      const store = useTransactionStore();
+      await store.fetchTransactions();
+
+      expect(store.transactions).toEqual([]);
+    });
+
+    it("sets loading to false after completion", async () => {
+      const store = useTransactionStore();
+      await store.fetchTransactions();
+      expect(store.loading).toBe(false);
+    });
+
+    it("throws TransactionError on database error", async () => {
+      mockSupabaseChain.order.mockResolvedValue({
+        data: null,
+        error: { code: "08006", message: "connection failed", details: "", hint: "" },
+      });
+
+      const store = useTransactionStore();
+      await expect(store.fetchTransactions()).rejects.toBeInstanceOf(TransactionError);
+    });
+
+    it("sets loading to false even when an error occurs", async () => {
+      mockSupabaseChain.order.mockResolvedValue({
+        data: null,
+        error: { code: "08006", message: "fail", details: "", hint: "" },
+      });
+
+      const store = useTransactionStore();
+      await expect(store.fetchTransactions()).rejects.toThrow();
+      expect(store.loading).toBe(false);
     });
   });
 
+  // -------------------------------------------------------------------------
+  // addTransaction
+  // -------------------------------------------------------------------------
   describe("addTransaction", () => {
-    it("Add > when a new transaction is created, then it should be added to the transaction array and saved to localStorage", () => {
-      const store = useTransactionStore();
-      store.addTransaction(MOCK_INCOME);
-      expect(store.transactions.length).toBe(1);
-
-      const saved = localStorage.getItem(`${appName}.Transaction`);
-      expect(JSON.parse(saved!)).toEqual([MOCK_INCOME]);
+    beforeEach(() => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
     });
 
-    it("Add > when a new transaction is created, then it should log success message", () => {
+    it("prepends the new transaction to the local list", async () => {
+      const newTx = makeTransaction({ id: 99, description: "New one" });
+      mockSupabaseChain.select.mockResolvedValue({ data: [newTx], error: null });
+
       const store = useTransactionStore();
+      store.transactions = [makeTransaction()];
 
-      store.addTransaction(MOCK_INCOME);
-
-      expect(mockLogSuccess).toHaveBeenCalledWith(expect.stringContaining("Successfully added"));
-    });
-
-    it("Add > when the add fails due to bad data, then log the exception", () => {
-      const store = useTransactionStore();
-
-      const spy = vi.spyOn(store.transactions, "push").mockImplementation(() => {
-        throw new Error("Unexpected push failure");
+      await store.addTransaction({
+        description: "New one",
+        date: "2025-06-15",
+        transaction_type: "Expense",
+        amount: 100,
       });
 
-      store.addTransaction(MOCK_EXPENSE3);
-
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({ action: "Add", data: 11 })
-      );
+      expect(store.transactions[0]).toEqual(newTx);
+      expect(store.transactions).toHaveLength(2);
     });
 
-    it("Add > when the add fails due to an unexpected error, then log the exception", () => {
+    it("returns the created transaction", async () => {
+      const newTx = makeTransaction({ id: 99 });
+      mockSupabaseChain.select.mockResolvedValue({ data: [newTx], error: null });
+
       const store = useTransactionStore();
-
-      store.addTransaction(MOCK_EXPENSE3);
-
-      const spy = vi.spyOn(store.transactions, "push").mockImplementation(() => {
-        throw new Error("Unexpected push failure");
+      const result = await store.addTransaction({
+        description: "Test",
+        date: "2025-06-15",
+        transaction_type: "Income",
+        amount: 50,
       });
 
-      store.addTransaction(MOCK_INCOME);
+      expect(result).toEqual(newTx);
+    });
 
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({ action: "Add", data: 1 })
-      );
+    it("throws TransactionError when data is empty", async () => {
+      mockSupabaseChain.select.mockResolvedValue({ data: [], error: null });
 
-      spy.mockRestore();
+      const store = useTransactionStore();
+      await expect(
+        store.addTransaction({ description: "x", date: "2025-01-01", transaction_type: "Expense", amount: 10 })
+      ).rejects.toBeInstanceOf(TransactionError);
+    });
+
+    it("sets loading to false after completion", async () => {
+      const newTx = makeTransaction({ id: 99 });
+      mockSupabaseChain.select.mockResolvedValue({ data: [newTx], error: null });
+
+      const store = useTransactionStore();
+      await store.addTransaction({ description: "x", date: "2025-01-01", transaction_type: "Expense", amount: 10 });
+      expect(store.loading).toBe(false);
     });
   });
 
+  // -------------------------------------------------------------------------
+  // updateTransaction
+  // -------------------------------------------------------------------------
   describe("updateTransaction", () => {
-    it("Update > when an existing transaction is updated, then udpate the transaction in the array and log a success message", () => {
-      const storageKey = `${appName}.Transaction`;
-      localStorage.setItem(storageKey, JSON.stringify(MOCK_TRANSACTIONS));
-      const store = useTransactionStore();
-
-      const updated = { ...MOCK_INCOME, amount: 5500 };
-      store.updateTransaction(updated);
-
-      expect(store.transactions[0].amount).toBe(5500);
-      expect(mockLogSuccess).toHaveBeenCalledWith(expect.stringContaining("Succesfully updated"));
+    beforeEach(() => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
     });
 
-    it("Update > when an update comes for a non-existent transaction, then update nothing and log warning", () => {
+    it("updates the transaction in the local list", async () => {
+      const original = makeTransaction({ id: 1, amount: 100 });
+      const updated = makeTransaction({ id: 1, amount: 250 });
+      mockSupabaseChain.select.mockResolvedValue({ data: [updated], error: null });
+
       const store = useTransactionStore();
-      const nonExistent = { ...MOCK_INCOME, id: 999 };
+      store.transactions = [original];
 
-      store.updateTransaction(nonExistent);
+      await store.updateTransaction(1, { amount: 250 });
 
-      expect(mockLogWarning).toHaveBeenCalledWith(
-        expect.stringContaining("Failed to find Transaction"),
-        expect.any(Object)
-      );
+      expect(store.transactions[0].amount).toBe(250);
     });
 
-    it("Update > when an update fails due to bad data, then log the exception", () => {
+    it("returns the updated transaction", async () => {
+      const updated = makeTransaction({ id: 1, amount: 250 });
+      mockSupabaseChain.select.mockResolvedValue({ data: [updated], error: null });
+
       const store = useTransactionStore();
+      store.transactions = [makeTransaction()];
 
-      const spy = vi.spyOn(store.transactions, "findIndex").mockImplementation(() => {
-        throw new Error("Unexpected findIndex failure");
-      });
-
-      store.updateTransaction(MOCK_EXPENSE3);
-
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({ action: "Update", data: 11 })
-      );
+      const result = await store.updateTransaction(1, { amount: 250 });
+      expect(result).toEqual(updated);
     });
 
-    it("Update > when the update fails due to an unexpected error, then log the exception", () => {
+    it("throws TransactionError when data is empty", async () => {
+      mockSupabaseChain.select.mockResolvedValue({ data: [], error: null });
+
       const store = useTransactionStore();
-      store.transactions = [MOCK_EXPENSE];
+      store.transactions = [makeTransaction()];
 
-      const spy = vi.spyOn(store.transactions, "findIndex").mockImplementation(() => {
-        throw new Error("Unexpected findIndex failure");
-      });
+      await expect(store.updateTransaction(1, { amount: 50 })).rejects.toBeInstanceOf(TransactionError);
+    });
 
-      store.updateTransaction(MOCK_EXPENSE);
+    it("sets loading to false after completion", async () => {
+      const updated = makeTransaction({ id: 1, amount: 250 });
+      mockSupabaseChain.select.mockResolvedValue({ data: [updated], error: null });
 
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({ action: "Update", data: 2 })
-      );
+      const store = useTransactionStore();
+      store.transactions = [makeTransaction()];
 
-      spy.mockRestore();
+      await store.updateTransaction(1, { amount: 250 });
+      expect(store.loading).toBe(false);
     });
   });
 
+  // -------------------------------------------------------------------------
+  // deleteTransaction
+  // -------------------------------------------------------------------------
   describe("deleteTransaction", () => {
-    it("Delete > when an existing transaction is supposed to be deleted, then delete transaction and log success", () => {
-      const storageKey = `${appName}.Transaction`;
-      localStorage.setItem(storageKey, JSON.stringify(MOCK_TRANSACTIONS));
+    beforeEach(() => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
+      // deleteTransaction chains .delete().eq("id").eq("user_id")
+      // First eq returns this, second eq resolves
+      mockSupabaseChain.eq
+        .mockReturnValueOnce(mockSupabaseChain)
+        .mockResolvedValueOnce({ error: null });
+    });
+
+    it("removes the transaction from the local list", async () => {
       const store = useTransactionStore();
+      store.transactions = [
+        makeTransaction({ id: 1 }),
+        makeTransaction({ id: 2, amount: 200 }),
+      ];
 
-      store.deleteTransaction(1);
+      await store.deleteTransaction(1);
 
-      expect(store.transactions.length).toBe(1);
+      expect(store.transactions).toHaveLength(1);
       expect(store.transactions[0].id).toBe(2);
-      expect(mockLogSuccess).toHaveBeenCalledWith(expect.stringContaining("Successfully deleted"));
     });
 
-    it("Delete > when a non-existent transaction is to be deleted, delete nothing and log a warning", () => {
+    it("sets loading to false after completion", async () => {
       const store = useTransactionStore();
+      store.transactions = [makeTransaction()];
 
-      store.deleteTransaction(999);
-
-      expect(mockLogWarning).toHaveBeenCalledWith(
-        expect.stringContaining("Delete failed"),
-        expect.any(Object)
-      );
-    });
-
-    it("Delete > when the delete fails due to bad data, then log the exception", () => {
-      const store = useTransactionStore();
-      store.transactions = [MOCK_EXPENSE3];
-
-      const spy = vi.spyOn(store.transactions, "splice").mockImplementation(() => {
-        throw new Error("Unexpected splice failure");
-      });
-
-      store.deleteTransaction(11);
-
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({ action: "Delete", data: 11 })
-      );
-    });
-
-    it("Delete > when the delete fails due to an unexpected error, then log the exception", () => {
-      const store = useTransactionStore();
-      store.transactions = [MOCK_EXPENSE];
-
-      const spy = vi.spyOn(store.transactions, "splice").mockImplementation(() => {
-        throw new Error("Unexpected splice failure");
-      });
-
-      store.deleteTransaction(2);
-
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(Error),
-        expect.objectContaining({ action: "Delete", data: 2 })
-      );
-
-      spy.mockRestore();
+      await store.deleteTransaction(1);
+      expect(store.loading).toBe(false);
     });
   });
 
-  describe("Error handling", () => {
-    it("Error > when localStorage quota is exceeded, then an exception should be logged", () => {
+  // -------------------------------------------------------------------------
+  // deleteAllTransactions
+  // -------------------------------------------------------------------------
+  describe("deleteAllTransactions", () => {
+    beforeEach(() => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
+      // deleteAllTransactions chains .delete().eq("user_id") — single eq resolves
+      mockSupabaseChain.eq.mockResolvedValueOnce({ error: null });
+    });
+
+    it("clears the local transactions array", async () => {
       const store = useTransactionStore();
-      const spy = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => {
-        throw new DOMException("QuotaExceededError");
+      store.transactions = [makeTransaction(), makeTransaction({ id: 2 })];
+
+      await store.deleteAllTransactions();
+
+      expect(store.transactions).toEqual([]);
+    });
+
+    it("sets loading to false after completion", async () => {
+      const store = useTransactionStore();
+      await store.deleteAllTransactions();
+      expect(store.loading).toBe(false);
+    });
+  });
+
+  // -------------------------------------------------------------------------
+  // handleSupabaseError — known error codes
+  // -------------------------------------------------------------------------
+  describe("handleSupabaseError via fetchTransactions", () => {
+    beforeEach(() => {
+      const userStore = useUserStore();
+      // @ts-ignore
+      userStore.user = { id: "user-123" };
+    });
+
+    const errorCodes = ["23505", "23502", "42501", "08006"];
+
+    errorCodes.forEach((code) => {
+      it(`throws TransactionError for Supabase error code ${code}`, async () => {
+        mockSupabaseChain.order.mockResolvedValue({
+          data: null,
+          error: { code, message: "db error", details: "", hint: "" },
+        });
+
+        const store = useTransactionStore();
+        await expect(store.fetchTransactions()).rejects.toBeInstanceOf(TransactionError);
+      });
+    });
+
+    it("throws TransactionError with the error code preserved", async () => {
+      mockSupabaseChain.order.mockResolvedValue({
+        data: null,
+        error: { code: "23505", message: "duplicate", details: "", hint: "" },
       });
 
-      store.addTransaction(MOCK_INCOME);
-      expect(mockLogException).toHaveBeenCalledWith(
-        expect.any(DOMException),
-        expect.objectContaining({ module: "Transaction", action: "write to localStorage", data: 1 })
-      );
-      spy.mockRestore();
+      const store = useTransactionStore();
+      try {
+        await store.fetchTransactions();
+      } catch (err) {
+        expect(err).toBeInstanceOf(TransactionError);
+        expect((err as TransactionError).code).toBe("23505");
+      }
     });
   });
 });

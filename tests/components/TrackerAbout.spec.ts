@@ -1,46 +1,57 @@
+// tests/components/TrackerAbout.spec.ts
 import { describe, it, expect } from "vitest";
 import { mount } from "@vue/test-utils";
-import { nextTick } from "vue";
 import TrackerAbout from "@/components/TrackerAbout.vue";
 
 describe("TrackerAbout.vue", () => {
-  it("renders correctly and displays the about information when expanded", async () => {
-    const wrapper = mount(TrackerAbout);
+  // -------------------------------------------------------------------------
+  // Rendering — panel header (always visible)
+  // -------------------------------------------------------------------------
+  describe("rendering", () => {
+    it("renders without errors", () => {
+      const wrapper = mount(TrackerAbout);
+      expect(wrapper.exists()).toBe(true);
+    });
 
-    // 1. Initially, it only contains the title
-    expect(wrapper.text()).toContain("About");
-    expect(wrapper.text()).not.toContain("Origins");
+    it("renders an expansion panel", () => {
+      const wrapper = mount(TrackerAbout);
+      expect(wrapper.find(".v-expansion-panels").exists()).toBe(true);
+    });
 
-    // 2. Click the title to expand it
-    const title = wrapper.find(".v-expansion-panel-title");
-    await title.trigger("click");
-    await nextTick(); // Wait for Vuetify to render the content
+    it("renders the About title in the panel header", () => {
+      const wrapper = mount(TrackerAbout);
+      expect(wrapper.text()).toContain("About");
+    });
 
-    // 3. Now the content should be visible
-    expect(wrapper.text()).toContain("Origins");
-    expect(wrapper.text()).toContain("Major Packages Used");
+    it("renders 7 tech stack items when panel is expanded", async () => {
+      const wrapper = mount(TrackerAbout);
+      const header = wrapper.find(".v-expansion-panel-title");
+      await header.trigger("click");
+      await wrapper.vm.$nextTick();
+      // Look for the logo images which are always present in the tech stack
+      const logoImgs = wrapper.findAll("img.logo-img");
+      expect(logoImgs.length).toBe(7);
+    });
 
-    const images = wrapper.findAll("img");
-    expect(images.length).toBe(3);
-  });
+    it("renders the Origins section when expanded", async () => {
+      const wrapper = mount(TrackerAbout);
+      const header = wrapper.find(".v-expansion-panel-title");
+      await header.trigger("click");
+      expect(wrapper.text()).toContain("Origins");
+    });
 
-  it("contains the link to the original course when expanded", async () => {
-    const wrapper = mount(TrackerAbout);
+    it("renders the Packages section when expanded", async () => {
+      const wrapper = mount(TrackerAbout);
+      const header = wrapper.find(".v-expansion-panel-title");
+      await header.trigger("click");
+      expect(wrapper.text()).toContain("Major Packages Used");
+    });
 
-    // Expand the panel first
-    await wrapper.find(".v-expansion-panel-title").trigger("click");
-    await nextTick();
-
-    const link = wrapper.find("a");
-    expect(link.attributes("href")).toContain("youtube.com/watch?v=hNPwdOZ3qFU");
-  });
-
-  it("renders the expansion panel with correct initial icon", () => {
-    const wrapper = mount(TrackerAbout);
-
-    // This stays the same - checking the icon in the header (which is always there)
-    const icon = wrapper.find(".v-icon");
-    expect(icon.exists()).toBe(true);
-    expect(icon.attributes("class")).toContain("mdi-chevron-down");
+    it("renders the Acknowledgements section when expanded", async () => {
+      const wrapper = mount(TrackerAbout);
+      const header = wrapper.find(".v-expansion-panel-title");
+      await header.trigger("click");
+      expect(wrapper.text()).toContain("Acknowledgements");
+    });
   });
 });

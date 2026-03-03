@@ -1,59 +1,36 @@
-import { mount } from "@vue/test-utils";
-import { createVuetify } from "vuetify";
-import * as components from "vuetify/components";
-import * as directives from "vuetify/directives";
+// tests/test-utils.ts
+import { createApp } from "vue";
+import { createPinia, setActivePinia } from "pinia";
+import { i18n } from "@/i18n";
 
-// Mock ResizeObserver for jsdom
-global.ResizeObserver = class ResizeObserver {
-  observe() {}
-  unobserve() {}
-  disconnect() {}
-};
+/**
+ * withSetup
+ * Executes a composable inside a minimal Vue app context.
+ * Required for composables that call useI18n(), useRoute(), or other
+ * Vue injection-based APIs that require an active component instance.
+ *
+ * @param composable - A function that calls and returns the composable result
+ * @returns The return value of the composable
+ *
+ * @example
+ * const { formatToMediumDate } = withSetup(() => useDateFormatter());
+ */
+export function withSetup<T>(composable: () => T): T {
+  let result!: T;
 
-function createTestVuetify() {
-  return createVuetify({
-    components,
-    directives,
-    theme: {
-      defaultTheme: "light",
-      themes: {
-        light: {
-          colors: {
-            primary: "#1976D2",
-          },
-        },
-      },
+  const pinia = createPinia();
+  setActivePinia(pinia);
+
+  const app = createApp({
+    setup() {
+      result = composable();
+      return () => {};
     },
   });
-}
 
-export function mountWithVuetify(component: any, options: any = {}) {
-  const vuetify = createTestVuetify();
+  app.use(pinia);
+  app.use(i18n);
+  app.mount(document.createElement("div"));
 
-  return mount(component, {
-    global: {
-      plugins: [vuetify],
-      stubs: {
-        VApp: { template: '<div class="v-application"><slot /></div>' },
-        VMain: { template: "<main><slot /></main>" },
-      },
-      ...options.global,
-    },
-    ...options,
-  });
-}
-
-export function mountWithPlugins(component: any, options: any = {}) {
-  return mount(component, {
-    global: {
-      stubs: {
-        VApp: true,
-        VMain: true,
-        VBtn: true,
-        VCard: true,
-      },
-      ...options.global,
-    },
-    ...options,
-  });
+  return result;
 }

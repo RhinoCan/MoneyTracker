@@ -1,215 +1,167 @@
 # Next session with Claude
 
-No problem, rest well! Here's the summary:
+The Status:
+The Playwright test is timing out during the transition from the Login page to the Dashboard. Because the screen stays white and the spinners stop, Playwright is likely stuck "waiting" for a page load that isn't happening because Vue is handling the navigation internally (SPA style).
+
+The "Morning" Solution:
+
+Trace is Key: To see why the screen is white, you need to enable the Trace. In your playwright.config.ts, set trace: 'on' inside the use: {} block. This will record a "video" of the failure that you can actually scrub through.
+
+Auth State: Sometimes it's easier to skip the Login UI entirely for E2E tests by injecting the Supabase session directly, but we can look at that tomorrow.
+
+Rest up! Your Vuetify setup and Supabase logic are solid; we just need to get the "Robot" (Playwright) to be as patient as a human while the app transitions.
+
+Current checklist:
+
+Here's your updated handoff checklist:
 
 ---
 
-## MoneyTracker Audit — Session Summary
+# MoneyTracker Test Suite — Session Handoff Checklist
 
-### Completed This Session
-All files from `git diff --name-only` have been audited and repaired:
-
-- ✅ `vuetify.ts` — VuetifyDateAdapter retained, locale messages fix applied
-- ✅ `DataManagement.vue` — storeTransaction→transactionStore, slug fixes, duplicate JSDoc removed
-- ✅ `TrackerHeader.vue` — isLive computed, slug fix
-- ✅ `Login.vue` — slug fixes
-- ✅ `Register.vue` — error.message removed from user notification
-- ✅ `AddTransaction.vue` — formatForUI→formatToMediumDate, toISODateString→formatToIsoDateOnly, storeTransaction→transactionStore, useTransactionFormFields() no params, slug fixes
-- ✅ `useAnalytics.ts` — clean
-- ✅ `useAppValidationRules.ts` — clean
-- ✅ `useCurrencyFormatter.ts` — slug fix (done manually)
-- ✅ `useDateFormatter.ts` — clean
-- ✅ `useTransactionFormFields.ts` — slug fix (done manually), t parameter removed
-- ✅ `SettingsStore.ts` — clean
-- ✅ `TransactionStore.ts` — slug fixes (done manually)
-- ✅ `UserStore.ts` — clean
-- ✅ `SystemDefaults.ts` — clean
-- ✅ `currencyParser.ts` — slug fix (done manually)
-- ✅ `AccountSummary.vue` — clean
-- ✅ `TrackerAbout.vue` — clean
-- ✅ `TransactionHistory.vue` — v-model fix for DeleteTransaction and UpdateTransaction dialogs
-- ✅ `UpdateTransaction.vue` — storeTransaction→transactionStore, displayMoney→formatCurrency, formatForUI→formatToMediumDate, toISODateString→formatToIsoDateOnly, useTransactionFormFields() no params, noChanges logic, slug fix, aria-label typo
-- ✅ `DeleteTransaction.vue` — formatForUI→formatToMediumDate, storeTransaction→transactionStore, Money→Amount, slug fixes, aria-label typo
-- ✅ `App.vue` — clean
-- ✅ `main.ts` — slug fix (done manually)
-- ✅ `env.d.ts` — clean
-- ✅ `posthog.ts` — clean
-- ✅ `router/index.ts` — slug fix (done manually)
-- ✅ `localeList.ts` — slug fix, i18n/t imports removed, eslint-disable comment restored
+## Current Status
+- **Tests passing: 385** across 24 files (351 previous + 34 AddTransaction)
+- **Test framework:** Vitest 1.6.1 + @vue/test-utils + v8 coverage
 
 ---
 
-### Outstanding Bugs to Fix
+## Completed ✅
 
-**Bug #1 — Amount change not detected in UpdateTransaction**
-Amount comparison needs `Number()` normalization on both sides:
-```typescript
-if (Number(localTransaction.value.amount) !== Number(model.value.amount)) {
-```
+### Utils (3 files, ~40 tests)
+- [x] `tests/utils/currencyParser.spec.ts`
+- [x] `tests/utils/localeList.spec.ts`
+- [x] `tests/utils/SystemDefaults.spec.ts`
 
-**Bug #2 — Delete Everything clears localStorage, logging user out**
-Remove these two lines from `DataManagement.vue`:
-```typescript
-localStorage.clear();
-sessionStorage.clear();
-```
+### Stores (4 files, ~102 tests)
+- [x] `tests/stores/NotificationStore.spec.ts`
+- [x] `tests/stores/SettingsStore.spec.ts`
+- [x] `tests/stores/TransactionStore.spec.ts`
+- [x] `tests/stores/UserStore.spec.ts`
 
-**Bug #3 — AddTransaction not saving chosen date**
-Needs investigation — paste current `AddTransaction.vue` from disk first.
+### Composables (6 files, ~100 tests)
+- [x] `tests/composables/useAnalytics.spec.ts`
+- [x] `tests/composables/useAppValidationRules.spec.ts`
+- [x] `tests/composables/useCurrencyFormatter.spec.ts`
+- [x] `tests/composables/useDateFormatter.spec.ts`
+- [x] `tests/composables/useNumberFormatHints.spec.ts` — note: `amountPlaceholder` tests removed/updated
+- [x] `tests/composables/useTransactionFormFields.spec.ts`
 
-**Bug #4 — Pagination missing start/end values**
-Fix `en-US.json`:
-```json
-"pageText": "{start}-{end} of {total}"
-```
-(and replicate across all 16 locale files)
-
----
-
-### Still To Do
-- `en-US.json` — fix `history.pageText`, remove stale keys `appInit.hydration_failed` and `defaults.currency_detection_failed`, rename `useTrans.parseValidatorMismatch` → `useTrans.parseError`
-- Replicate all i18n changes across 16 locale files
-- Full test suite rewrite
-- Settings.vue — not yet reviewed this session (was marked clean previously but may have reverted)
-
----
-
-Sleep well, and give the cat a pat from me!
+### Components (12 files, ~395 tests)
+- [x] `tests/components/Amount.spec.ts` (14 tests)
+- [x] `tests/components/InfoIcon.spec.ts` (4 tests)
+- [x] `tests/components/TrackerAbout.spec.ts` (7 tests)
+- [x] `tests/components/KeyboardShortcuts.spec.ts` (8 tests)
+- [x] `tests/components/AccountSummary.spec.ts` (9 tests)
+- [x] `tests/components/TrackerHeader.spec.ts` (12 tests)
+- [x] `tests/components/Settings.spec.ts` (14 tests)
+- [x] `tests/components/DataManagement.spec.ts` (20 tests)
+- [x] `tests/components/DeleteTransaction.spec.ts` (7 tests)
+- [x] `tests/components/TransactionHistory.spec.ts` (14 tests)
+- [x] `tests/components/AddTransaction.spec.ts` (34 tests) ✅ NEW
+- [ ] `tests/components/UpdateTransaction.spec.ts` — **NEXT UP**
 
 ---
 
-I'm working on a Vue 3 + Vuetify 3 + TypeScript + Pinia + Supabase + vue-i18n portfolio project called MoneyTracker. We've been doing a systematic audit and cleanup of the codebase after a previous AI (Gemini) made a mix of good improvements and breaking changes. We are working through a checklist of modules, reviewing each one, proposing changes, getting my approval, then producing complete corrected files for download.
+## Pending ⬜
 
-**Ground Rules:**
-- Propose changes and wait for my approval before writing any code
-- Produce complete files (not diffs or snippets) so I can download and replace them
-- I will download files and paste their content into VS Code — do not rely on copy/paste from the preview window as it introduces encoding errors
-- For small single-line fixes, just tell me exactly what to type rather than producing a download
-- Present files one at a time, not in groups, so each gets its own download link
-- New i18n translation keys can be introduced freely — I'll do a single translation pass across all 16 locales at the end using i18n-ally
+### Components (still to write)
+- [ ] `tests/components/UpdateTransaction.spec.ts`
 
-**Key Architectural Decisions:**
-- "Store throws, component logs" — stores throw errors, components catch them and call the logger
-- `formatCurrency` in `useCurrencyFormatter` is a plain function, not a computed ref — call it as `formatCurrency(amount)` not `formatCurrency.value(amount)`
-- `useDateFormatter` exports `formatToMediumDate` and `formatToIsoDateOnly` (renamed from `formatForUI` and `toISODateString`)
-- `useTransactionFormFields` types its `transaction` ref as `NewTransaction` (no `id`, `user_id`, or `created_at`). `UpdateTransaction.vue` works around this by storing the editing transaction's id in a separate `const editingTransactionId = ref<number | null>(null)`
-- `useTransactionFormFields` accepts `t` as a parameter of type `ComposerTranslation` — callers must pass `t` from their own `useI18n()` call
-- The VSCode ellipsis autocomplete bug means we avoid spread operators (`...`) — instead we list object properties explicitly
-- PostHog and Sentry are both in use: `logException` uses `$send_beacon: true` (only function that does), `logInfo` writes a Sentry breadcrumb, `logSuccess` and `logValidation` are user-facing and require translatable i18n keys as their message argument
-- Outside component setup (stores, composables, utilities, router), i18n is accessed via `(i18n.global as unknown as { t: ComposerTranslation }).t` — never `(i18n.global as any).t`
-- `TransactionError` carries `code`, `details`, and `hint` fields so components have full diagnostic data when logging
-- Transaction count after fetch is logged via `logInfo` in `UserStore.runFullInitialization`, not in `TransactionStore`
-- Thousands separators in user input are not supported — users type every digit
-- `eslint-disable` comments must always have an explanation above them — never bare
-- This is a portfolio project with only the developer as a real user — full transaction data (PII) is intentionally logged to PostHog/Sentry
-- Store getters: `getTotalIncome`, `getTotalExpense`, `getNetBalance` (not `getIncome`, `getExpense`, `getBalance`)
-- Component for displaying amounts is `Amount.vue` (not `Money.vue`)
-- Store variable name is `transactionStore` (not `storeTransaction`)
-- Dialog components use `:transaction` prop and `@close` event (not `v-model`)
+### Pages (still to write)
+- [ ] `tests/pages/Home.spec.ts`
+- [ ] `tests/pages/Login.spec.ts`
+- [ ] `tests/pages/Register.spec.ts`
 
-**Important note on git:** A `git filter-repo` run during the session to remove `.env` from history caused all uncommitted changes to revert. All corrected files were re-downloaded. The `.env` file is now in `.gitignore` and keys have been rotated. The repo is public on GitHub.
+### Router
+- [ ] `tests/router/index.spec.ts`
 
-**Stack:** Vue 3, Vuetify 3.11, TypeScript, vue-i18n 11, Pinia, Supabase, Vite, ESLint, Prettier, VuetifyDateAdapter, 16 locale files
+### App
+- [ ] `tests/App.spec.ts`
 
 ---
 
-**CHECKLIST:**
-
-```
-PLUMBING
-[x] src/main.ts — DONE: hardcoded keys moved to env vars, initPosthog() used, t helper tightened
-[x] src/App.vue — DONE: TrackerHeader import removed, onMounted awaits bootApp, locale watcher comments added
-[x] src/router/index.ts — DONE: t helper tightened, requiresAuth:false removed from public routes
-[x] src/i18n/index.ts — DONE
-[x] src/lib/supabase.ts — DONE: no changes needed, types verified
-[x] src/lib/Logger.ts — DONE
-[x] src/plugins/vuetify.ts — DONE
-[x] src/posthog.ts — DONE: misleading comment corrected
-
-STORES
-[x] src/stores/UserStore.ts — DONE: try/finally fixed, onAuthStateChange comment added, logInfo for transaction count added
-[x] src/stores/SettingsStore.ts — DONE: relative imports fixed, i18n cast tightened, Supabase as any block NOTE added, JSDoc added
-[x] src/stores/TransactionStore.ts — DONE: TransactionError gains details/hint, spread removed, addTransaction type fixed, updateTransaction guard added, t helper tightened, JSDoc restored, NOTE comments restored
-[x] src/stores/NotificationStore.ts — DONE: no changes needed
-
-COMPOSABLES
-[x] src/composables/useDateFormatter.ts — DONE: formatForUI→formatToMediumDate, toISODateString→formatToIsoDateOnly
-[x] src/composables/useCurrencyFormatter.ts — DONE
-[x] src/composables/useTransactionFormFields.ts — DONE: useI18n() removed, t passed as ComposerTranslation, NewTransaction imported from types, displayAmount blank on empty/zero
-[x] src/composables/useNumberFormatHints.ts — DONE: design decision comment added (manual edit)
-[x] src/composables/useAppValidationRules.ts — DONE: logWarning removed, t helper tightened
-[x] src/composables/useAnalytics.ts — DONE: page() removed (dead code)
-
-UTILITIES
-[x] src/utils/currencyParser.ts — DONE: redundant group separator code removed, t helper tightened
-[x] src/utils/AppInitializer.ts — DELETED: dead code
-[x] src/utils/localeList.ts — DONE: t helper tightened, Intl cast tightened, eslint-disable explained
-[x] src/utils/SystemDefaults.ts — DONE: broken currency detection removed, dead types removed
-
-TYPES
-[x] src/types/Transaction.ts — DONE
-[x] src/types/CommonTypes.ts — DONE: filename comment corrected (manual edit)
-
-COMPONENTS
-[ ] src/components/AccountSummary.vue — file produced, needs replacing on disk
-[x] src/components/AddTransaction.vue — DONE
-[ ] src/components/Amount.vue — not yet examined
-[ ] src/components/DataManagement.vue — not yet examined
-[x] src/components/DeleteTransaction.vue — DONE
-[ ] src/components/InfoIcon.vue — not yet examined
-[ ] src/components/KeyboardShortcuts.vue — not yet examined
-[ ] src/components/Settings.vue — not yet examined
-[ ] src/components/TrackerAbout.vue — not yet examined
-[ ] src/components/TrackerHeader.vue — not yet examined
-[x] src/components/TransactionHistory.vue — DONE
-[x] src/components/UpdateTransaction.vue — DONE
-
-PAGES
-[ ] src/pages/Home.vue — not yet examined
-[ ] src/pages/Login.vue — not yet examined
-[ ] src/pages/Register.vue — not yet examined
-
-STALE I18N KEYS TO REMOVE
-[ ] appInit.hydration_failed — AppInitializer deleted
-[ ] defaults.currency_detection_failed — currency detection removed from SystemDefaults
-
-TESTING (after code stabilizes)
-[ ] tests/ — full suite
-
-I18N
-[ ] Single translation pass across all 16 locales
-```
+## Recent Source File Changes (since last session)
+- `useAppValidationRules.ts` — `amountRules` first check changed from `t("useApp.reqdZeroOk")` to `t("useApp.reqd")` (zero is not allowed in amount fields)
+- `AddTransaction.vue` — `:placeholder="amountPlaceholder"` removed from amount field
+- `UpdateTransaction.vue` — `:placeholder="amountPlaceholder"` to be removed when file is next opened
+- `useNumberFormatHints` — `amountPlaceholder` still exported but no longer used in components (only in its own spec file which may need cleanup)
+- `vitest.config.ts` — added `exclude: ["**/node_modules/**", "**/tests/e2e/**"]` at the `test` level to stop Playwright tests being picked up by Vitest
 
 ---
 
-[More work done]
+## Second Pass — Coverage Gaps
+The list below is incomplete — it was written before components/pages were examined. A full coverage run after all spec files are written will reveal the complete picture.
 
-Here's what's left:
+- [ ] `useCurrencyFormatter` lines 27–34: catch block when `Intl.NumberFormat` throws
+- [ ] `useTransactionFormFields` lines 39–40, 118–121: `closeDatePicker`, `logException` branch
+- [ ] `localeList` lines 101–102: catch when `display.of()` throws
+- [ ] `currencyParser` lines 53–60: catch block for parse exceptions
+- [ ] `UserStore` lines 80–104: `onAuthStateChange` callback (SIGNED_IN/SIGNED_OUT)
+- [ ] `SystemDefaults` lines 6–38, 57–58: `navigator.language` constants, `defaultCountry` ternary
+- [ ] `SettingsStore` lines 57–68, 92–94, 125, 145: locale watcher DOM manipulation, error branches
+- [ ] `TransactionStore` lines 82, 136, 161, 187, 207: `handleSupabaseError` unknown code fallback
+- [ ] `useNumberFormatHints` lines 13, 21: `?? "."` and `?? ","` fallback paths
 
-Components (mostly unexamined):
+---
 
-Amount.vue — not yet examined
-DataManagement.vue — not yet examined
-InfoIcon.vue — not yet examined
-KeyboardShortcuts.vue — not yet examined
-Settings.vue — not yet examined (heavily modified by Gemini)
-TrackerAbout.vue — not yet examined
-TrackerHeader.vue — not yet examined
+## Key Patterns & Gotchas (for reference)
 
-Pages (all unexamined):
+### Test Infrastructure
+- `tests/setup.ts` — installs Vuetify + i18n globally; suppresses `[Vue warn]`, `[intlify]`, CSS parse warnings
+- `tests/test-utils.ts` — `withSetup()` helper for composables needing Vue app context
 
-Home.vue
-Login.vue
-Register.vue
+### i18n
+- Real translations render in tests (i18n IS installed globally)
+- **Always assert on translated text**, not i18n keys: `"Settings"` not `"settings.title"`
+- `[intlify] Not found parent scope` warnings are harmless — suppressed in `setup.ts`
 
-That's it for source code. Everything else is done.
-Then:
+### Vuetify Layout Components
+- `v-app-bar` requires a `v-layout` parent → stub `VAppBar` and `VAppBarTitle` in tests
+- Expansion panels render content only after clicking header + `await nextTick()`
+- Use `img.logo-img` not `.v-col` for tech stack items (Vuetify classes unreliable in jsdom)
 
-Delete all existing tests and write fresh ones
-Single i18n translation pass across all 16 locales
-Remove stale keys appInit.hydration_failed and defaults.currency_detection_failed
+### defineModel
+- Pass as `{ modelValue: val, "onUpdate:modelValue": handler }`
+- Handler type must be `(val: Transaction | null | undefined) => void`
 
-Honestly we're very close. The remaining components and pages are likely to be quick — most issues we'll find are the same patterns we've already fixed (old names, Money → Amount, etc.). Settings.vue is the wildcard since Gemini heavily modified it.
+### Store Mocking
+- Mock entire store module with `vi.mock`, import after, cast with `as unknown as ReturnType<typeof vi.fn>`
+- For `TransactionStore` in component tests that don't mock it: add `vi.mock("@/lib/supabase", ...)`
+
+### Async / Timing
+- `await wrapper.vm.$nextTick()` after most async actions
+- `flushPromises` from `@vue/test-utils` available if `$nextTick` isn't enough
+- Danger zone handlers: call `(wrapper.vm as any).handleX()` directly rather than clicking buttons
+
+### onSubmit Testing Pattern
+- `SubmitEventPromise` must be simulated as `Promise.resolve({ valid: true/false }) as any`
+- `valid: false` only for the test that specifically tests invalid form state
+- All other onSubmit tests (including amount validation and store error tests) use `valid: true`
+- Always set `displayAmount` to a parseable string (e.g. `"1000"`) in success-path tests — `handleBlur` runs at the top of `onSubmit` and will zero out `transaction.amount` if `displayAmount` is empty
+
+### window globals
+- `window.confirm` → `vi.stubGlobal("confirm", vi.fn(() => true/false))`
+- `URL.createObjectURL` → `vi.stubGlobal("URL", { createObjectURL: vi.fn(() => "blob:mock") })`
+- `window.location.reload` → `vi.stubGlobal("location", { reload: vi.fn() })`
+- `Blob.text()` not supported in jsdom → override Blob constructor to capture content
+
+### Transaction type
+- `id` is **number**, not string
+- Always use `transaction_type: "Income" as const` or type the object as `Transaction`
+
+### Button finding
+- Prefer `(wrapper.vm as any).methodName()` for testing logic directly
+- If finding by text: use real translated text, e.g. `"Cancel"` not `"common.cancel"`
+- `.find((b: DOMWrapper<Element>) => ...)` to avoid implicit `any` TS error
+
+### amountPlaceholder
+- Removed from `AddTransaction.vue` and `UpdateTransaction.vue` — the persistent `amountHint` below the field is sufficient format guidance
+- Still exported from `useNumberFormatHints` and tested in its own spec
+
+
+
+
+
 
 
 ## RTL

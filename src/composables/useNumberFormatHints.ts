@@ -22,14 +22,6 @@ export function useNumberFormatHints() {
   });
 
   /**
-   * Generates a placeholder showing the expected format
-   * e.g., "0.00" for en-US, "0,00" for de-DE
-   */
-  const amountPlaceholder = computed(() => {
-    return `0${decimalSeparator.value}00`;
-  });
-
-  /**
    * Generates an example formatted number for hint text
    * e.g., "Example: 1,234.56" for en-US, "Beispiel: 1.234,56" for de-DE
    */
@@ -60,7 +52,6 @@ export function useNumberFormatHints() {
   return {
     decimalSeparator,
     groupSeparator,
-    amountPlaceholder,
     amountExample,
     hasCorrectSeparator,
   };

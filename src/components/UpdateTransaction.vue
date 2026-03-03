@@ -17,7 +17,7 @@ const transactionStore = useTransactionStore();
 const { formatCurrency } = useCurrencyFormatter();
 const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
 const { required, dateRules, amountRules } = useAppValidationRules();
-const { amountPlaceholder, amountExample, hasCorrectSeparator, decimalSeparator } =
+const { amountExample, hasCorrectSeparator, decimalSeparator } =
   useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
@@ -259,7 +259,6 @@ async function onSubmit(event: SubmitEventPromise) {
               <v-text-field
                 v-model="displayAmount"
                 :label="t('common.amount')"
-                :placeholder="amountPlaceholder"
                 :hint="amountHint"
                 persistent-hint
                 variant="outlined"

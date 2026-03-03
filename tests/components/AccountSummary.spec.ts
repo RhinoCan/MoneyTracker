@@ -1,69 +1,98 @@
-import { describe, it, expect, beforeEach } from "vitest";
+// tests/components/AccountSummary.spec.ts
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
-import { createPinia, setActivePinia } from "pinia";
-import AccountSummary from "@/components/AccountSummary.vue";
+import { setActivePinia, createPinia } from "pinia";
 import { useTransactionStore } from "@/stores/TransactionStore";
-import Money from "@/components/Money.vue";
+import AccountSummary from "@/components/AccountSummary.vue";
+
+vi.mock("@/components/Amount.vue", () => ({
+  default: {
+    name: "Amount",
+    props: ["amount", "type"],
+    template: '<span class="mock-amount" :data-amount="amount" :data-type="type">{{ amount }}</span>',
+  },
+}));
+
+vi.mock("@/lib/supabase", () => ({
+  supabase: {
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      order: vi.fn().mockResolvedValue({ data: [], error: null }),
+    })),
+  },
+}));
 
 describe("AccountSummary.vue", () => {
   beforeEach(() => {
     setActivePinia(createPinia());
   });
 
-  it("renders an alert when there are no transactions", () => {
-    const store = useTransactionStore();
-    store.transactions = []; // Ensure empty state
-
-    const wrapper = mount(AccountSummary, {
-      global: {
-        stubs: { Money: true },
-      },
+  describe("empty state (no transactions)", () => {
+    it("renders the card title", () => {
+      const wrapper = mount(AccountSummary);
+      expect(wrapper.text()).toContain("Account Summary");
     });
 
-    expect(wrapper.find(".v-alert").exists()).toBe(true);
-    expect(wrapper.text()).toContain("You won't see anything but zeroes here");
-    expect(wrapper.find("table").exists()).toBe(false);
+    it("shows an info alert when there are no transactions", () => {
+      const wrapper = mount(AccountSummary);
+      expect(wrapper.find(".v-alert").exists()).toBe(true);
+    });
+
+    it("does not show the summary table when there are no transactions", () => {
+      const wrapper = mount(AccountSummary);
+      expect(wrapper.find(".summary-table").exists()).toBe(false);
+    });
   });
 
-  it("renders the summary table when transactions exist", () => {
-    const store = useTransactionStore();
-    // Add dummy data to trigger the v-else
-    store.transactions = [
-      { id: 1, description: "Test", transactionType: "Income", amount: 100, date: "2023-01-01" },
-    ];
-
-    // Setup mock getters
-    // Note: In real Pinia, getters are computed from state,
-    // but we can just set the state and let the store work.
-    store.transactions = [
-      { id: 1, description: "Salary", transactionType: "Income", amount: 1000, date: "2023-01-01" },
-      { id: 2, description: "Rent", transactionType: "Expense", amount: 400, date: "2023-01-01" },
-    ];
-
-    const wrapper = mount(AccountSummary, {
-      global: {
-        components: { Money }, // Use real Money component to verify props
-      },
+  describe("populated state (with transactions)", () => {
+    beforeEach(() => {
+      const store = useTransactionStore();
+      store.transactions = [
+        { id: "1", user_id: "u1", amount: 1000, transaction_type: "Income", description: "Salary", date: "2025-06-01", created_at: "2025-06-01T00:00:00Z" },
+        { id: "2", user_id: "u1", amount: 400, transaction_type: "Expense", description: "Rent", date: "2025-06-02", created_at: "2025-06-02T00:00:00Z" },
+      ];
     });
 
-    expect(wrapper.find(".v-alert").exists()).toBe(false);
-    expect(wrapper.find("table").exists()).toBe(true);
+    it("shows the summary table when transactions exist", () => {
+      const wrapper = mount(AccountSummary);
+      expect(wrapper.find(".summary-table").exists()).toBe(true);
+    });
 
-    // Find all Money components
-    const moneyComponents = wrapper.findAllComponents(Money);
-    expect(moneyComponents).toHaveLength(3);
+    it("does not show the alert when transactions exist", () => {
+      const wrapper = mount(AccountSummary);
+      expect(wrapper.find(".v-alert").exists()).toBe(false);
+    });
 
-    // Verify props passed to Money components
-    // 1st: Income (1000)
-    expect(moneyComponents[0].props("amount")).toBe(1000);
-    expect(moneyComponents[0].props("type")).toBe("Income");
+    it("renders an Amount component for income", () => {
+      const wrapper = mount(AccountSummary);
+      const amounts = wrapper.findAll(".mock-amount");
+      const incomeAmount = amounts.find((a) => a.attributes("data-type") === "Income");
+      expect(incomeAmount).toBeTruthy();
+      expect(incomeAmount!.attributes("data-amount")).toBe("1000");
+    });
 
-    // 2nd: Expense (400)
-    expect(moneyComponents[1].props("amount")).toBe(400);
-    expect(moneyComponents[1].props("type")).toBe("Expense");
+    it("renders an Amount component for expense", () => {
+      const wrapper = mount(AccountSummary);
+      const amounts = wrapper.findAll(".mock-amount");
+      const expenseAmount = amounts.find((a) => a.attributes("data-type") === "Expense");
+      expect(expenseAmount).toBeTruthy();
+      expect(expenseAmount!.attributes("data-amount")).toBe("400");
+    });
 
-    // 3rd: Balance (600)
-    expect(moneyComponents[2].props("amount")).toBe(600);
-    expect(moneyComponents[2].props("type")).toBe("Balance");
+    it("renders an Amount component for balance", () => {
+      const wrapper = mount(AccountSummary);
+      const amounts = wrapper.findAll(".mock-amount");
+      const balanceAmount = amounts.find((a) => a.attributes("data-type") === "Balance");
+      expect(balanceAmount).toBeTruthy();
+      expect(balanceAmount!.attributes("data-amount")).toBe("600");
+    });
+
+    it("renders income, expense, and balance labels", () => {
+      const wrapper = mount(AccountSummary);
+      const text = wrapper.text();
+      expect(text).toContain("Income");
+      expect(text).toContain("Expense");
+      expect(text).toContain("Balance");
+    });
   });
 });

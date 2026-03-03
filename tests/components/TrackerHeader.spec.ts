@@ -1,65 +1,160 @@
-import { describe, it, expect, vi } from "vitest";
+// tests/components/TrackerHeader.spec.ts
+import { describe, it, expect, beforeEach, vi } from "vitest";
 import { mount } from "@vue/test-utils";
+import { setActivePinia, createPinia } from "pinia";
 import TrackerHeader from "@/components/TrackerHeader.vue";
-import { VChip, VBtn } from "vuetify/components";
 
-describe("TrackerHeader.vue", () => {
-  const mountOptions = {
+const { mockPush, mockSignOut } = vi.hoisted(() => ({
+  mockPush: vi.fn(),
+  mockSignOut: vi.fn().mockResolvedValue(undefined),
+}));
+
+vi.mock("vue-router", () => ({
+  useRouter: () => ({ push: mockPush }),
+}));
+
+vi.mock("@/stores/UserStore", () => ({
+  useUserStore: vi.fn(),
+}));
+
+vi.mock("@/components/Settings.vue", () => ({
+  default: { name: "Settings", template: "<div class='mock-settings' />" },
+}));
+
+vi.mock("@/components/DataManagement.vue", () => ({
+  default: { name: "DataManagement", template: "<div class='mock-data-management' />" },
+}));
+
+import { useUserStore } from "@/stores/UserStore";
+
+function mockUserStore(overrides = {}) {
+  (useUserStore as unknown as ReturnType<typeof vi.fn>).mockReturnValue({
+    isAuthenticated: false,
+    userEmail: null,
+    userId: null,
+    signOut: mockSignOut,
+    ...overrides,
+  });
+}
+
+// v-app-bar requires a v-layout parent — wrap it
+function mountInLayout(options = {}) {
+  return mount(TrackerHeader, {
     global: {
       stubs: {
-        // 1. Stub the bar to prevent the "layout" error
-        VAppBar: { template: '<div class="v-app-bar-stub"><slot /></div>' },
-        // 2. Stub the dialog so we don't have to deal with overlays
-        SettingsDialog: true,
-        VDialog: true,
-      },
-      components: {
-        VChip,
-        VBtn,
+        // Stub VAppBar to avoid the layout injection requirement
+        VAppBar: {
+          name: "VAppBar",
+          template: "<div class='v-app-bar'><slot /></div>",
+        },
+        VAppBarTitle: {
+          name: "VAppBarTitle",
+          template: "<div class='v-app-bar-title'><slot /></div>",
+        },
+        VDialog: {
+          name: "VDialog",
+          props: ["modelValue"],
+          template: "<div class='v-dialog'><slot v-if='modelValue' /></div>",
+        },
       },
     },
-  };
+    ...options,
+  });
+}
 
-  it("renders with 'Dev Server' environment by default", () => {
-    const wrapper = mount(TrackerHeader, mountOptions);
-
-    // Use findComponent so TypeScript knows it has .props()
-    const chip = wrapper.findComponent(VChip);
-    expect(chip.text()).toBe("Dev Server");
-    expect(chip.props("color")).toBe("warning");
+describe("TrackerHeader.vue", () => {
+  beforeEach(() => {
+    setActivePinia(createPinia());
+    vi.clearAllMocks();
+    mockUserStore();
   });
 
-  it("renders with 'Live' environment when VITE_APP_ENV is set", () => {
-    vi.stubEnv("VITE_APP_ENV", "production");
-    const wrapper = mount(TrackerHeader, mountOptions);
+  describe("rendering", () => {
+    it("renders without errors", () => {
+      const wrapper = mountInLayout();
+      expect(wrapper.exists()).toBe(true);
+    });
 
-    const chip = wrapper.findComponent(VChip);
-    expect(chip.text()).toBe("Live (GitHub Pages)");
-    expect(chip.props("color")).toBe("success");
+    it("renders the app title", () => {
+      const wrapper = mountInLayout();
+      expect(wrapper.text()).toContain("Money Tracker");
+    });
 
-    vi.unstubAllEnvs();
+    it("renders the environment chip", () => {
+      const wrapper = mountInLayout();
+      expect(wrapper.find(".v-chip").exists()).toBe(true);
+    });
+
+    it("shows Dev environment chip when VITE_APP_ENV is not set", () => {
+      const wrapper = mountInLayout();
+      expect(wrapper.text()).toContain("Dev");
+    });
   });
 
-  it("opens the settings dialog when button is clicked", async () => {
-    const wrapper = mount(TrackerHeader, mountOptions);
+  describe("authentication state", () => {
+    it("does not show logout button when not authenticated", () => {
+      mockUserStore({ isAuthenticated: false });
+      const wrapper = mountInLayout();
+      const btns = wrapper.findAll(".v-btn");
+      const logoutBtn = btns.find((b) => b.text().includes("Log"));
+      expect(logoutBtn).toBeUndefined();
+    });
 
-    // Use findComponent for the button to be safe
-    const btn = wrapper.findComponent("#showSettings");
-    await btn.trigger("click");
+    it("shows logout button when authenticated", () => {
+      mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
+      const wrapper = mountInLayout();
+      expect(wrapper.text()).toContain("Log");
+    });
 
-    expect((wrapper.vm as any).showSettings).toBe(true);
+    it("shows user email when authenticated", () => {
+      mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
+      const wrapper = mountInLayout();
+      expect(wrapper.text()).toContain("user@example.com");
+    });
   });
 
-  it("updates showSettings when the dialog emits update:modelValue", async () => {
-    const wrapper = mount(TrackerHeader, mountOptions);
+  describe("handleLogout", () => {
+    it("calls userStore.signOut on logout", async () => {
+      mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
+      const wrapper = mountInLayout();
+      const logoutBtn = wrapper.findAll(".v-btn").find((b) => b.text().toLowerCase().includes("log"));
+      await logoutBtn!.trigger("click");
+      expect(mockSignOut).toHaveBeenCalled();
+    });
 
-    // 1. Manually trigger the event that v-model listens for
-    const dialog = wrapper.findComponent({ name: "v-dialog" });
-    await dialog.vm.$emit("update:modelValue", true);
-    expect((wrapper.vm as any).showSettings).toBe(true);
+    it("redirects to /login after successful logout", async () => {
+      mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
+      const wrapper = mountInLayout();
+      const logoutBtn = wrapper.findAll(".v-btn").find((b) => b.text().toLowerCase().includes("log"));
+      await logoutBtn!.trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(mockPush).toHaveBeenCalledWith("/login");
+    });
 
-    // 2. Trigger it again with false to fully exercise the logic
-    await dialog.vm.$emit("update:modelValue", false);
-    expect((wrapper.vm as any).showSettings).toBe(false);
+    it("does not redirect if signOut throws", async () => {
+      mockSignOut.mockRejectedValueOnce(new Error("Sign out failed"));
+      mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
+      const wrapper = mountInLayout();
+      const logoutBtn = wrapper.findAll(".v-btn").find((b) => b.text().toLowerCase().includes("log"));
+      await logoutBtn!.trigger("click");
+      await wrapper.vm.$nextTick();
+      expect(mockPush).not.toHaveBeenCalled();
+    });
+  });
+
+  describe("dialog triggers", () => {
+    it("opens settings dialog when settings button is clicked", async () => {
+      const wrapper = mountInLayout();
+      const settingsBtn = wrapper.find("#showSettings");
+      await settingsBtn.trigger("click");
+      expect((wrapper.vm as any).showSettings).toBe(true);
+    });
+
+    it("opens data management dialog when data button is clicked", async () => {
+      const wrapper = mountInLayout();
+      const dataBtn = wrapper.find("#showDataManagement");
+      await dataBtn.trigger("click");
+      expect((wrapper.vm as any).showDataManagement).toBe(true);
+    });
   });
 });

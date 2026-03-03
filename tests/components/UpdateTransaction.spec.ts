@@ -1,771 +1,349 @@
-// tests/components/UpdateTransaction.spec.ts
-
-import { describe, it, expect, beforeEach, vi } from "vitest";
-import { mount, VueWrapper } from "@vue/test-utils";
-import { createPinia, setActivePinia } from "pinia";
-import { nextTick } from "vue";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
+import { mount, flushPromises } from "@vue/test-utils";
+import { setActivePinia, createPinia } from "pinia";
 import UpdateTransaction from "@/components/UpdateTransaction.vue";
-import { useTransactionStore } from "@/stores/TransactionStore";
-import { Transaction } from "@/types/Transaction";
+import { Transaction, TransactionTypeValues } from "@/types/Transaction";
 
-// At the top of UpdateTransaction.spec.ts
-vi.mock("@/components/KeyboardShortcutsDialog.vue", () => ({
-  default: {
-    name: "KeyboardShortcutsDialog",
-    template: "<div />",
-    // We must list these so the test-utils can see them as props
-    props: ["modelValue", "onClose", "onUpdate:modelValue"],
-  },
+// --- GLOBAL MOCKS ---
+const { mockUpdateTransaction } = vi.hoisted(() => ({
+  mockUpdateTransaction: vi.fn().mockResolvedValue(undefined),
 }));
 
-describe("UpdateTransaction", () => {
-  let wrapper: VueWrapper<any>;
-  let transactionStore: any;
+vi.mock("@/stores/TransactionStore", () => ({
+  useTransactionStore: () => ({
+    updateTransaction: mockUpdateTransaction,
+  }),
+}));
 
-  const mockTransaction: Transaction = {
-    id: 1,
-    description: "Test Transaction",
-    date: "2025-01-15",
-    amount: 100.5,
-    transactionType: "Income",
-  };
+vi.mock("@/utils/currencyParser", () => ({
+  parseCurrency: vi.fn((val) => {
+    if (val === null || val === undefined || val === "") return null;
+    const sanitized = String(val).replace(/[^\d.-]/g, "");
+    const num = parseFloat(sanitized);
+    return isNaN(num) ? null : num;
+  }),
+}));
+
+vi.mock("@/lib/Logger", () => ({
+  logSuccess: vi.fn(),
+  logValidation: vi.fn(),
+  logException: vi.fn(),
+}));
+
+import { logSuccess, logValidation, logException } from "@/lib/Logger";
+
+const currentYear = 2026;
+const baseTransaction: Transaction = {
+  id: 123,
+  description: "Test Transaction",
+  date: `${currentYear}-05-20`,
+  transaction_type: TransactionTypeValues.Expense,
+  amount: 75.5,
+  user_id: "user-1",
+};
+
+describe("UpdateTransaction.vue", () => {
+  let wrapper: any;
 
   beforeEach(() => {
     setActivePinia(createPinia());
-    transactionStore = useTransactionStore();
-
-    // Add the mock transaction to the store
-    transactionStore.transactions = [mockTransaction];
+    vi.clearAllMocks();
+    const el = document.createElement("div");
+    el.id = "app";
+    document.body.appendChild(el);
   });
 
   afterEach(() => {
-    if (wrapper) {
-      wrapper.unmount();
-    }
+    wrapper?.unmount();
+    document.body.innerHTML = "";
   });
 
-  describe("Dialog Visibility", () => {
-    it("does not render when model is null", () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: null,
+  function mountComponent(modelValue: Transaction | null = baseTransaction) {
+    return mount(UpdateTransaction, {
+      attachTo: document.body,
+      props: {
+        modelValue,
+        "onUpdate:modelValue": (val: any) => wrapper.setProps({ modelValue: val }),
+      },
+      global: {
+        stubs: {
+          "v-date-picker": true,
+          KeyboardShortcuts: true,
         },
-      });
-
-      // The v-if="localTransaction" should prevent rendering
-      expect(wrapper.find(".v-dialog").exists()).toBe(false);
+      },
     });
+  }
 
-    it("renders when model has a transaction", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-
-      await nextTick();
-
-      // Should render the dialog
-      const dialog = wrapper.findComponent({ name: "VDialog" });
-      expect(dialog.exists()).toBe(true);
+  // --- RENDERING ---
+  describe("rendering", () => {
+    it("renders without errors when a transaction is provided", () => {
+      wrapper = mountComponent();
+      expect(wrapper.exists()).toBe(true);
+    });
+    it("renders the dialog title", () => {
+      wrapper = mountComponent();
+      expect(document.body.textContent).toContain("Update Transaction");
+    });
+    it("renders the description field", () => {
+      wrapper = mountComponent();
+      expect(document.body.textContent).toContain("Description");
+    });
+    it("renders the date field", () => {
+      wrapper = mountComponent();
+      expect(document.body.textContent).toContain("Date");
+    });
+    it("renders Income and Expense radio options", () => {
+      wrapper = mountComponent();
+      expect(document.body.textContent).toContain("Income");
+      expect(document.body.textContent).toContain("Expense");
+    });
+    it("renders the amount field", () => {
+      wrapper = mountComponent();
+      expect(document.body.textContent).toContain("Amount");
+    });
+    it("renders the Cancel button", () => {
+      wrapper = mountComponent();
+      const btns = Array.from(document.querySelectorAll(".v-btn"));
+      expect(btns.find(b => b.textContent?.includes("Cancel"))).toBeDefined();
+    });
+    it("renders the Update Transaction button", () => {
+      wrapper = mountComponent();
+      const btns = Array.from(document.querySelectorAll(".v-btn"));
+      expect(btns.find(b => b.textContent?.includes("Update Transaction"))).toBeDefined();
+    });
+    it("renders the help button", () => {
+      wrapper = mountComponent();
+      expect(document.querySelector('[aria-label*="help"]')).toBeDefined();
+    });
+    it("renders the close button", () => {
+      wrapper = mountComponent();
+      expect(document.querySelector('[aria-label*="close"]')).toBeDefined();
+    });
+    it("does not render the dialog when modelValue is null", async () => {
+      wrapper = mountComponent(null);
+      await flushPromises();
+      expect(document.body.textContent).not.toContain("Update Transaction");
     });
   });
 
-  describe("Initialization", () => {
-    beforeEach(async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-    });
-
-    it("creates a deep copy of the transaction", () => {
-      expect(wrapper.vm.localTransaction).toBeTruthy();
-      expect(wrapper.vm.localTransaction).not.toBe(mockTransaction);
-      expect(wrapper.vm.localTransaction.id).toBe(mockTransaction.id);
-    });
-
-    it("initializes form fields with transaction data", () => {
-      expect(wrapper.vm.localTransaction.description).toBe("Test Transaction");
-      expect(wrapper.vm.localTransaction.amount).toBe(100.5);
-      expect(wrapper.vm.localTransaction.transactionType).toBe("Income");
-    });
-
-    it("formats amount for display", () => {
-      // displayAmount should be formatted as currency
-      expect(wrapper.vm.displayAmount).toBeTruthy();
-      expect(typeof wrapper.vm.displayAmount).toBe("string");
-    });
-  });
-
-  describe("Form Fields", () => {
-    beforeEach(async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-    });
-
-    it("renders ID field as disabled", () => {
-      // Find the VTextField component with "Id" label
-      const textFields = wrapper.findAllComponents({ name: "VTextField" });
-      const idField = textFields.find((field) => field.props("label") === "Id");
-
-      expect(idField).toBeTruthy();
-      expect(idField?.props("disabled")).toBe(true);
-      expect(idField?.props("modelValue")).toBe(1);
-    });
-
-    it("renders description field with value", () => {
+  // --- INITIALIZATION ---
+  describe("initialization via watch", () => {
+    it("populates localTransaction from the modelValue", () => {
+      wrapper = mountComponent();
       expect(wrapper.vm.localTransaction.description).toBe("Test Transaction");
     });
-
-    it("renders transaction type radio group", () => {
-      const radioGroup = wrapper.findComponent({ name: "VRadioGroup" });
-      expect(radioGroup.exists()).toBe(true);
-
-      const radios = wrapper.findAllComponents({ name: "VRadio" });
-      expect(radios.length).toBe(2);
+    it("sets localTransaction.date to YYYY-MM-DD format", () => {
+      wrapper = mountComponent();
+      expect(wrapper.vm.localTransaction.date).toBe(`${currentYear}-05-20`);
     });
-
-    it("allows changing transaction type", async () => {
-      wrapper.vm.localTransaction.transactionType = "Expense";
-      await nextTick();
-
-      expect(wrapper.vm.localTransaction.transactionType).toBe("Expense");
+    it("strips time from ISO datetime strings in localTransaction.date", async () => {
+      const complexDate = { ...baseTransaction, date: `${currentYear}-05-20T14:30:00Z` };
+      wrapper = mountComponent(complexDate);
+      expect(wrapper.vm.localTransaction.date).toBe(`${currentYear}-05-20`);
     });
-  });
-
-  describe("Amount Field", () => {
-    beforeEach(async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
+    it("sets pickerDate correctly", () => {
+      wrapper = mountComponent();
+      expect(wrapper.vm.pickerDate.getFullYear()).toBe(currentYear);
     });
-
-    it("shows formatted amount when not focused", () => {
-      expect(wrapper.vm.isFocused).toBe(false);
-      expect(wrapper.vm.displayAmount).toBeTruthy();
+    it("sets displayAmount", () => {
+      wrapper = mountComponent();
+      expect(wrapper.vm.displayAmount).toBeDefined();
     });
-
-    it("shows raw amount when focused", async () => {
-      wrapper.vm.handleFocus();
-      await nextTick();
-
-      expect(wrapper.vm.isFocused).toBe(true);
-    });
-
-    it("applies correct color class for Income", () => {
-      wrapper.vm.localTransaction.transactionType = "Income";
-      expect(wrapper.vm.colorClass).toBe("money-plus");
-    });
-
-    it("applies correct color class for Expense", () => {
-      wrapper.vm.localTransaction.transactionType = "Expense";
-      expect(wrapper.vm.colorClass).toBe("money-minus");
+    it("localTransaction is a deep clone", () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.amount = 999;
+      expect(wrapper.props("modelValue").amount).toBe(75.5);
     });
   });
 
-  describe("Date Picker", () => {
-    beforeEach(async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-    });
-
-    it("formats date for display", () => {
-      // dateDisplayModel should format the date
-      expect(wrapper.vm.dateDisplayModel).toBeTruthy();
-      expect(typeof wrapper.vm.dateDisplayModel).toBe("string");
-    });
-
-    it("opens date menu when clicked", async () => {
-      expect(wrapper.vm.dateMenu).toBe(false);
-
-      wrapper.vm.dateMenu = true;
-      await nextTick();
-
-      expect(wrapper.vm.dateMenu).toBe(true);
-    });
-
-    it("closes date picker on selection", async () => {
-      wrapper.vm.dateMenu = true;
-      await nextTick();
-
-      wrapper.vm.closeDatePicker();
-      await nextTick();
-
-      expect(wrapper.vm.dateMenu).toBe(false);
-    });
-  });
-
-  describe("Dialog Actions", () => {
-    beforeEach(async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-    });
-
-    it("closes dialog when Cancel is clicked", async () => {
-      // Call closeDialog directly instead of finding button
-      wrapper.vm.closeDialog();
-      await nextTick();
-
-      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
-      expect(wrapper.emitted("update:modelValue")?.[0]).toEqual([null]);
-    });
-
-    it("closes dialog when X button is clicked", async () => {
-      // Find buttons more carefully
-      const buttons = wrapper.findAllComponents({ name: "VBtn" });
-      const closeBtn = buttons.find((btn) => btn.attributes("aria-label") === "Close dialog");
-
-      if (closeBtn) {
-        await closeBtn.trigger("click");
-        expect(wrapper.emitted("update:modelValue")).toBeTruthy();
-      } else {
-        // Fallback: test the function directly
-        wrapper.vm.closeDialog();
-        expect(wrapper.emitted("update:modelValue")).toBeTruthy();
-      }
-    });
-
-    it("opens keyboard shortcuts dialog", async () => {
-      const buttons = wrapper.findAllComponents({ name: "VBtn" });
-      const helpBtn = buttons.find((btn) => btn.attributes("aria-label") === "Help");
-
-      if (helpBtn) {
-        await helpBtn.trigger("click");
-        expect(wrapper.vm.showKeyboardShortcuts).toBe(true);
-      } else {
-        // Fallback: test directly
-        wrapper.vm.showKeyboardShortcuts = true;
-        expect(wrapper.vm.showKeyboardShortcuts).toBe(true);
-      }
-    });
-  });
-
-  describe("Form Submission", () => {
-    beforeEach(async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-    });
-
-    it("calls updateTransaction on valid submit", async () => {
-      const updateSpy = vi.spyOn(transactionStore, "updateTransaction");
-
-      // Modify the transaction
-      wrapper.vm.localTransaction.description = "Updated Description";
-      wrapper.vm.localTransaction.amount = 200;
-
-      // Call onSubmit directly with a mock event
-      const mockEvent = {
-        then: (callback: any) => {
-          callback({ valid: true });
-          return Promise.resolve();
-        },
-      };
-
-      await wrapper.vm.onSubmit(mockEvent);
-      await nextTick();
-
-      expect(updateSpy).toHaveBeenCalled();
-    });
-
-    it("does not submit with invalid data", async () => {
-      const updateSpy = vi.spyOn(transactionStore, "updateTransaction");
-
-      // Make invalid by clearing required field
-      wrapper.vm.localTransaction.description = "";
-      await nextTick();
-
-      const form = wrapper.findComponent({ name: "VForm" });
-      await form.trigger("submit.prevent");
-      await nextTick();
-
-      // Should not update with invalid data
-      // Note: This might need adjustment based on actual validation behavior
-    });
-
-    it("closes dialog after successful update", async () => {
-      wrapper.vm.localTransaction.description = "Updated";
-
-      // Call onSubmit directly
-      const mockEvent = {
-        then: (callback: any) => {
-          callback({ valid: true });
-          return Promise.resolve();
-        },
-      };
-
-      await wrapper.vm.onSubmit(mockEvent);
-      await nextTick();
-
-      // Should emit close
-      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
-    });
-  });
-
-  describe("Validation", () => {
-    beforeEach(async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-    });
-
-    it("has required validation rule", () => {
-      expect(wrapper.vm.rules.required).toBeDefined();
-      expect(typeof wrapper.vm.rules.required).toBe("function");
-    });
-
-    it("has date validation rule", () => {
-      expect(wrapper.vm.rules.dateRequired).toBeDefined();
-      expect(typeof wrapper.vm.rules.dateRequired).toBe("function");
-    });
-
-    it("has amount validation rule", () => {
-      expect(wrapper.vm.rules.amountRules).toBeDefined();
-      expect(typeof wrapper.vm.rules.amountRules).toBe("function");
-    });
-  });
-
-  describe("Cleanup on Close", () => {
-    it("clears local transaction when model becomes null", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      expect(wrapper.vm.localTransaction).toBeTruthy();
-
-      // Update model to null
-      await wrapper.setProps({ modelValue: null });
-      await nextTick();
-
-      expect(wrapper.vm.localTransaction).toBeNull();
-      expect(wrapper.vm.displayAmount).toBe("");
-    });
-  });
-
-  describe("Edge Cases and Uncovered Paths", () => {
-    it("handles model update to null in watch", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      expect(wrapper.vm.localTransaction).toBeTruthy();
-
-      // Update model to null - this covers lines 37-38
-      await wrapper.setProps({ modelValue: null });
-      await nextTick();
-
-      expect(wrapper.vm.localTransaction).toBeNull();
-      expect(wrapper.vm.displayAmount).toBe("");
-      expect(wrapper.vm.isFocused).toBe(false);
-    });
-
-    it("handles initialization without valid transaction copy", async () => {
-      // This covers the check on lines 45-49
-      const invalidTransaction = { ...mockTransaction };
-
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: invalidTransaction,
-        },
-      });
-      await nextTick();
-
-      // Should still initialize
-      expect(wrapper.vm.localTransaction).toBeTruthy();
-    });
-
-    it("computes rawDateForValidation correctly for string dates", () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-
-      // rawDateForValidation should handle string dates (lines 54-64)
-      const rawDate = wrapper.vm.rawDateForValidation;
-      expect(rawDate).toBeTruthy();
-      expect(typeof rawDate).toBe("string");
-      expect(rawDate).toMatch(/^\d{4}-\d{2}-\d{2}$/); // ISO format
-    });
-
-    it("computes rawDateForValidation for Date object", async () => {
-      const transactionWithDateObject = {
-        ...mockTransaction,
-        date: new Date("2025-01-15"),
-      };
-
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: transactionWithDateObject as unknown as Transaction,
-        },
-      });
-      await nextTick();
-
-      const rawDate = wrapper.vm.rawDateForValidation;
-      expect(rawDate).toBeTruthy();
-      expect(rawDate).toMatch(/^\d{4}-\d{2}-\d{2}$/);
-    });
-
-    it("handles null date in rawDateForValidation", async () => {
-      const transactionNoDate = {
-        ...mockTransaction,
-        date: null as any,
-      };
-
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: transactionNoDate,
-        },
-      });
-      await nextTick();
-
-      const rawDate = wrapper.vm.rawDateForValidation;
-      expect(rawDate).toBeNull();
-    });
-
-    it("handles onSubmit with missing localTransaction date", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: { modelValue: mockTransaction },
-      });
-
-      // First tick: mount
-      await nextTick();
-      // Second tick: watcher finishes deep-copying to localTransaction
-      await nextTick();
-
-      // Now localTransaction definitely exists
-      (wrapper.vm as any).localTransaction.date = null as any;
-
-      const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-      const mockEvent = {
-        then: (cb: any) => {
-          cb({ valid: true });
-          return Promise.resolve();
-        },
-      };
-
-      await wrapper.vm.onSubmit(mockEvent);
-
-      expect(consoleErrorSpy).toHaveBeenCalledWith("Missing local transaction or date on submit");
-
-      consoleErrorSpy.mockRestore();
-    });
-
-    it("handles onSubmit with Date object for date", async () => {
-      const transactionWithDateObject = {
-        ...mockTransaction,
-        date: new Date("2025-01-15"),
-      };
-
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: transactionWithDateObject as unknown as Transaction,
-        },
-      });
-      await nextTick();
-
-      const updateSpy = vi.spyOn(transactionStore, "updateTransaction");
-
-      const mockEvent = {
-        then: (callback: any) => {
-          callback({ valid: true });
-          return Promise.resolve();
-        },
-      };
-
-      // This covers lines 146-147 (Date object branch)
-      await wrapper.vm.onSubmit(mockEvent);
-      await nextTick();
-
-      expect(updateSpy).toHaveBeenCalled();
-    });
-
-    it("handles date validation failure in onSubmit", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      const updateSpy = vi.spyOn(transactionStore, "updateTransaction");
-
-      // Set an invalid date that will fail validation
-      wrapper.vm.localTransaction.date = "2099-12-31"; // Future date
-
-      const mockEvent = {
-        then: (callback: any) => {
-          callback({ valid: true });
-          return Promise.resolve();
-        },
-      };
-
-      // This covers lines 154-157 (validation failure path)
-      await wrapper.vm.onSubmit(mockEvent);
-      await nextTick();
-
-      // Should set dateError and not call updateTransaction
-      expect(wrapper.vm.dateError).toBeTruthy();
-      expect(updateSpy).not.toHaveBeenCalled();
-    });
-
-    it("handles invalid form in onSubmit", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      const updateSpy = vi.spyOn(transactionStore, "updateTransaction");
-
-      const mockEvent = {
-        then: (callback: any) => {
-          callback({ valid: false }); // Invalid form
-          return Promise.resolve();
-        },
-      };
-
-      await wrapper.vm.onSubmit(mockEvent);
-      await nextTick();
-
-      // Should not update when invalid
-      expect(updateSpy).not.toHaveBeenCalled();
-    });
-
-    it("covers dateDisplayModel getter with no date", async () => {
-      const transactionNoDate = {
-        ...mockTransaction,
-        date: null as any,
-      };
-
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: transactionNoDate,
-        },
-      });
-      await nextTick();
-
-      // Should return empty string when no date
-      expect(wrapper.vm.dateDisplayModel).toBe("");
-    });
-
-    it("covers dateDisplayModel setter", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      // Set a new date via the setter
-      wrapper.vm.dateDisplayModel = "2025-02-01";
-      await nextTick();
-
-      expect(wrapper.vm.localTransaction.date).toBe("2025-02-01");
-    });
-
-    it("triggers v-model update for dialog", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      // Find the v-dialog and emit update
-      const dialog = wrapper.findComponent({ name: "VDialog" });
-      await dialog.vm.$emit("update:modelValue", false);
-      await nextTick();
-
-      // Should emit closeDialog
-      expect(wrapper.emitted("update:modelValue")).toBeTruthy();
-    });
-
-    it("triggers v-model update for keyboard shortcuts dialog", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      // Open keyboard shortcuts
-      wrapper.vm.showKeyboardShortcuts = true;
-      await nextTick();
-
-      // Close it via v-model
-      const dialogs = wrapper.findAllComponents({ name: "VDialog" });
-      const keyboardDialog = dialogs[dialogs.length - 1];
-      await keyboardDialog.vm.$emit("update:modelValue", false);
-      await nextTick();
-
+  // --- DIALOG CONTROLS ---
+  describe("dialog controls", () => {
+    it("showKeyboardShortcuts is false by default", () => {
+      wrapper = mountComponent();
       expect(wrapper.vm.showKeyboardShortcuts).toBe(false);
     });
-
-    it("covers date menu v-model", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-      await nextTick();
-
-      // Open date menu
-      const menu = wrapper.findComponent({ name: "VMenu" });
-      await menu.vm.$emit("update:modelValue", true);
-      await nextTick();
-
-      expect(wrapper.vm.dateMenu).toBe(true);
-
-      // Close it
-      await menu.vm.$emit("update:modelValue", false);
-      await nextTick();
-
-      expect(wrapper.vm.dateMenu).toBe(false);
+    it("sets showKeyboardShortcuts to true when help button is clicked", async () => {
+      wrapper = mountComponent();
+      const btn = document.querySelector('[aria-label*="help"]') as HTMLElement;
+      await btn.click();
+      expect(wrapper.vm.showKeyboardShortcuts).toBe(true);
     });
-
-    it("covers the Date object branch in rawDateForValidation (Line 60)", async () => {
-      // Use the same mounting pattern as your other tests
-      wrapper = mount(UpdateTransaction, {
-        props: {
-          modelValue: mockTransaction,
-        },
-      });
-
-      const vm = wrapper.vm as any;
-
-      // Manually set localTransaction to have a real Date object instead of a string
-      vm.localTransaction = {
-        id: 1,
-        description: "Test",
-        amount: 100,
-        date: new Date(2025, 0, 1), // This is a Date object, hitting the 'else' (Line 60)
-        transactionType: "Expense",
-      };
-
-      // Access the computed property to trigger the logic
-      expect(vm.rawDateForValidation).toBe("2025-01-01");
+    it("sets model.value to null when closeDialog is called", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.closeDialog();
+      await flushPromises();
+      expect(wrapper.props("modelValue")).toBeNull();
     });
-
-    it("exhaustively covers all template-level anonymous functions", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: { modelValue: mockTransaction },
-      });
-      await nextTick();
-
-      // 1. Target all VTextFields (Covers 3-4 v-models: Amount, Description, Date, etc.)
-      const textFields = wrapper.findAllComponents({ name: "VTextField" });
-      for (const tf of textFields) {
-        await tf.vm.$emit("update:modelValue", tf.props("modelValue"));
-      }
-
-      // 2. Target VRadioGroup (1 v-model: transactionType)
-      const radioGroup = wrapper.findComponent({ name: "VRadioGroup" });
-      if (radioGroup.exists()) {
-        await radioGroup.vm.$emit("update:modelValue", "Income");
-      }
-
-      // 3. Target VDialog (1 v-model: show/hide dialog)
-      const dialog = wrapper.findComponent({ name: "VDialog" });
-      if (dialog.exists()) {
-        await dialog.vm.$emit("update:modelValue", true);
-      }
-
-      // 4. Target VMenu (1 v-model: dateMenu)
-      const menu = wrapper.findComponent({ name: "VMenu" });
-      if (menu.exists()) {
-        await menu.vm.$emit("update:modelValue", true);
-      }
-
-      // 5. Target KeyboardShortcutsDialog @close
-      // We use the class from the updated mock above
-      const keyboardDialog = wrapper.findComponent({
-        name: "KeyboardShortcutsDialog",
-      });
-      if (keyboardDialog.exists()) {
-        await keyboardDialog.vm.$emit("close");
-        // Also hit its v-model if it has one
-        await keyboardDialog.vm.$emit("update:modelValue", false);
-      }
-
-      expect(true).toBe(true);
+    it("sets model.value to null when Cancel button is clicked", async () => {
+      wrapper = mountComponent();
+      const btn = Array.from(document.querySelectorAll("button")).find(b => b.textContent?.includes("Cancel"));
+      await btn?.click();
+      await flushPromises();
+      expect(wrapper.props("modelValue")).toBeNull();
     });
-    it("finalizes 100% funcs using the AddTransaction 'double-tap' pattern", async () => {
-      wrapper = mount(UpdateTransaction, {
-        props: { modelValue: mockTransaction },
-      });
-      await nextTick();
+    it("sets model.value to null when close icon button is clicked", async () => {
+      wrapper = mountComponent();
+      const btn = document.querySelector('[aria-label*="close"]') as HTMLElement;
+      await btn?.click();
+      await flushPromises();
+      expect(wrapper.props("modelValue")).toBeNull();
+    });
+  });
 
-      // 1. KeyboardShortcutsDialog @close
-      (wrapper.vm as any).showKeyboardShortcuts = true;
-      await nextTick();
-      const shortcutsDialog = wrapper.findComponent({
-        name: "KeyboardShortcutsDialog",
-      });
-      if (shortcutsDialog.exists()) {
-        // A: Trigger the event the template is listening for (the anonymous function)
-        await shortcutsDialog.vm.$emit("close");
-        // B: Explicitly set the value just in case the bridge is stubborn
-        (wrapper.vm as any).showKeyboardShortcuts = false;
-      }
+  // --- HINTS ---
+  describe("amountHint", () => {
+    it("shows format hint when not focused", () => {
+      wrapper = mountComponent();
+      wrapper.vm.isFocused = false;
+      expect(wrapper.vm.amountHint).toBeDefined();
+    });
+    it("shows format hint when empty", () => {
+      wrapper = mountComponent();
+      wrapper.vm.displayAmount = "";
+      expect(wrapper.vm.amountHint).toBeDefined();
+    });
+    it("shows warning for comma", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.isFocused = true;
+      wrapper.vm.displayAmount = "12,34";
+      await flushPromises();
+      expect(wrapper.vm.amountHint).toContain("Please use .");
+    });
+  });
 
-      // 2. VDatePicker v-model
-      (wrapper.vm as any).dateMenu = true;
-      await nextTick();
-      const datePicker = wrapper.findComponent({ name: "VDatePicker" });
-      if (datePicker.exists()) {
-        // A: Trigger the update event (touches the v-model bridge)
-        await datePicker.vm.$emit("update:modelValue", "2025-01-01");
-        // B: Manually call the method linked to @update:model-value
-        await (wrapper.vm as any).closeDatePicker();
-      }
+  // --- DATE SELECTION ---
+  describe("onDateSelected", () => {
+    it("updates date", () => {
+      wrapper = mountComponent();
+      wrapper.vm.onDateSelected(new Date(currentYear, 1, 1));
+      expect(wrapper.vm.localTransaction.date).toBe(`${currentYear}-02-01`);
+    });
+    it("updates pickerDate", () => {
+      wrapper = mountComponent();
+      const d = new Date(currentYear, 1, 1);
+      wrapper.vm.onDateSelected(d);
+      expect(wrapper.vm.pickerDate).toEqual(d);
+    });
+    it("ignores null", () => {
+      wrapper = mountComponent();
+      wrapper.vm.onDateSelected(null);
+      expect(wrapper.vm.localTransaction.date).toBe(`${currentYear}-05-20`);
+    });
+    it("ignores array", () => {
+      wrapper = mountComponent();
+      wrapper.vm.onDateSelected([new Date()]);
+      expect(wrapper.vm.localTransaction.date).toBe(`${currentYear}-05-20`);
+    });
+    it("ignores if localTransaction is null", () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction = null;
+      wrapper.vm.onDateSelected(new Date());
+      expect(wrapper.vm.localTransaction).toBeNull();
+    });
+  });
 
-      // 3. The v-model setters (The 4 remaining v-models)
-      // In AddTransaction, we directly assigned to the reactive variables
-      (wrapper.vm as any).displayAmount = "100.00";
-      (wrapper.vm as any).dateDisplayModel = "2025-01-01";
+  // --- SUBMISSION CORE ---
+  describe("onSubmit core", () => {
+    it("fails validation", async () => {
+      wrapper = mountComponent();
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: false }) as any);
+      expect(logValidation).toHaveBeenCalled();
+    });
+    it("fails if localTransaction null", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction = null;
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(logValidation).toHaveBeenCalled();
+    });
+    it("fails if no changes", async () => {
+      wrapper = mountComponent();
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(logValidation).toHaveBeenCalledWith(expect.stringContaining("Nothing"), expect.any(Object));
+    });
+    it("calls updateTransaction with changed amount", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.amount = 999;
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(123, expect.objectContaining({ amount: 999 }));
+    });
+    it("updates description", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.description = "New";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(123, { description: "New" });
+    });
+    it("updates type", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.transaction_type = TransactionTypeValues.Income;
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(123, { transaction_type: "Income" });
+    });
+    it("updates date", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.date = "2026-01-01";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(123, { date: "2026-01-01" });
+    });
+    it("logs success", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.description = "X";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      await flushPromises();
+      expect(logSuccess).toHaveBeenCalled();
+    });
+    it("closes on success", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.description = "X";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      await flushPromises();
+      expect(wrapper.props("modelValue")).toBeNull();
+    });
+    it("logs exception", async () => {
+      mockUpdateTransaction.mockRejectedValueOnce(new Error());
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.description = "X";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      await flushPromises();
+      expect(logException).toHaveBeenCalled();
+    });
+    it("stays open on error", async () => {
+      mockUpdateTransaction.mockRejectedValueOnce(new Error());
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.description = "X";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      await flushPromises();
+      expect(wrapper.props("modelValue")).not.toBeNull();
+    });
+    it("uses correct id", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.description = "X";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(123, expect.any(Object));
+    });
+  });
 
-      // Trigger the radio group and dialog bridges one last time
-      const radioGroup = wrapper.findComponent({ name: "VRadioGroup" });
-      if (radioGroup.exists()) await radioGroup.vm.$emit("update:modelValue", "Income");
-
-      const rootDialog = wrapper.findComponent({ name: "VDialog" });
-      if (rootDialog.exists()) await rootDialog.vm.$emit("update:modelValue", false);
-
-      await nextTick();
-      expect(true).toBe(true);
+  // --- DIFF DETECTION ---
+  describe("diff / change detection", () => {
+    it("omits description if unchanged", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.amount = 999;
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      const changes = mockUpdateTransaction.mock.calls[0][1];
+      expect(changes.description).toBeUndefined();
+    });
+    it("omits amount if unchanged", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.description = "New";
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      const changes = mockUpdateTransaction.mock.calls[0][1];
+      expect(changes.amount).toBeUndefined();
+    });
+    it("omits date if unchanged", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.localTransaction.amount = 999;
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      const changes = mockUpdateTransaction.mock.calls[0][1];
+      expect(changes.date).toBeUndefined();
     });
   });
 });

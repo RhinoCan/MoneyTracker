@@ -20,7 +20,7 @@ export function useAppValidationRules() {
     ["Income", "Expense"].includes(v) || t("useApp.transReqd");
 
   const amountRules = (v: unknown) => {
-    if (!v && v !== 0) return t("useApp.reqdZeroOk");
+    if (!v && v !== 0) return t("useApp.reqd");
     const valStr = String(v);
 
     if (!hasCorrectSeparator(valStr))

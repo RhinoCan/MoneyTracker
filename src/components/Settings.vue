@@ -108,6 +108,7 @@ watch(localLocale, (newLocale) => {
 
     <v-card-text class="pt-4">
       <v-select
+        data-testid="locale-select"
         v-model="localLocale"
         :items="locales"
         item-title="label"

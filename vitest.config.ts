@@ -8,16 +8,16 @@ export default mergeConfig(
       globals: true,
       environment: "jsdom",
       setupFiles: ["./tests/setup.ts"],
+      exclude: ["**/node_modules/**", "**/tests/e2e/**"],  // ← belongs here, at the test level
       // Coverage configuration
       coverage: {
         provider: "v8",
         include: ["src/**"],
         exclude: [
-          "src/plugins/**", // Excludes vuetify.js
-          "src/main.ts", // Excludes the app entry point
-          "src/types/**", // Excludes TypeScript interfaces/types
-          "**/*.d.ts", // Excludes declaration files
-          "src/lib/Logger.ts", // Optional: exclude if you don't want to track the wrapper
+          "src/plugins/**",
+          "src/main.ts",
+          "src/types/**",
+          "**/*.d.ts",
           "src/main.js",
         ],
         reporter: ["text", "json", "html"],
@@ -25,7 +25,7 @@ export default mergeConfig(
       // The "deps" block for Vuetify support
       server: {
         deps: {
-          inline: ["vuetify"],
+          inline: ["vuetify", "posthog-js", "@sentry/vue"],
         },
       },
     },

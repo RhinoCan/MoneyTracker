@@ -27,5 +27,5 @@
     },
     "types": ["vitest/globals", "vite/client"]
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests/**/*.ts"]
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.vue", "tests/**/*.ts", "tests/setup.ts", "tests/setup.ts.alt"]
 }
