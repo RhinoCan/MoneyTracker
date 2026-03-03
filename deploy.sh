@@ -34,15 +34,15 @@ fi
 ### 4. Validate vite.config.js base
 # Accepts: base: '/MoneyTracker/'   OR   base: "/MoneyTracker/"
 # Ensure Vite base path is correctly set
-if ! grep -q 'base: "/MoneyTracker/"' vite.config.js && \
-   ! grep -q "base: '/MoneyTracker/'" vite.config.js; then
-  echo "❌ Error: vite.config.js does NOT contain the required base path:"
+if ! grep -q 'base: "/MoneyTracker/"' vite.config.ts && \
+   ! grep -q "base: '/MoneyTracker/'" vite.config.ts; then
+  echo "❌ Error: vite.config.ts does NOT contain the required base path:"
   echo "    base: '/MoneyTracker/',"
-  echo "Please fix vite.config.js before deploying."
+  echo "Please fix vite.config.ts before deploying."
   exit 1
 fi
 
-echo "✔ Correct base path found in vite.config.js."
+echo "✔ Correct base path found in vite.config.ts."
 
 ### 5. Install & build
 echo "📦 Installing dependencies..."
