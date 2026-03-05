@@ -150,6 +150,7 @@ const deleteTransaction = async () => {
         <v-spacer />
         <v-btn
           color="error"
+          data-testid="confirm-delete-btn"
           variant="elevated"
           prepend-icon="mdi-trash-can-outline"
           :loading="loading"

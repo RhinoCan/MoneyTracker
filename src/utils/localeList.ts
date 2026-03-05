@@ -28,34 +28,35 @@ const SUPPORTED_LANGUAGE_CODES = [
 export interface LocaleItem {
   code: string;
   name: string;
+  englishName: string;
 }
 
 /**
- * Generates a list of locale objects containing the code and the localized name.
- * @param displayLocale - The language to use for the names in the list (defaults to 'en').
+ * Generates a list of locale objects containing the code, the localized name,
+ * and the English name.
+ * @param displayLocale - The language to use for the localized names in the list (defaults to 'en').
  * @returns Sorted array of LocaleItem objects.
  */
 export function generateLocaleList(displayLocale: string = "en"): LocaleItem[] {
   let display: Intl.DisplayNames;
+  let displayEnglish: Intl.DisplayNames;
 
   try {
     display = new Intl.DisplayNames([displayLocale], { type: "language" });
+    displayEnglish = new Intl.DisplayNames(["en"], { type: "language" });
   } catch {
-    // Fallback for extremely restrictive environments
-    return [{ code: "en-US", name: "English (US)" }];
+    return [{ code: "en-US", name: "English (US)", englishName: "English (US)" }];
   }
 
   let localeCodes: string[];
 
   try {
-    // Modern way to get browser-supported locales
     if (typeof Intl !== "undefined" && "supportedValuesOf" in Intl) {
       localeCodes = (Intl as IntlWithSupportedValuesOf).supportedValuesOf("language");
     } else {
       throw new Error("Intl.supportedValuesOf not supported");
     }
   } catch (e) {
-    // We only log if it's a serious failure, not a known RangeError in specific environments
     if (!(e instanceof RangeError && e.message.includes("language"))) {
       logException(e, {
         module: "localeList",
@@ -64,7 +65,6 @@ export function generateLocaleList(displayLocale: string = "en"): LocaleItem[] {
       });
     }
 
-    // Hard-coded fallback list
     localeCodes = [
       "en-US",
       "en-CA",
@@ -85,23 +85,20 @@ export function generateLocaleList(displayLocale: string = "en"): LocaleItem[] {
     ];
   }
 
-  // Filter the list down to our supported base languages
   const filteredCodes = localeCodes.filter((code) => {
     const baseLanguage = code.split("-")[0].toLowerCase();
     return SUPPORTED_LANGUAGE_CODES.includes(baseLanguage);
   });
 
-  // Map codes to display names
   const items: LocaleItem[] = filteredCodes.map((code) => {
     try {
-      // .of() returns the localized name (e.g., "English (United States)" if displayLocale is 'en')
       const name = display.of(code) || code;
-      return { code, name };
+      const englishName = displayEnglish.of(code) || code;
+      return { code, name, englishName };
     } catch {
-      return { code, name: code };
+      return { code, name: code, englishName: code };
     }
   });
 
-  // Sort alphabetically by localized name for a better UX
   return items.sort((a, b) => a.name.localeCompare(b.name));
 }

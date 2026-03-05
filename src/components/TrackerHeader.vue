@@ -60,6 +60,7 @@ const showDataManagement = ref(false);
     <div class="d-none d-md-flex align-center">
       <v-btn
         id="showSettings"
+        data-testid="open-settings"
         color="yellow-lighten-2"
         variant="text"
         class="mr-1"
@@ -71,6 +72,7 @@ const showDataManagement = ref(false);
 
       <v-btn
         id="showDataManagement"
+        data-testid="open-data-management"
         color="yellow-lighten-2"
         variant="text"
         class="mr-2"
@@ -82,8 +84,8 @@ const showDataManagement = ref(false);
     </div>
 
     <div class="d-flex d-md-none">
-      <v-btn icon="mdi-cog" color="yellow-lighten-2" @click="showSettings = true" />
-      <v-btn icon="mdi-database-cog" color="yellow-lighten-2" @click="showDataManagement = true" />
+      <v-btn icon="mdi-cog" data-testid="open-settings" color="yellow-lighten-2" @click="showSettings = true" />
+      <v-btn icon="mdi-database-cog" data-testid="open-data-management" color="yellow-lighten-2" @click="showDataManagement = true" />
     </div>
 
     <v-divider vertical inset class="mx-2" />
@@ -92,7 +94,7 @@ const showDataManagement = ref(false);
       <span class="mr-3 d-none d-lg-inline text-caption opacity-80">
         {{ userStore.userEmail }}
       </span>
-      <v-btn variant="outlined" size="small" color="white" class="mr-2" @click="handleLogout">
+      <v-btn variant="outlined" size="small" color="white" data-testid="logoff" class="mr-2" @click="handleLogout">
         {{ t("header.logoff") }}
       </v-btn>
     </div>

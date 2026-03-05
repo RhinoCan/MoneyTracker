@@ -10,16 +10,11 @@ const emit = defineEmits(["close"]);
 
 const { t } = useI18n();
 
-// Initialize all stores
 const transactionStore = useTransactionStore();
 const settingsStore = useSettingsStore();
 
 const transactions = computed(() => transactionStore.transactions);
 
-/**
- * handleDeleteAllTransactions
- * Clears transactions from DB and local state.
- */
 const handleDeleteAllTransactions = async () => {
   if (confirm(t("management.confirmDeleteAllTransactions"))) {
     try {
@@ -31,18 +26,10 @@ const handleDeleteAllTransactions = async () => {
   }
 };
 
-/**
- * handleDeleteAllSettings
- * Path B: Restore Only Settings.
- * Resets local states and overwrites the DB with defaults.
- */
 const handleDeleteAllSettings = async () => {
   if (confirm(t("management.confirmRestoreAllSettings"))) {
     try {
-      // 1. Reset local Pinia state
       settingsStore.restoreDefaults();
-
-      // 2. Persist those defaults to the DB
       await settingsStore.saveToDb();
 
       logInfo("The settings were all restored to their default values.", {
@@ -61,15 +48,9 @@ const handleDeleteAllSettings = async () => {
   }
 };
 
-/**
- * handleDeleteAllData
- * Path C: Nuclear Option.
- * Clears Transactions + Settings and reloads the app.
- */
 const handleDeleteAllData = async () => {
   if (confirm(t("management.confirmDeleteEverything"))) {
     try {
-      // Clear all DB tables for this user concurrently
       await Promise.all([
         transactionStore.deleteAllTransactions(),
         settingsStore.clearFromDb(),
@@ -80,7 +61,6 @@ const handleDeleteAllData = async () => {
         action: "full_wipe",
       });
 
-      // Reloading is the safest way to ensure all stores re-initialize from zero
       window.location.reload();
     } catch (error) {
       logException(error, {
@@ -96,14 +76,11 @@ const handleExport = () => {
   const dataToExport = transactionStore.transactions;
   if (dataToExport.length === 0) return;
 
-  // Header row
   const headers = ["Date", "Description", "Type", "Amount"].join(",");
 
-  // Data rows
   const rows = dataToExport.map((transaction) => {
     const cleanDate = transaction.date ? transaction.date.substring(0, 10) : "";
     const cleanDesc = `"${transaction.description.replace(/"/g, '""')}"`;
-
     return [cleanDate, cleanDesc, transaction.transaction_type, transaction.amount].join(",");
   });
 
@@ -137,6 +114,7 @@ const handleExport = () => {
         <h3 class="text-h6 mb-2">{{ t("management.exportTitle") }}</h3>
         <p class="text-body-2 text-medium-emphasis mb-4">{{ t("management.exportText") }}</p>
         <v-btn
+          data-testid="export-csv-btn"
           color="primary"
           variant="outlined"
           prepend-icon="mdi-export"
@@ -155,7 +133,12 @@ const handleExport = () => {
         <div class="mb-6">
           <div class="text-subtitle-1 font-weight-bold">{{ t("management.deleteTransTitle") }}</div>
           <p class="text-caption mb-2">{{ t("management.deleteTransText") }}</p>
-          <v-btn color="warning" size="small" @click="handleDeleteAllTransactions">
+          <v-btn
+            data-testid="delete-all-transactions-btn"
+            color="warning"
+            size="small"
+            @click="handleDeleteAllTransactions"
+          >
             {{ t("management.btnDeleteTrans") }}
           </v-btn>
         </div>
@@ -165,7 +148,12 @@ const handleExport = () => {
             {{ t("management.restoreSettingsTitle") }}
           </div>
           <p class="text-caption mb-2">{{ t("management.restoreSettingsText") }}</p>
-          <v-btn color="warning" size="small" @click="handleDeleteAllSettings">
+          <v-btn
+            data-testid="restore-settings-btn"
+            color="warning"
+            size="small"
+            @click="handleDeleteAllSettings"
+          >
             {{ t("management.btnRestoreSettings") }}
           </v-btn>
         </div>
@@ -177,7 +165,12 @@ const handleExport = () => {
             {{ t("management.deleteEverythingTitle") }}
           </div>
           <p class="text-caption mb-2">{{ t("management.deleteEverythingText") }}</p>
-          <v-btn color="error" variant="elevated" @click="handleDeleteAllData">
+          <v-btn
+            data-testid="delete-everything-btn"
+            color="error"
+            variant="elevated"
+            @click="handleDeleteAllData"
+          >
             {{ t("management.btnDeleteEverything") }}
           </v-btn>
         </div>

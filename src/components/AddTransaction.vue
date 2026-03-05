@@ -172,6 +172,7 @@ function resetForm() {
 
     <v-form ref="newTransactionForm" @submit.prevent="onSubmit" class="pa-4">
       <v-text-field
+        data-testid="description-field"
         v-model="transaction!.description"
         :label="t('addTrans.labelDescription')"
         variant="outlined"
@@ -202,11 +203,13 @@ function resetForm() {
         :rules="[rules.transactionTypeRequired]"
       >
         <v-radio
+          data-testid="income-radio"
           :label="t('addTrans.labelIncome')"
           :value="TransactionTypeValues.Income"
           color="success"
         />
         <v-radio
+          data-testid="expense-radio"
           :label="t('addTrans.labelExpense')"
           :value="TransactionTypeValues.Expense"
           color="error"
@@ -214,6 +217,7 @@ function resetForm() {
       </v-radio-group>
 
       <v-text-field
+        data-testid="amount-field"
         v-model="displayAmount"
         :label="t('addTrans.labelAmount')"
         :hint="amountHint"
@@ -226,11 +230,17 @@ function resetForm() {
       />
 
       <div class="d-flex justify-end mt-4">
-        <v-btn variant="outlined" color="secondary" class="mr-2" @click="resetForm">
+        <v-btn
+          data-testid="reset-btn"
+          variant="outlined"
+          color="secondary"
+          class="mr-2"
+          @click="resetForm"
+        >
           {{ t("addTrans.btnReset") }}
         </v-btn>
 
-        <v-btn type="submit" color="primary" elevation="4">
+        <v-btn type="submit" color="primary" data-testid="add-transaction-btn" elevation="4">
           {{ t("addTrans.btnAdd") }}
         </v-btn>
       </div>

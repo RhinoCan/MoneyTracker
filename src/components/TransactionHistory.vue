@@ -145,7 +145,9 @@ const pageStatusText = computed(() => {
             </td>
             <td>
               <div class="d-flex justify-center ga-2">
-                <v-btn elevation="4"
+                <v-btn
+                  elevation="4"
+                  data-testid="update-btn"
                   icon="mdi-pencil"
                   color="amber-darken-2"
                   variant="text"
@@ -156,6 +158,7 @@ const pageStatusText = computed(() => {
                 />
                 <v-btn
                   elevation="4"
+                  data-testid="delete-btn"
                   icon="mdi-delete"
                   color="error"
                   variant="text"

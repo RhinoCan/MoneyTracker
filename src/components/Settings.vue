@@ -21,7 +21,7 @@ const localTimeout = ref<number>(settingsStore.messageTimeoutSeconds);
 // --- Dropdown items ---
 const locales = computed(() =>
   generateLocaleList(localLocale.value).map((loc) => ({
-    label: loc.name,
+    label: `${loc.code} - ${loc.englishName} - ${loc.name}`,
     value: loc.code,
   }))
 );
@@ -167,8 +167,8 @@ watch(localLocale, (newLocale) => {
 
     <v-card-actions>
       <v-spacer />
-      <v-btn variant="text" @click="emit('close')">{{ t("common.cancel") }}</v-btn>
-      <v-btn color="primary" variant="elevated" @click="handleSave" :loading="savingSettings">
+      <v-btn variant="text" data-testid="settings-cancel" @click="emit('close')">{{ t("common.cancel") }}</v-btn>
+      <v-btn color="primary" variant="elevated" data-testid="settings-save" @click="handleSave" :loading="savingSettings">
         {{ t("common.saveChanges") }}
       </v-btn>
     </v-card-actions>

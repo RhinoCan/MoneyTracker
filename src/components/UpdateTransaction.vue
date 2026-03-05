@@ -275,9 +275,16 @@ async function onSubmit(event: SubmitEventPromise) {
         <v-divider />
 
         <v-card-actions class="pa-4">
-          <v-btn :text="t('common.cancel')" variant="text" color="secondary" @click="closeDialog" />
+          <v-btn
+            data-testid="cancel-update-btn"
+            :text="t('common.cancel')"
+            variant="text"
+            color="secondary"
+            @click="closeDialog"
+          />
           <v-spacer />
           <v-btn
+            data-testid="update-transaction-btn"
             :text="t('updateDialog.btnUpdate')"
             variant="elevated"
             color="primary"

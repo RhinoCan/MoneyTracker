@@ -12,14 +12,16 @@ describe("generateLocaleList", () => {
       expect(Array.isArray(result)).toBe(true);
     });
 
-    it("returns items with 'code' and 'name' string properties", () => {
+    it("returns items with 'code', 'name', and 'englishName' string properties", () => {
       const result = generateLocaleList();
       expect(result.length).toBeGreaterThan(0);
       result.forEach((item) => {
         expect(typeof item.code).toBe("string");
         expect(typeof item.name).toBe("string");
+        expect(typeof item.englishName).toBe("string");
         expect(item.code.length).toBeGreaterThan(0);
         expect(item.name.length).toBeGreaterThan(0);
+        expect(item.englishName.length).toBeGreaterThan(0);
       });
     });
 
@@ -139,7 +141,8 @@ describe("generateLocaleList", () => {
       });
 
       const result = generateLocaleList("en");
-      expect(result).toEqual([{ code: "en-US", name: "English (US)" }]);
+      // LocaleItem now has three fields: code, name, englishName
+      expect(result).toEqual([{ code: "en-US", name: "English (US)", englishName: "English (US)" }]);
 
       spy.mockRestore();
     });
@@ -150,17 +153,30 @@ describe("generateLocaleList", () => {
   // -------------------------------------------------------------------------
   describe("display.of() throws for individual locale", () => {
     it("falls back to using the raw code as the name", () => {
-      const original = Intl.DisplayNames.prototype.of;
-      Intl.DisplayNames.prototype.of = (code: string | undefined) => {
-        if (code === "en-US") throw new Error("of() failed");
-        return original.call(this, code!);
-      };
+      // Mock the entire DisplayNames constructor so both the localized and
+      // English instances throw for en-US. A prototype arrow-function mock
+      // loses `this` context and cannot selectively throw per instance, so
+      // we mock the constructor instead and return a controlled object.
+      const OriginalDisplayNames = Intl.DisplayNames;
+      const spy = vi.spyOn(global.Intl, "DisplayNames").mockImplementation(
+        (locales, options) => {
+          const instance = new OriginalDisplayNames(locales, options);
+          return {
+            of: (code: string) => {
+              if (code === "en-US") throw new Error("of() failed");
+              return instance.of(code);
+            },
+            resolvedOptions: instance.resolvedOptions.bind(instance),
+          } as Intl.DisplayNames;
+        }
+      );
 
       const result = generateLocaleList();
       const enUS = result.find((item) => item.code === "en-US");
       expect(enUS?.name).toBe("en-US");
+      expect(enUS?.englishName).toBe("en-US");
 
-      Intl.DisplayNames.prototype.of = original;
+      spy.mockRestore();
     });
   });
 });
