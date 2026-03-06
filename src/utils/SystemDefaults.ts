@@ -1,28 +1,6 @@
 // @/utils/SystemDefaults.ts
 
 /**
- * Global App Constants
- */
-export const appName = import.meta.env.VITE_APP_NAME || "money-tracker";
-export const defaultSystemTimeout = 0; // 0 = persistent until dismissed
-
-// --- Type Definitions ---
-export type CurrencyDisplay = "symbol" | "code" | "name" | "narrowSymbol";
-export type CurrencySign = "standard" | "accounting";
-
-export interface NumberFormat {
-  minPrecision?: number;
-  maxPrecision: number;
-  useGrouping: boolean;
-  currency: string;
-  currencyDisplay: CurrencyDisplay;
-  currencySign: CurrencySign;
-  // Legacy properties maintained for store compatibility
-  useBankersRounding: boolean;
-  negativeZero: boolean;
-}
-
-/**
  * Interface representing a single locale option for display in selectors.
  */
 export interface LocaleOption {

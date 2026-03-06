@@ -14,7 +14,7 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 const transactionStore = useTransactionStore();
-const { formatToIsoDateOnly } = useDateFormatter();
+const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
 const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
 const { amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
@@ -179,6 +179,7 @@ function resetForm() {
         :rules="[rules.dateRequired]"
         :error-messages="dateError"
         color="primary"
+        :display-format="(date: unknown) => formatToMediumDate(formatToIsoDateOnly(date as Date))"
         @update:model-value="onDateSelected"
       />
 

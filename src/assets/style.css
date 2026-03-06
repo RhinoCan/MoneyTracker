@@ -23,8 +23,20 @@
   gap: 8px;
 }
 
-.v-card-actions .v-btn {
+.v-card-actions .v-btn:not(.v-btn--icon) {
   max-width: 100%;
   height: auto;
   white-space: normal;
+}
+
+.v-card-text .v-btn:not(.v-btn--icon) {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+}
+
+.v-card-title {
+  white-space: normal;
+  height: auto;
+  line-height: 1.4;
 }

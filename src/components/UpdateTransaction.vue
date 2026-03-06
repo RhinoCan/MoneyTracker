@@ -15,11 +15,13 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 const transactionStore = useTransactionStore();
 const { formatCurrency } = useCurrencyFormatter();
-const { formatToIsoDateOnly } = useDateFormatter();
+const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
 const { required, dateRules, amountRules } = useAppValidationRules();
 const { amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
+
+const dateError = ref<string | null>(null);
 
 // The component's v-model prop
 const model = defineModel<Transaction | null>();
@@ -236,7 +238,11 @@ async function onSubmit(event: SubmitEventPromise) {
                 prepend-icon=""
                 prepend-inner-icon="mdi-calendar"
                 :rules="[(v) => dateRules(localTransaction!.date)]"
+                :error-messages="dateError"
                 color="primary"
+                :display-format="
+                  (date: unknown) => formatToMediumDate(formatToIsoDateOnly(date as Date))
+                "
                 @update:model-value="onDateSelected"
               />
             </v-col>

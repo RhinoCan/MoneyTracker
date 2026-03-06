@@ -28,7 +28,7 @@
     "global_vue_crash": "Vue hat einen schwerwiegenden Absturz in main.ts erlitten"
   },
   "deleteDialog": {
-    "title": "Löschen bestätigen oder abbrechen",
+    "title": "Transaktion löschen",
     "error_no_trans": "Die Transaktion konnte nicht gelöscht werden, da sie nicht mehr existiert.",
     "error_UI": "Das Löschen ist auf der Benutzeroberflächenebene fehlgeschlagen.",
     "confirmBtn": "Transaktion löschen"
