@@ -23,14 +23,8 @@ const newTransactionForm = ref();
 const dateError = ref<string | null>(null);
 
 // Pull logic from the shared form composable
-const {
-  transaction,
-  displayAmount,
-  isFocused,
-  colorClass,
-  handleFocus,
-  handleBlur,
-} = useTransactionFormFields();
+const { transaction, displayAmount, isFocused, colorClass, handleFocus, handleBlur } =
+  useTransactionFormFields();
 
 // Date picker needs a Date object
 const pickerDate = ref<Date>(new Date());
@@ -221,21 +215,15 @@ function resetForm() {
         :rules="[rules.amountRules]"
       />
 
-      <div class="d-flex justify-end mt-4">
-        <v-btn
-          data-testid="reset-btn"
-          variant="outlined"
-          color="secondary"
-          class="mr-2"
-          @click="resetForm"
-        >
+      <v-card-actions class="d-flex justify-end mt-4 flex-wrap gap-2">
+        <v-btn data-testid="reset-btn" variant="outlined" color="secondary" @click="resetForm">
           {{ t("addTrans.btnReset") }}
         </v-btn>
 
         <v-btn type="submit" color="primary" data-testid="add-transaction-btn" elevation="4">
           {{ t("addTrans.btnAdd") }}
         </v-btn>
-      </div>
+      </v-card-actions>
     </v-form>
 
     <v-dialog

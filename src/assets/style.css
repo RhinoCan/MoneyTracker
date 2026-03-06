@@ -17,3 +17,14 @@
 .v-field__input {
   opacity: 1 !important;
 }
+
+.v-card-actions {
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.v-card-actions .v-btn {
+  max-width: 100%;
+  height: auto;
+  white-space: normal;
+}

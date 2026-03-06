@@ -274,7 +274,7 @@ async function onSubmit(event: SubmitEventPromise) {
 
         <v-divider />
 
-        <v-card-actions class="pa-4">
+        <v-card-actions class="pa-4 flex-wrap">
           <v-btn
             data-testid="cancel-update-btn"
             :text="t('common.cancel')"
@@ -285,12 +285,14 @@ async function onSubmit(event: SubmitEventPromise) {
           <v-spacer />
           <v-btn
             data-testid="update-transaction-btn"
-            :text="t('updateDialog.btnUpdate')"
             variant="elevated"
             color="primary"
             type="submit"
             prepend-icon="mdi-check"
-          />
+            style="max-width: 100%; height: auto; white-space: normal"
+          >
+            {{ t("updateDialog.btnUpdate") }}
+          </v-btn>
         </v-card-actions>
       </v-form>
     </v-card>

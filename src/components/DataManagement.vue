@@ -137,6 +137,7 @@ const handleExport = () => {
             data-testid="delete-all-transactions-btn"
             color="warning"
             size="small"
+            style="max-width: 100%; height: auto; white-space: normal;"
             @click="handleDeleteAllTransactions"
           >
             {{ t("management.btnDeleteTrans") }}
@@ -152,6 +153,7 @@ const handleExport = () => {
             data-testid="restore-settings-btn"
             color="warning"
             size="small"
+            style="max-width: 100%; height: auto; white-space: normal;"
             @click="handleDeleteAllSettings"
           >
             {{ t("management.btnRestoreSettings") }}
@@ -169,6 +171,7 @@ const handleExport = () => {
             data-testid="delete-everything-btn"
             color="error"
             variant="elevated"
+            style="max-width: 100%; height: auto; white-space: normal;"
             @click="handleDeleteAllData"
           >
             {{ t("management.btnDeleteEverything") }}

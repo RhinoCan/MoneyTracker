@@ -63,9 +63,18 @@ const deleteTransaction = async () => {
 </script>
 
 <template>
-  <v-dialog v-model="dialogOpen" max-width="450" persistent transition="dialog-bottom-transition"  aria-labelledby="delete-transaction-dialog-title">
+  <v-dialog
+    v-model="dialogOpen"
+    max-width="450"
+    persistent
+    transition="dialog-bottom-transition"
+    aria-labelledby="delete-transaction-dialog-title"
+  >
     <v-card v-if="model" border>
-      <v-card-title id="delete-transaction-dialog-title" class="bg-error text-white d-flex align-center justify-space-between">
+      <v-card-title
+        id="delete-transaction-dialog-title"
+        class="bg-error text-white d-flex align-center justify-space-between"
+      >
         <div class="d-flex align-center">
           <v-icon start icon="mdi-alert-circle-outline" />
           <span>{{ t("deleteDialog.title") }}</span>
@@ -143,7 +152,7 @@ const deleteTransaction = async () => {
 
       <v-divider />
 
-      <v-card-actions class="pa-4 bg-grey-lighten-5">
+      <v-card-actions class="pa-4 bg-grey-lighten-5 flex-wrap gap-2">
         <v-btn variant="text" color="grey-darken-1" @click="model = null" :disabled="loading">
           {{ t("common.cancel") }}
         </v-btn>
@@ -155,6 +164,7 @@ const deleteTransaction = async () => {
           prepend-icon="mdi-trash-can-outline"
           :loading="loading"
           @click="deleteTransaction"
+          style="max-width: 100%; height: auto; white-space: normal"
         >
           {{ t("deleteDialog.confirmBtn") }}
         </v-btn>

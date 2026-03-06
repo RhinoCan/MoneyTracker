@@ -9,7 +9,7 @@
 
 ### E2E Tests (Playwright)
 - **41 tests** across 5 spec files, 0 skipped
-- **Status: 31/31 passing** for existing suite — accessibility suite in progress (10 tests)
+- **Status: 31/31 + 10/10 accessibility tests passing — all green**
 - Browser: Chromium only for local dev (Firefox/WebKit commented out in config)
 - Run with: `npx playwright test --project=chromium` or `npm run test:e2e`
 - View results: `npx playwright show-report`
@@ -41,7 +41,7 @@ tests/e2e/
   transactions.spec.ts      — add, update, delete transactions
   locales.spec.ts           — locale switching, RTL (Arabic), format hints
   dataManagement.spec.ts    — export CSV, delete transactions, restore settings
-  accessibility.spec.ts     — axe-core accessibility checks (in progress)
+  accessibility.spec.ts     — axe-core accessibility checks (complete, 10/10)
 ```
 
 ### Key Design Decisions
@@ -54,17 +54,12 @@ tests/e2e/
 - **Locale-dependent UI**: after switching locale, ALL button labels and text change language. Always use `data-testid` for anything clicked after a locale change — never rely on text labels or role+name selectors
 
 ### Accessibility Spec — Known Vuetify Rule Suppressions
-Two axe rules are suppressed in `accessibility.spec.ts` due to Vuetify internal rendering issues that cannot be fixed without patching Vuetify itself:
+Three axe rules are suppressed in `accessibility.spec.ts` due to Vuetify internal rendering issues that cannot be fixed without patching Vuetify itself:
 - **`aria-allowed-attr`** — date picker activator input renders with `aria-expanded` which is not valid on `type="text"`
 - **`aria-tooltip-name`** — `v-tooltip` overlay renders a `div[role="tooltip"]` without an accessible name
+- **`aria-progressbar-name`** — `v-data-table` loading spinner renders a `role="progressbar"` without an accessible name
 
-Both suppressions are applied via `.disableRules(['aria-allowed-attr', 'aria-tooltip-name'])` in `runAxe()`.
-
-### Accessibility Spec — Remaining Work
-- Fix color contrast — primary color `#00897b` gives 4.31:1 against white, needs darkening to meet WCAG AA 4.5:1
-- Fix grey label contrast on form fields (`#757575` on `#f5f5f5` = 4.22:1)
-- Run full accessibility suite and confirm 10/10
-- Run full E2E suite — confirm 31/31 + 10/10
+All suppressions are applied via `.disableRules([...])` in `runAxe()`.
 
 ---
 
@@ -276,19 +271,16 @@ Icons were inconsistently applied throughout the app (Gemini's doing). The curre
 These axe rules are suppressed in `accessibility.spec.ts` — unfixable without patching Vuetify 3:
 - **`aria-allowed-attr`** — date picker input renders with invalid `aria-expanded`
 - **`aria-tooltip-name`** — tooltip overlay renders without accessible name
+- **`aria-progressbar-name`** — `v-data-table` loading spinner renders without accessible name
 
 ---
 
 ## Remaining Work
 
-### Accessibility Suite (next session)
-1. Fix color contrast — primary color `#00897b` gives 4.31:1 against white, needs darkening to meet WCAG AA 4.5:1
-2. Fix grey label contrast on form fields (`#757575` on `#f5f5f5` = 4.22:1)
-3. Run full accessibility suite — confirm 10/10
-4. Run full E2E suite — confirm 31/31 + 10/10
-5. Update handoff doc
+### Phase 3: Accessibility — COMPLETE ✅
+All 10 accessibility tests passing. All 31 E2E tests passing. All 557 unit tests passing.
 
-### Optional Enhancement
+### Optional Enhancements
 - **Playwright auth state caching** — currently each test authenticates fresh against Supabase
 - **Password visibility toggle** on Login/Register — low priority accessibility enhancement
 
@@ -323,8 +315,9 @@ These axe rules are suppressed in `accessibility.spec.ts` — unfixable without 
 22. Vuetify nested dialogs: Escape is captured by outermost `persistent` dialog — wire `@keydown.esc` explicitly on inner elements
 23. Settings dialog previews locale changes live (Option A) — Cancel reverts, Save commits
 24. `accessibility.spec.ts` uses `requiresLogout` flag to skip logout in `afterEach` for logged-out page tests
-25. Two axe rules suppressed due to Vuetify internals: `aria-allowed-attr` and `aria-tooltip-name`
+25. Three axe rules suppressed due to Vuetify internals: `aria-allowed-attr`, `aria-tooltip-name`, `aria-progressbar-name`
 26. In accessibility spec, scope Help button clicks to `[role="dialog"].first()` to avoid strict mode violation when two dialogs are open
+27. Always wrap `runAxe()` in try/finally to ensure dialogs are closed even when axe finds violations — otherwise logout in `afterEach` will hang and time out
 
 ### Vuetify v-date-input
 27. Use `prepend-icon=""` to suppress the outer icon, `prepend-inner-icon="mdi-calendar"` for inner icon
@@ -333,7 +326,10 @@ These axe rules are suppressed in `accessibility.spec.ts` — unfixable without 
 30. `v-date-input` is a Vuetify labs component — stub it as `"v-date-input": true` in unit tests, then assert presence via `wrapper.html().toContain('v-date-input')` or `document.body.innerHTML.toContain('v-date-input')` for teleported components
 
 ### General
-31. `scripts/add-locale-keys.mjs` — use this for all future bulk i18n key additions across 16 locale files
-32. fr-FR, fr-CA, fr-CH locale files have been properly retranslated with genuine dialect variations
-33. `TrackerHeader.vue` is registered globally in `main.ts` rather than imported in `App.vue`
-34. Color contrast fix pending — primary `#00897b` needs darkening; grey form labels need darkening
+35. `scripts/add-locale-keys.mjs` — use this for all future bulk i18n key additions across 16 locale files
+36. fr-FR, fr-CA, fr-CH locale files have been properly retranslated with genuine dialect variations
+37. `TrackerHeader.vue` is registered globally in `main.ts` rather than imported in `App.vue`
+38. Vuetify renders label colors via opacity on a parent element (`.v-field__input`) not as a direct color — override with `.v-field__input { opacity: 1 !important }` in global CSS
+39. Vuetify theme colors changed for WCAG AA compliance — primary `#00796B`, success/info `#00695C`, warning `#616161`, error `#C62828`
+40. Success snackbar text must be white (`#ffffff`) not black — `#000000` on `#00695C` only gives 3.17:1, white gives 5.33:1
+41. `App.vue` fatal error screen uses `role="alert"` for dynamic appearance announcement to screen readers
