@@ -40,3 +40,9 @@
   height: auto;
   line-height: 1.4;
 }
+
+.v-btn .v-btn__content {
+  white-space: normal;
+  text-align: center;
+  line-height: 1.3;
+}
