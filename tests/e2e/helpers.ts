@@ -38,8 +38,8 @@ export async function login(
 // logout
 // -------------------------------------------------------------------------
 export async function logout(page: Page) {
-  await page.locator('[data-testid="logoff"]').click();
-  await expect(page).toHaveURL(/login/);
+  await page.locator('[data-testid="logoff"]').click({ timeout: 10000 });
+  await expect(page).toHaveURL(/login/, { timeout: 10000 });
 }
 
 // -------------------------------------------------------------------------

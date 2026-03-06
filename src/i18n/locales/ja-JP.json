@@ -15,12 +15,14 @@
     "fill_all_fields": "すべての項目を入力してください。",
     "format": "形式: {example}",
     "wrongSeparator": "小数点は {separator} を使用してください。",
-    "invalidAmount": "保存する前に金額の形式を修正してください。"
+    "invalidAmount": "保存する前に金額の形式を修正してください。",
+    "information": "情報"
   },
   "app": {
     "fatalHeadline": "アプリの起動に失敗しました",
     "noStart": "アプリを起動できませんでした。接続を確認して再試行してください。",
-    "retry": "接続を再試行"
+    "retry": "接続を再試行",
+    "loading": "読み込み中..."
   },
   "main": {
     "global_vue_crash": "main.ts で Vue が重大なクラッシュを起こしました"
@@ -38,7 +40,8 @@
     "persistMsg": "手動で閉じるまでメッセージを表示し続ける",
     "timeoutMsg": "スライダーでメッセージの表示時間を設定",
     "persistMsgInfoOn": "手動で閉じるまでメッセージが画面に表示されます。タイムアウトを設定するにはオフにしてください。",
-    "persistMsgInfoOff": "設定した秒数後にメッセージが自動的に消えます。"
+    "persistMsgInfoOff": "設定した秒数後にメッセージが自動的に消えます。",
+    "timeoutSlider": "メッセージのタイムアウト（秒）"
   },
   "management": {
     "title": "データ管理",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "キーボードショートカット",
-    "paraEsc": "{Esc} キーでキャンセルできます。",
+    "paraEsc": "{Esc} キーでフォームをリセットできます。",
+    "paraEscDialog": "{Esc} キーでキャンセルできます。{iconCancel} アイコンまたはキャンセルボタンの代わりに使用できます。",
     "paraEnter": "{Enter} キーで変更を保存できます。",
     "paraTab": "{Tab} キーで項目間を移動できます。",
     "keyEsc": "Esc",
@@ -141,7 +145,12 @@
     "itemsPerPage": "ページあたりの項目数:",
     "pageText": "{total} 件中 {start}-{end}",
     "ariaUpdate": "更新",
-    "ariaDelete": "削除"
+    "ariaDelete": "削除",
+    "ariaFirstPage": "最初のページ",
+    "ariaPrevPage": "前のページ",
+    "ariaNextPage": "次のページ",
+    "ariaLastPage": "最後のページ",
+    "loading": "読み込み中..."
   },
   "updateDialog": {
     "title": "取引を更新",

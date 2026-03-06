@@ -1,129 +1,324 @@
      1	<script setup lang="ts">
-     2	import { ref, computed } from "vue";
-     3	import Settings from "@/components/Settings.vue";
-     4	import DataManagement from "@/components/DataManagement.vue";
-     5	import { useI18n } from "vue-i18n";
-     6	import { useUserStore } from "@/stores/UserStore";
-     7	import { useRouter } from "vue-router";
-     8	import { logException } from "@/lib/Logger";
-     9	
-    10	const { t } = useI18n();
-    11	const userStore = useUserStore();
-    12	const router = useRouter();
-    13	
-    14	/**
-    15	 * Environment Detection
-    16	 * Checks VITE_APP_ENV directly (truthy = Live, falsy = Dev).
-    17	 * We compare the raw env var rather than the translated string so the
-    18	 * chip color remains correct in all locales.
-    19	 */
-    20	const isLive = computed(() => !!import.meta.env.VITE_APP_ENV);
-    21	
-    22	const appEnvironment = computed(() => {
-    23	  return isLive.value ? t("header.textLive") : t("header.textDev");
-    24	});
-    25	
-    26	async function handleLogout() {
-    27	  try {
-    28	    await userStore.signOut();
-    29	    router.push("/login");
-    30	  } catch (error) {
-    31	    logException(error, {
-    32	      module: "TrackerHeader",
-    33	      action: "handleLogout",
-    34	      slug: "header.logout_failed",
-    35	    });
-    36	  }
-    37	}
-    38	
-    39	const showSettings = ref(false);
-    40	const showDataManagement = ref(false);
-    41	</script>
+     2	import { ref, watch, computed } from "vue";
+     3	import { useTransactionStore } from "@/stores/TransactionStore";
+     4	import { useCurrencyFormatter } from "@/composables/useCurrencyFormatter";
+     5	import { useDateFormatter } from "@/composables/useDateFormatter";
+     6	import { useAppValidationRules } from "@/composables/useAppValidationRules";
+     7	import { useTransactionFormFields } from "@/composables/useTransactionFormFields";
+     8	import { useNumberFormatHints } from "@/composables/useNumberFormatHints";
+     9	import { Transaction } from "@/types/Transaction";
+    10	import { SubmitEventPromise } from "vuetify";
+    11	import KeyboardShortcuts from "@/components/KeyboardShortcuts.vue";
+    12	import { logException, logValidation, logSuccess } from "@/lib/Logger";
+    13	import { useI18n } from "vue-i18n";
+    14	
+    15	const { t } = useI18n();
+    16	const transactionStore = useTransactionStore();
+    17	const { formatCurrency } = useCurrencyFormatter();
+    18	const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
+    19	const { required, dateRules, amountRules } = useAppValidationRules();
+    20	const { amountExample, hasCorrectSeparator, decimalSeparator } =
+    21	  useNumberFormatHints();
+    22	
+    23	const showKeyboardShortcuts = ref(false);
+    24	
+    25	// The component's v-model prop
+    26	const model = defineModel<Transaction | null>();
+    27	
+    28	// Local copy of transaction for editing
+    29	const localTransaction = ref<Transaction | null>(null);
+    30	
+    31	// Date picker needs a Date object
+    32	const pickerDate = ref<Date>(new Date());
+    33	
+    34	const { displayAmount, isFocused, colorClass, handleFocus, handleBlur, dateMenu, closeDatePicker } =
+    35	  useTransactionFormFields();
+    36	
+    37	// Amount format hint
+    38	const amountHint = computed(() => {
+    39	  if (!isFocused.value || !displayAmount.value) {
+    40	    return t("common.format", { example: amountExample.value });
+    41	  }
     42	
-    43	<template>
-    44	  <v-app-bar color="primary" elevation="2" density="comfortable">
-    45	    <v-app-bar-title class="font-weight-black text-uppercase letter-spacing-1">
-    46	      {{ t("header.title") }}
-    47	    </v-app-bar-title>
-    48	
-    49	    <v-spacer />
-    50	
-    51	    <v-chip
-    52	      :color="isLive ? 'success' : 'warning'"
-    53	      variant="elevated"
-    54	      size="small"
-    55	      class="mr-2 font-weight-bold"
-    56	    >
-    57	      {{ appEnvironment }}
-    58	    </v-chip>
-    59	
-    60	    <div class="d-none d-md-flex align-center">
-    61	      <v-btn
-    62	        id="showSettings"
-    63	        color="yellow-lighten-2"
-    64	        variant="text"
-    65	        class="mr-1"
-    66	        @click="showSettings = true"
-    67	      >
-    68	        <v-icon start>mdi-cog</v-icon>
-    69	        {{ t("header.settings") }}
-    70	      </v-btn>
-    71	
-    72	      <v-btn
-    73	        id="showDataManagement"
-    74	        color="yellow-lighten-2"
-    75	        variant="text"
-    76	        class="mr-2"
-    77	        @click="showDataManagement = true"
-    78	      >
-    79	        <v-icon start>mdi-database-cog</v-icon>
-    80	        {{ t("header.data") }}
-    81	      </v-btn>
-    82	    </div>
+    43	  if (!hasCorrectSeparator(displayAmount.value)) {
+    44	    return t("common.wrongSeparator", { separator: decimalSeparator.value });
+    45	  }
+    46	
+    47	  return t("common.format", { example: amountExample.value });
+    48	});
+    49	
+    50	/**
+    51	 * 1. INITIALIZATION
+    52	 * Clones the incoming transaction to avoid mutating the list entry directly.
+    53	 */
+    54	watch(
+    55	  model,
+    56	  (newModel) => {
+    57	    if (newModel) {
+    58	      // Deep clone to isolate local edits
+    59	      const cloned = JSON.parse(JSON.stringify(newModel));
+    60	
+    61	      // Ensure date is in YYYY-MM-DD format (source of truth)
+    62	      if (cloned.date && typeof cloned.date === "string") {
+    63	        const datePart = cloned.date.substring(0, 10);
+    64	        cloned.date = datePart;
+    65	
+    66	        // Set picker date
+    67	        const [year, month, day] = datePart.split("-").map(Number);
+    68	        pickerDate.value = new Date(year, month - 1, day);
+    69	      }
+    70	
+    71	      localTransaction.value = cloned;
+    72	      if (localTransaction.value) {
+    73	        displayAmount.value = formatCurrency(localTransaction.value.amount);
+    74	      }
+    75	    }
+    76	  },
+    77	  { immediate: true }
+    78	);
+    79	
+    80	function closeDialog() {
+    81	  model.value = null;
+    82	}
     83	
-    84	    <div class="d-flex d-md-none">
-    85	      <v-btn icon="mdi-cog" color="yellow-lighten-2" @click="showSettings = true" />
-    86	      <v-btn icon="mdi-database-cog" color="yellow-lighten-2" @click="showDataManagement = true" />
-    87	    </div>
-    88	
-    89	    <v-divider vertical inset class="mx-2" />
-    90	
-    91	    <div v-if="userStore.isAuthenticated" class="d-flex align-center">
-    92	      <span class="mr-3 d-none d-lg-inline text-caption opacity-80">
-    93	        {{ userStore.userEmail }}
-    94	      </span>
-    95	      <v-btn variant="outlined" size="small" color="white" class="mr-2" @click="handleLogout">
-    96	        {{ t("header.logoff") }}
-    97	      </v-btn>
-    98	    </div>
-    99	
-   100	    <v-dialog
-   101	      v-model="showSettings"
-   102	      max-width="550"
-   103	      persistent
-   104	      transition="dialog-bottom-transition"
-   105	    >
-   106	      <Settings @close="showSettings = false" />
-   107	    </v-dialog>
-   108	
-   109	    <v-dialog
-   110	      v-model="showDataManagement"
-   111	      max-width="550"
-   112	      persistent
-   113	      transition="dialog-bottom-transition"
-   114	    >
-   115	      <DataManagement @close="showDataManagement = false" />
-   116	    </v-dialog>
-   117	  </v-app-bar>
-   118	</template>
-   119	
-   120	<style scoped>
-   121	.letter-spacing-1 {
-   122	  letter-spacing: 1px;
-   123	}
-   124	:deep(.v-app-bar-title__placeholder) {
-   125	  overflow: hidden;
-   126	  white-space: nowrap;
-   127	  font-size: clamp(0.7rem, 1.8vw, 1rem);
-   128	}
-   129	</style>
+    84	function closeKeyboardShortcuts() {
+    85	  showKeyboardShortcuts.value = false;
+    86	}
+    87	
+    88	// Handle date selection from picker
+    89	function onDateSelected(date: Date | Date[] | null) {
+    90	  if (!date || Array.isArray(date) || !localTransaction.value) return;
+    91	
+    92	  localTransaction.value.date = formatToIsoDateOnly(date);
+    93	  pickerDate.value = date;
+    94	
+    95	  closeDatePicker();
+    96	}
+    97	
+    98	/**
+    99	 * 2. SUBMISSION LOGIC
+   100	 * Calculates a 'diff' so we only send updated fields to the database.
+   101	 */
+   102	async function onSubmit(event: SubmitEventPromise) {
+   103	  handleBlur();
+   104	  const { valid } = await event;
+   105	  if (!valid || !localTransaction.value || !model.value) {
+   106	    logValidation(t("common.invalidAmount"), {
+   107	      module: "UpdateTransaction",
+   108	      action: "onSubmit",
+   109	    });
+   110	    return;
+   111	  }
+   112	
+   113	  const changes: Partial<Transaction> = {};
+   114	
+   115	  if (localTransaction.value.description !== model.value.description) {
+   116	    changes.description = localTransaction.value.description;
+   117	  }
+   118	  if (localTransaction.value.transaction_type !== model.value.transaction_type) {
+   119	    changes.transaction_type = localTransaction.value.transaction_type;
+   120	  }
+   121	  if (Number(localTransaction.value.amount) !== Number(model.value.amount)) {
+   122	    changes.amount = localTransaction.value.amount;
+   123	  }
+   124	
+   125	  const normalizeDate = (val: string | Date | null): string => {
+   126	    if (!val) return "";
+   127	    if (typeof val === "string") return val.substring(0, 10);
+   128	    return formatToIsoDateOnly(val instanceof Date ? val : new Date(val));
+   129	  };
+   130	
+   131	  const localDate = normalizeDate(localTransaction.value.date);
+   132	  const originalDate = normalizeDate(model.value.date);
+   133	
+   134	  if (localDate !== originalDate) {
+   135	    changes.date = localDate;
+   136	  }
+   137	
+   138	  // Change Detection Guard
+   139	  if (Object.keys(changes).length === 0) {
+   140	    logValidation(t("updateDialog.noChanges"), {
+   141	      module: "UpdateTransaction",
+   142	      action: "onSubmit",
+   143	    });
+   144	    closeDialog();
+   145	    return;
+   146	  }
+   147	
+   148	  try {
+   149	    await transactionStore.updateTransaction(localTransaction.value.id, changes);
+   150	
+   151	    logSuccess(t("updateDialog.success"), {
+   152	      module: "UpdateTransaction",
+   153	      action: "onSubmit",
+   154	      data: {
+   155	        id: localTransaction.value.id,
+   156	        updatedFields: Object.keys(changes),
+   157	      },
+   158	    });
+   159	
+   160	    closeDialog();
+   161	  } catch {
+   162	    logException(new Error("Update failed in the UI."), {
+   163	      module: "UpdateTransaction",
+   164	      action: "onSubmit",
+   165	      slug: "updateDialog.failedUI",
+   166	    });
+   167	  }
+   168	}
+   169	</script>
+   170	
+   171	<template>
+   172	  <v-dialog
+   173	    v-if="localTransaction"
+   174	    :model-value="!!model"
+   175	    @update:model-value="closeDialog"
+   176	    max-width="500"
+   177	    persistent
+   178	  >
+   179	    <v-card color="surface" elevation="12" class="rounded-lg">
+   180	      <v-card-title class="bg-primary text-on-primary d-flex align-center pr-2">
+   181	        <v-icon start icon="mdi-pencil-box-outline" />
+   182	        {{ t("updateDialog.title") }}
+   183	        <v-spacer />
+   184	        <v-tooltip :text="t('common.help')">
+   185	          <template v-slot:activator="{ props }">
+   186	            <v-btn
+   187	              v-bind="props"
+   188	              :aria-label="t('common.help')"
+   189	              icon="mdi-help"
+   190	              variant="text"
+   191	              size="small"
+   192	              @click="showKeyboardShortcuts = true"
+   193	            />
+   194	          </template>
+   195	        </v-tooltip>
+   196	        <v-tooltip :text="t('common.close')">
+   197	          <template v-slot:activator="{ props }">
+   198	            <v-btn
+   199	              v-bind="props"
+   200	              :aria-label="t('common.close')"
+   201	              icon="mdi-close"
+   202	              variant="text"
+   203	              size="small"
+   204	              @click="closeDialog"
+   205	            />
+   206	          </template>
+   207	        </v-tooltip>
+   208	      </v-card-title>
+   209	
+   210	      <v-form @submit.prevent="onSubmit">
+   211	        <v-card-text class="pt-6">
+   212	          <v-row dense>
+   213	            <v-col cols="6">
+   214	              <v-text-field
+   215	                v-model="localTransaction.description"
+   216	                :label="t('common.description')"
+   217	                variant="outlined"
+   218	                :rules="[required]"
+   219	              />
+   220	            </v-col>
+   221	
+   222	            <v-col cols="6">
+   223	              <v-menu
+   224	                v-model="dateMenu"
+   225	                :close-on-content-click="false"
+   226	                transition="scale-transition"
+   227	                location="bottom center"
+   228	              >
+   229	                <template #activator="{ props }">
+   230	                  <v-text-field
+   231	                    v-bind="props"
+   232	                    :label="t('common.date')"
+   233	                    :model-value="formatToMediumDate(localTransaction.date)"
+   234	                    variant="outlined"
+   235	                    readonly
+   236	                    prepend-inner-icon="mdi-calendar"
+   237	                    :rules="[(v) => dateRules(localTransaction!.date)]"
+   238	                  />
+   239	                </template>
+   240	                <v-date-picker
+   241	                  v-model="pickerDate"
+   242	                  @update:model-value="onDateSelected"
+   243	                  color="primary"
+   244	                />
+   245	              </v-menu>
+   246	            </v-col>
+   247	          </v-row>
+   248	
+   249	          <v-row dense class="align-center">
+   250	            <v-col cols="6">
+   251	              <v-radio-group
+   252	                v-model="localTransaction!.transaction_type"
+   253	                inline
+   254	                :label="t('common.type')"
+   255	                hide-details
+   256	              >
+   257	                <v-radio :label="t('common.Income')" value="Income" color="success" />
+   258	                <v-radio :label="t('common.Expense')" value="Expense" color="error" />
+   259	              </v-radio-group>
+   260	            </v-col>
+   261	
+   262	            <v-col cols="6">
+   263	              <v-text-field
+   264	                v-model="displayAmount"
+   265	                :label="t('common.amount')"
+   266	                :hint="amountHint"
+   267	                persistent-hint
+   268	                variant="outlined"
+   269	                :class="[isFocused ? '' : colorClass, 'money-field']"
+   270	                :readonly="!isFocused && !!displayAmount"
+   271	                @focus="handleFocus"
+   272	                @blur="handleBlur"
+   273	                :rules="[amountRules]"
+   274	              />
+   275	            </v-col>
+   276	          </v-row>
+   277	        </v-card-text>
+   278	
+   279	        <v-divider />
+   280	
+   281	        <v-card-actions class="pa-4">
+   282	          <v-btn
+   283	            data-testid="cancel-update-btn"
+   284	            :text="t('common.cancel')"
+   285	            variant="text"
+   286	            color="secondary"
+   287	            @click="closeDialog"
+   288	          />
+   289	          <v-spacer />
+   290	          <v-btn
+   291	            data-testid="update-transaction-btn"
+   292	            :text="t('updateDialog.btnUpdate')"
+   293	            variant="elevated"
+   294	            color="primary"
+   295	            type="submit"
+   296	            prepend-icon="mdi-check"
+   297	          />
+   298	        </v-card-actions>
+   299	      </v-form>
+   300	    </v-card>
+   301	
+   302	    <v-dialog v-model="showKeyboardShortcuts" max-width="350" @keydown.esc="closeKeyboardShortcuts">
+   303	      <KeyboardShortcuts
+   304	        v-if="showKeyboardShortcuts"
+   305	        @close="showKeyboardShortcuts = false"
+   306	      />
+   307	    </v-dialog>
+   308	  </v-dialog>
+   309	</template>
+   310	
+   311	<style scoped>
+   312	.money-field :deep(.v-field__input) {
+   313	  font-size: 1.25rem !important;
+   314	  font-weight: 800;
+   315	  letter-spacing: 0.5px;
+   316	}
+   317	
+   318	.money-field.money-plus :deep(.v-field__input) {
+   319	  color: #2ecc71 !important;
+   320	}
+   321	.money-field.money-minus :deep(.v-field__input) {
+   322	  color: #e74c3c !important;
+   323	}
+   324	</style>

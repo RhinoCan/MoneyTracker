@@ -65,7 +65,7 @@ onMounted(async () => {
 
 <template>
   <v-app>
-    <v-container v-if="fatalError" class="fill-height">
+    <v-container v-if="fatalError" class="fill-height" role="alert">
       <v-row justify="center" align="center">
         <v-col cols="12" sm="8" md="4" class="text-center">
           <v-icon color="error" size="64">mdi-alert-octagon</v-icon>
@@ -82,7 +82,7 @@ onMounted(async () => {
 
     <v-container v-else-if="userStore.loading" class="fill-height">
       <v-row justify="center" align="center">
-        <v-progress-circular indeterminate color="primary" size="64" />
+        <v-progress-circular indeterminate color="primary" size="64" :aria-label="t('app.loading')" />
       </v-row>
     </v-container>
 

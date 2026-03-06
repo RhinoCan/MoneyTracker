@@ -30,13 +30,13 @@ const hasTransactions = computed(() => transactionStore.transactions.length > 0)
           </v-alert>
         </div>
 
-        <table v-else key="table" class="summary-table my-2">
+        <table v-else key="table" class="summary-table my-2" :aria-label="t('accountSummary.title')">
           <tbody>
             <tr>
               <td class="amount">
                 <Amount :amount="transactionStore.getTotalIncome" type="Income" />
               </td>
-              <td class="label">{{ t("accountSummary.income") }}</td>
+              <th scope="row" class="label">{{ t("accountSummary.income") }}</th>
             </tr>
 
             <tr>
@@ -44,10 +44,10 @@ const hasTransactions = computed(() => transactionStore.transactions.length > 0)
                 <span class="mr-1">-</span>
                 <Amount :amount="transactionStore.getTotalExpense" type="Expense" />
               </td>
-              <td class="label">{{ t("accountSummary.expense") }}</td>
+              <th scope="row" class="label">{{ t("accountSummary.expense") }}</th>
             </tr>
 
-            <tr>
+            <tr aria-hidden="true">
               <td class="amount amount-divider">
                 <div class="divider-line"></div>
               </td>
@@ -58,9 +58,9 @@ const hasTransactions = computed(() => transactionStore.transactions.length > 0)
               <td class="amount text-h6 font-weight-bold">
                 <Amount :amount="transactionStore.getNetBalance" type="Balance" />
               </td>
-              <td class="label text-h6 font-weight-bold">
+              <th scope="row" class="label text-h6 font-weight-bold">
                 {{ t("accountSummary.balance") }}
-              </td>
+              </th>
             </tr>
           </tbody>
         </table>

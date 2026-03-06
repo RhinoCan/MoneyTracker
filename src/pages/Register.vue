@@ -85,21 +85,20 @@ async function handleRegister() {
             :disabled="loading"
             prepend-inner-icon="mdi-lock-outline"
           />
+          <v-btn
+            color="primary"
+            block
+            size="large"
+            type="submit"
+            :loading="loading"
+            class="mt-4"
+          >
+            {{ t("register.button") }}
+          </v-btn>
         </v-form>
       </v-card-text>
 
-      <v-card-actions class="flex-column">
-        <v-btn
-          color="primary"
-          block
-          size="large"
-          :loading="loading"
-          @click="handleRegister"
-          class="mb-4"
-        >
-          {{ t("register.button") }}
-        </v-btn>
-
+      <v-card-actions class="justify-center">
         <v-btn
           variant="text"
           size="small"

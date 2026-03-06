@@ -15,12 +15,14 @@
     "fill_all_fields": "Bitte füllen Sie alle Felder aus.",
     "format": "Format: {example}.",
     "wrongSeparator": "Bitte verwenden Sie {separator} für Dezimalstellen.",
-    "invalidAmount": "Bitte korrigieren Sie das Format des Betrags vor dem Speichern."
+    "invalidAmount": "Bitte korrigieren Sie das Format des Betrags vor dem Speichern.",
+    "information": "Information"
   },
   "app": {
     "fatalHeadline": "Anwendung konnte nicht gestartet werden",
     "noStart": "Die Anwendung konnte nicht gestartet werden. Bitte prüfen Sie Ihre Verbindung.",
-    "retry": "Verbindung erneut versuchen"
+    "retry": "Verbindung erneut versuchen",
+    "loading": "Wird geladen..."
   },
   "main": {
     "global_vue_crash": "Vue hat einen schwerwiegenden Absturz in main.ts erlitten"
@@ -38,7 +40,8 @@
     "persistMsg": "Nachrichten behalten, bis sie manuell geschlossen werden",
     "timeoutMsg": "Dauer der Nachricht über den Schieberegler einstellen",
     "persistMsgInfoOn": "Nachrichten bleiben auf dem Bildschirm, bis Sie sie manuell schließen.",
-    "persistMsgInfoOff": "Nachrichten verschwinden automatisch nach den eingestellten Sekunden."
+    "persistMsgInfoOff": "Nachrichten verschwinden automatisch nach den eingestellten Sekunden.",
+    "timeoutSlider": "Nachrichtenanzeige in Sekunden"
   },
   "management": {
     "title": "Datenverwaltung",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "Tastaturkürzel",
-    "paraEsc": "Nutzen Sie {Esc}, um abzubrechen, anstatt das {iconHelp}-Symbol zu verwenden.",
+    "paraEsc": "Nutzen Sie {Esc}, um das Formular zurückzusetzen, anstatt die Schaltfläche Zurücksetzen zu verwenden.",
+    "paraEscDialog": "Nutzen Sie {Esc}, um abzubrechen, anstatt das {iconCancel}-Symbol oder die Schaltfläche Abbrechen zu verwenden.",
     "paraEnter": "Nutzen Sie {Enter}, um Änderungen zu speichern.",
     "paraTab": "Nutzen Sie {Tab}, um zwischen Feldern zu springen.",
     "keyEsc": "Esc",
@@ -141,7 +145,12 @@
     "itemsPerPage": "Elemente pro Seite:",
     "pageText": "{start}-{end} von {total}",
     "ariaUpdate": "Aktualisieren",
-    "ariaDelete": "Löschen"
+    "ariaDelete": "Löschen",
+    "ariaFirstPage": "Erste Seite",
+    "ariaPrevPage": "Vorherige Seite",
+    "ariaNextPage": "Nächste Seite",
+    "ariaLastPage": "Letzte Seite",
+    "loading": "Wird geladen..."
   },
   "updateDialog": {
     "title": "Transaktion aktualisieren",

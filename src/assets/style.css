@@ -1,13 +1,19 @@
-/* .money {
-  font-size: 20px;
-  letter-spacing: 1px;
-  margin: 5px 0;
+:root {
+  --v-medium-emphasis-opacity: 1;
+  --v-field-label-opacity: 1;
 }
 
-.plus {
-  color: #2ecc71 !important;
+.v-field-label,
+.v-field-label--floating,
+.v-label {
+  color: #616161 !important;
+  opacity: 1 !important;
 }
 
-.minus {
-  color: #c0392b !important;
-} */
+.v-snackbar__wrapper.bg-success .v-snackbar__content {
+  color: #ffffff !important;
+}
+
+.v-field__input {
+  opacity: 1 !important;
+}

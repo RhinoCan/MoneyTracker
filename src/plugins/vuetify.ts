@@ -13,14 +13,14 @@ import { en } from "vuetify/locale";
 const light: ThemeDefinition = {
   dark: false,
   colors: {
-    primary: "#00897B", // soft teal
+    primary: "#00796B", // soft teal
     secondary: "#455A64", // blue-grey
     surface: "#F5F5F5", // light grey panels/cards
     background: "#FAFAFA",
-    info: "#26A69A", // lighter teal
-    success: "#4DB6AC", // desaturated teal
-    warning: "#BDBDBD", // neutral grey
-    error: "#F44336", // muted red
+    info: "#00796B", // lighter teal
+    success: "#00695C", // desaturated teal
+    warning: "#616161", // neutral grey
+    error: "#C62828", // muted red
   },
 };
 

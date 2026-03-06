@@ -84,11 +84,11 @@ const showDataManagement = ref(false);
     </div>
 
     <div class="d-flex d-md-none">
-      <v-btn icon="mdi-cog" data-testid="open-settings" color="yellow-lighten-2" @click="showSettings = true" />
-      <v-btn icon="mdi-database-cog" data-testid="open-data-management" color="yellow-lighten-2" @click="showDataManagement = true" />
+      <v-btn icon="mdi-cog" data-testid="open-settings" color="yellow-lighten-2" :aria-label="t('header.settings')" @click="showSettings = true" />
+      <v-btn icon="mdi-database-cog" data-testid="open-data-management" color="yellow-lighten-2" :aria-label="t('header.data')" @click="showDataManagement = true" />
     </div>
 
-    <v-divider vertical inset class="mx-2" />
+    <v-divider vertical inset class="mx-2" aria-hidden="true" />
 
     <div v-if="userStore.isAuthenticated" class="d-flex align-center">
       <span class="mr-3 d-none d-lg-inline text-caption opacity-80">
@@ -104,6 +104,7 @@ const showDataManagement = ref(false);
       max-width="550"
       persistent
       transition="dialog-bottom-transition"
+      aria-labelledby="settings-dialog-title"
     >
       <Settings @close="showSettings = false" />
     </v-dialog>
@@ -113,6 +114,7 @@ const showDataManagement = ref(false);
       max-width="550"
       persistent
       transition="dialog-bottom-transition"
+      aria-labelledby="data-management-dialog-title"
     >
       <DataManagement @close="showDataManagement = false" />
     </v-dialog>

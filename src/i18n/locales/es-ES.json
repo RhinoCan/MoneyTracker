@@ -15,12 +15,14 @@
     "fill_all_fields": "Por favor, rellene todos los campos.",
     "format": "Formato: {example}.",
     "wrongSeparator": "Por favor, use {separator} para los decimales.",
-    "invalidAmount": "Por favor, corrija el formato de la cantidad antes de guardar."
+    "invalidAmount": "Por favor, corrija el formato de la cantidad antes de guardar.",
+    "information": "Información"
   },
   "app": {
     "fatalHeadline": "Error al iniciar la aplicación",
     "noStart": "No pudimos iniciar la aplicación. Por favor, compruebe su conexión e inténtelo de nuevo.",
-    "retry": "Reintentar conexión"
+    "retry": "Reintentar conexión",
+    "loading": "Cargando..."
   },
   "main": {
     "global_vue_crash": "Vue ha experimentado un error grave en main.ts"
@@ -38,7 +40,8 @@
     "persistMsg": "Mantener mensajes hasta cerrarlos manualmente",
     "timeoutMsg": "Establecer la duración del mensaje mediante el deslizador",
     "persistMsgInfoOn": "Los mensajes permanecerán en pantalla hasta que los cierre manualmente. Desactive el interruptor para establecer un tiempo de espera.",
-    "persistMsgInfoOff": "Los mensajes desaparecerán automáticamente tras los segundos establecidos. Active el interruptor para mantenerlos visibles."
+    "persistMsgInfoOff": "Los mensajes desaparecerán automáticamente tras los segundos establecidos. Active el interruptor para mantenerlos visibles.",
+    "timeoutSlider": "Tiempo de espera del mensaje en segundos"
   },
   "management": {
     "title": "Gestión de datos",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "Atajos de teclado",
-    "paraEsc": "Puede usar la tecla {Esc} para cancelar en lugar del icono {iconHelp} o el botón Cancelar.",
+    "paraEsc": "Puede usar la tecla {Esc} para restablecer el formulario en lugar del botón Restablecer.",
+    "paraEscDialog": "Puede usar la tecla {Esc} para cancelar en lugar del icono {iconCancel} o el botón Cancelar.",
     "paraEnter": "Puede usar la tecla {Enter} para guardar los cambios en lugar del botón Guardar.",
     "paraTab": "Puede usar la tecla {Tab} para saltar entre campos en formularios múltiples.",
     "keyEsc": "Esc",
@@ -141,7 +145,12 @@
     "itemsPerPage": "Elementos por página:",
     "pageText": "{start}-{end} de {total}",
     "ariaUpdate": "Actualizar",
-    "ariaDelete": "Eliminar"
+    "ariaDelete": "Eliminar",
+    "ariaFirstPage": "Primera página",
+    "ariaPrevPage": "Página anterior",
+    "ariaNextPage": "Página siguiente",
+    "ariaLastPage": "Última página",
+    "loading": "Cargando..."
   },
   "updateDialog": {
     "title": "Actualizar transacción",

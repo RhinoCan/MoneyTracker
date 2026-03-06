@@ -63,9 +63,9 @@ const deleteTransaction = async () => {
 </script>
 
 <template>
-  <v-dialog v-model="dialogOpen" max-width="450" persistent transition="dialog-bottom-transition">
+  <v-dialog v-model="dialogOpen" max-width="450" persistent transition="dialog-bottom-transition"  aria-labelledby="delete-transaction-dialog-title">
     <v-card v-if="model" border>
-      <v-card-title class="bg-error text-white d-flex align-center justify-space-between">
+      <v-card-title id="delete-transaction-dialog-title" class="bg-error text-white d-flex align-center justify-space-between">
         <div class="d-flex align-center">
           <v-icon start icon="mdi-alert-circle-outline" />
           <span>{{ t("deleteDialog.title") }}</span>

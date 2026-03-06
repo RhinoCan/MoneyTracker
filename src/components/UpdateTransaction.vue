@@ -15,10 +15,9 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 const transactionStore = useTransactionStore();
 const { formatCurrency } = useCurrencyFormatter();
-const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
+const { formatToIsoDateOnly } = useDateFormatter();
 const { required, dateRules, amountRules } = useAppValidationRules();
-const { amountExample, hasCorrectSeparator, decimalSeparator } =
-  useNumberFormatHints();
+const { amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
 
@@ -31,7 +30,7 @@ const localTransaction = ref<Transaction | null>(null);
 // Date picker needs a Date object
 const pickerDate = ref<Date>(new Date());
 
-const { displayAmount, isFocused, colorClass, handleFocus, handleBlur, dateMenu, closeDatePicker } =
+const { displayAmount, isFocused, colorClass, handleFocus, handleBlur } =
   useTransactionFormFields();
 
 // Amount format hint
@@ -81,14 +80,24 @@ function closeDialog() {
   model.value = null;
 }
 
-// Handle date selection from picker
+function closeKeyboardShortcuts() {
+  showKeyboardShortcuts.value = false;
+}
+
 function onDateSelected(date: Date | Date[] | null) {
-  if (!date || Array.isArray(date) || !localTransaction.value) return;
+  if (Array.isArray(date)) return;
 
-  localTransaction.value.date = formatToIsoDateOnly(date);
-  pickerDate.value = date;
+  if (!date) {
+    if (localTransaction.value) {
+      localTransaction.value.date = "";
+    }
+    return;
+  }
 
-  closeDatePicker();
+  if (localTransaction.value) {
+    localTransaction.value.date = formatToIsoDateOnly(date);
+    pickerDate.value = date;
+  }
 }
 
 /**
@@ -169,12 +178,16 @@ async function onSubmit(event: SubmitEventPromise) {
     v-if="localTransaction"
     :model-value="!!model"
     @update:model-value="closeDialog"
+    @keydown.esc="closeDialog"
     max-width="500"
     persistent
+    aria-labelledby="update-transaction-dialog-title"
   >
-    <v-card color="surface" elevation="12" class="rounded-lg">
-      <v-card-title class="bg-primary text-on-primary d-flex align-center pr-2">
-        <v-icon start icon="mdi-pencil-box-outline" />
+    <v-card color="surface" elevation="12" class="rounded-lg" @keydown.esc="closeDialog">
+      <v-card-title
+        id="update-transaction-dialog-title"
+        class="bg-primary text-on-primary d-flex align-center pr-2"
+      >
         {{ t("updateDialog.title") }}
         <v-spacer />
         <v-tooltip :text="t('common.help')">
@@ -216,29 +229,16 @@ async function onSubmit(event: SubmitEventPromise) {
             </v-col>
 
             <v-col cols="6">
-              <v-menu
-                v-model="dateMenu"
-                :close-on-content-click="false"
-                transition="scale-transition"
-                location="bottom center"
-              >
-                <template #activator="{ props }">
-                  <v-text-field
-                    v-bind="props"
-                    :label="t('common.date')"
-                    :model-value="formatToMediumDate(localTransaction.date)"
-                    variant="outlined"
-                    readonly
-                    prepend-inner-icon="mdi-calendar"
-                    :rules="[(v) => dateRules(localTransaction!.date)]"
-                  />
-                </template>
-                <v-date-picker
-                  v-model="pickerDate"
-                  @update:model-value="onDateSelected"
-                  color="primary"
-                />
-              </v-menu>
+              <v-date-input
+                v-model="pickerDate"
+                :label="t('common.date')"
+                variant="outlined"
+                prepend-icon=""
+                prepend-inner-icon="mdi-calendar"
+                :rules="[(v) => dateRules(localTransaction!.date)]"
+                color="primary"
+                @update:model-value="onDateSelected"
+              />
             </v-col>
           </v-row>
 
@@ -295,10 +295,16 @@ async function onSubmit(event: SubmitEventPromise) {
       </v-form>
     </v-card>
 
-    <v-dialog v-model="showKeyboardShortcuts" max-width="350">
+    <v-dialog
+      v-model="showKeyboardShortcuts"
+      max-width="350"
+      @keydown.esc="closeKeyboardShortcuts"
+      aria-labelledby="keyboard-shortcuts-dialog-title"
+    >
       <KeyboardShortcuts
         v-if="showKeyboardShortcuts"
-        @close="showKeyboardShortcuts = false"
+        :isDialog="true"
+        @close="closeKeyboardShortcuts"
       />
     </v-dialog>
   </v-dialog>

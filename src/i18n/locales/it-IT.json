@@ -15,12 +15,14 @@
     "fill_all_fields": "Compila tutti i campi.",
     "format": "Formato: {example}.",
     "wrongSeparator": "Usa {separator} per i decimali.",
-    "invalidAmount": "Correggi il formato dell'importo prima di salvare."
+    "invalidAmount": "Correggi il formato dell'importo prima di salvare.",
+    "information": "Informazione"
   },
   "app": {
     "fatalHeadline": "Errore avvio applicazione",
     "noStart": "Impossibile avviare l'app. Controlla la connessione.",
-    "retry": "Riprova connessione"
+    "retry": "Riprova connessione",
+    "loading": "Caricamento..."
   },
   "main": {
     "global_vue_crash": "Crash critico di Vue in main.ts"
@@ -38,7 +40,8 @@
     "persistMsg": "Mantieni messaggi fino alla chiusura manuale",
     "timeoutMsg": "Imposta durata messaggio via slider",
     "persistMsgInfoOn": "I messaggi resteranno finché non li chiudi.",
-    "persistMsgInfoOff": "I messaggi spariranno dopo i secondi impostati."
+    "persistMsgInfoOff": "I messaggi spariranno dopo i secondi impostati.",
+    "timeoutSlider": "Durata del messaggio in secondi"
   },
   "management": {
     "title": "Gestione Dati",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "Scorciatoie Tastiera",
-    "paraEsc": "Usa {Esc} per annullare.",
+    "paraEsc": "Usa {Esc} per reimpostare il modulo.",
+    "paraEscDialog": "Usa {Esc} per annullare invece di fare clic sull'icona {iconCancel} o sul pulsante Annulla.",
     "paraEnter": "Usa {Enter} per salvare.",
     "paraTab": "Usa {Tab} per spostarti tra i campi.",
     "keyEsc": "Esc",
@@ -141,7 +145,12 @@
     "itemsPerPage": "Elementi per pagina:",
     "pageText": "{start}-{end} di {total}",
     "ariaUpdate": "Aggiorna",
-    "ariaDelete": "Elimina"
+    "ariaDelete": "Elimina",
+    "ariaFirstPage": "Prima pagina",
+    "ariaPrevPage": "Pagina precedente",
+    "ariaNextPage": "Pagina successiva",
+    "ariaLastPage": "Ultima pagina",
+    "loading": "Caricamento..."
   },
   "updateDialog": {
     "title": "Aggiorna Transazione",

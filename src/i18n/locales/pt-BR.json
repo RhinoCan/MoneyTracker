@@ -15,12 +15,14 @@
     "fill_all_fields": "Por favor, preencha todos os campos.",
     "format": "Formato: {example}.",
     "wrongSeparator": "Por favor, use {separator} para decimais.",
-    "invalidAmount": "Corrija o formato do valor antes de salvar."
+    "invalidAmount": "Corrija o formato do valor antes de salvar.",
+    "information": "Informação"
   },
   "app": {
     "fatalHeadline": "Falha ao Iniciar o Aplicativo",
     "noStart": "Não conseguimos iniciar o aplicativo. Verifique sua conexão.",
-    "retry": "Tentar Novamente"
+    "retry": "Tentar Novamente",
+    "loading": "Carregando..."
   },
   "main": {
     "global_vue_crash": "O Vue sofreu uma falha crítica em main.ts"
@@ -38,7 +40,8 @@
     "persistMsg": "Manter mensagens até fechar manualmente",
     "timeoutMsg": "Definir duração da mensagem no slider",
     "persistMsgInfoOn": "As mensagens ficarão na tela até você fechá-las.",
-    "persistMsgInfoOff": "As mensagens desaparecerão após os segundos definidos."
+    "persistMsgInfoOff": "As mensagens desaparecerão após os segundos definidos.",
+    "timeoutSlider": "Tempo limite da mensagem em segundos"
   },
   "management": {
     "title": "Gerenciamento de Dados",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "Atalhos de Teclado",
-    "paraEsc": "Use {Esc} para cancelar.",
+    "paraEsc": "Use {Esc} para redefinir o formulário.",
+    "paraEscDialog": "Use {Esc} para cancelar em vez de clicar no ícone {iconCancel} ou no botão Cancelar.",
     "paraEnter": "Use {Enter} para salvar.",
     "paraTab": "Use {Tab} para navegar entre campos.",
     "keyEsc": "Esc",
@@ -141,7 +145,12 @@
     "itemsPerPage": "Itens por página:",
     "pageText": "{start}-{end} de {total}",
     "ariaUpdate": "Atualizar",
-    "ariaDelete": "Excluir"
+    "ariaDelete": "Excluir",
+    "ariaFirstPage": "Primeira página",
+    "ariaPrevPage": "Página anterior",
+    "ariaNextPage": "Próxima página",
+    "ariaLastPage": "Última página",
+    "loading": "Carregando..."
   },
   "updateDialog": {
     "title": "Atualizar Transação",

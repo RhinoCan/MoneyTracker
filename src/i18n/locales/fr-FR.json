@@ -11,19 +11,21 @@
     "date": "Date",
     "type": "Type de transaction",
     "amount": "Montant",
-    "error_unexpected": "Une erreur est survenue. Veuillez réessayer plus tard.",
+    "error_unexpected": "Une erreur inattendue s'est produite. Veuillez réessayer plus tard.",
     "fill_all_fields": "Veuillez remplir tous les champs.",
     "format": "Format : {example}.",
-    "wrongSeparator": "Veuillez utiliser {separator} pour les décimales.",
-    "invalidAmount": "Veuillez corriger le format du montant avant d'enregistrer."
+    "wrongSeparator": "Veuillez utiliser {separator} comme séparateur décimal.",
+    "invalidAmount": "Veuillez corriger le format du montant avant d'enregistrer.",
+    "information": "Information"
   },
   "app": {
-    "fatalHeadline": "L'application n'a pas pu démarrer",
-    "noStart": "Nous n'avons pas pu démarrer l'application. Veuillez vérifier votre connexion et réessayer.",
-    "retry": "Réessayer la connexion"
+    "fatalHeadline": "Échec du démarrage de l'application",
+    "noStart": "Nous n'avons pas pu démarrer l'application. Vérifiez votre connexion et réessayez.",
+    "retry": "Réessayer la connexion.",
+    "loading": "Chargement..."
   },
   "main": {
-    "global_vue_crash": "Vue a subi un plantage majeur dans main.ts"
+    "global_vue_crash": "Vue a subi une panne majeure dans main.ts"
   },
   "deleteDialog": {
     "title": "Confirmer ou annuler la suppression",
@@ -35,37 +37,38 @@
     "title": "Paramètres",
     "locale": "Langue et région",
     "currency": "Devise",
-    "persistMsg": "Maintenir les messages jusqu'à la fermeture manuelle",
-    "timeoutMsg": "Régler la durée du message via le curseur",
-    "persistMsgInfoOn": "Les messages resteront à l'écran jusqu'à ce que vous les fermiez manuellement. Désactivez l'interrupteur pour définir un délai à la place.",
-    "persistMsgInfoOff": "Les messages disparaîtront automatiquement après le nombre de secondes défini sur le curseur. Activez l'interrupteur pour qu'ils restent visibles."
+    "persistMsg": "Conserver les messages jusqu'à ce que vous les fermiez manuellement",
+    "timeoutMsg": "Définir la durée d'affichage du message via le curseur",
+    "persistMsgInfoOn": "Les messages resteront affichés jusqu'à ce que vous les fermiez manuellement. Désactivez le bouton pour définir un délai à la place.",
+    "persistMsgInfoOff": "Les messages disparaîtront automatiquement après le nombre de secondes défini sur le curseur. Activez le bouton pour les garder visibles jusqu'à fermeture manuelle.",
+    "timeoutSlider": "Durée d'affichage du message en secondes"
   },
   "management": {
     "title": "Gestion des données",
     "exportTitle": "Exporter les données",
-    "exportText": "Enregistrez une copie de vos transactions dans un fichier CSV pour une sauvegarde ou une utilisation dans un tableur.",
+    "exportText": "Enregistrez une copie de vos transactions dans un fichier CSV pour sauvegarde ou utilisation dans un tableur.",
     "btnExport": "Exporter en CSV",
-    "dangerZone": "Zone de danger",
+    "dangerZone": "Zone dangereuse",
     "deleteTransTitle": "Supprimer toutes les transactions",
     "deleteTransText": "Supprime toutes les transactions mais conserve vos paramètres (langue, devise, délai des messages).",
     "btnDeleteTrans": "Supprimer toutes les transactions",
-    "restoreSettingsTitle": "Restaurer les paramètres par défaut",
-    "restoreSettingsText": "Restaure tous les paramètres (langue, devise, format de date) à leurs valeurs par défaut mais conserve toutes les transactions.",
-    "btnRestoreSettings": "Restaurer les paramètres par défaut",
-    "deleteEverythingTitle": "Tout supprimer (Transactions et Paramètres)",
-    "deleteEverythingText": "Ceci supprime toutes les transactions ET tous vos paramètres, puis redémarre l'application avec les paramètres par défaut.",
-    "btnDeleteEverything": "Supprimer toutes les transactions *et* les paramètres",
-    "confirmDeleteAllTransactions": "Êtes-vous sûr ? Cela supprimera toutes vos transactions mais gardera vos paramètres. Cette action est irréversible. Continuer ?",
-    "confirmRestoreAllSettings": "Êtes-vous sûr ? Cela restaurera les paramètres par défaut mais gardera vos transactions. Cette action est irréversible. Continuer ?",
-    "confirmDeleteEverything": "STOP : Cela effacera définitivement TOUTES les transactions et TOUS les paramètres. Cette action est irréversible. Continuer ?",
+    "restoreSettingsTitle": "Restaurer tous les paramètres par défaut",
+    "restoreSettingsText": "Restaure tous les paramètres (langue, devise, format de date) à leurs valeurs par défaut, mais conserve toutes les transactions.",
+    "btnRestoreSettings": "Restaurer tous les paramètres par défaut",
+    "deleteEverythingTitle": "Supprimer toutes les transactions et les paramètres",
+    "deleteEverythingText": "Supprime toutes les transactions ET tous vos paramètres, puis redémarre l'application avec les paramètres par défaut.",
+    "btnDeleteEverything": "Supprimer les transactions *et* les paramètres",
+    "confirmDeleteAllTransactions": "Êtes-vous sûr(e) ? Cela supprimera toutes vos transactions mais conservera vos paramètres. Cette action est irréversible. Continuer ?",
+    "confirmRestoreAllSettings": "Êtes-vous sûr(e) ? Cela restaurera tous les paramètres par défaut mais conservera vos transactions. Cette action est irréversible. Continuer ?",
+    "confirmDeleteEverything": "ATTENTION : Cela effacera définitivement TOUTES les transactions ET TOUS les paramètres. Cette action est irréversible. Continuer ?",
     "restore_settings_failed": "Échec de la restauration des paramètres par défaut.",
-    "full_wipe_failed": "Échec de la suppression des transactions et de la restauration des paramètres."
+    "full_wipe_failed": "Échec de la suppression de toutes les transactions et de la restauration des paramètres par défaut."
   },
   "accountSummary": {
-    "title": "Résumé du compte",
+    "title": "Récapitulatif du compte",
     "alert": "Rien ne s'affichera ici tant que vous n'aurez pas ajouté au moins une transaction via le formulaire {addNew} ci-dessous.",
-    "income": "Revenu total",
-    "expense": "Dépense totale",
+    "income": "Total des revenus",
+    "expense": "Total des dépenses",
     "balance": "Solde"
   },
   "addTrans": {
@@ -73,20 +76,21 @@
     "btnReset": "Réinitialiser",
     "btnAdd": "Ajouter la transaction",
     "labelDescription": "Description",
-    "labelDate": "Date de transaction",
+    "labelDate": "Date de la transaction",
     "labelType": "Type de transaction",
     "labelIncome": "Revenu",
     "labelExpense": "Dépense",
     "labelAmount": "Montant",
-    "err_missing_or_negative": "Le montant ne peut pas être manquant ou négatif.",
+    "err_missing_or_negative": "Le montant ne peut pas être absent ou négatif.",
     "success": "La transaction a été ajoutée.",
-    "submit_failed": "La nouvelle transaction a échoué aux validations de soumission."
+    "submit_failed": "La nouvelle transaction n'a pas passé les validations de soumission."
   },
   "keyboard": {
     "title": "Raccourcis clavier",
-    "paraEsc": "Vous pouvez utiliser la touche {Esc} de votre clavier pour annuler cette mise à jour plutôt que d'utiliser l'icône {iconHelp} ou le bouton Annuler.",
-    "paraEnter": "Vous pouvez utiliser la touche {Enter} de votre clavier pour enregistrer les modifications apportées ici plutôt que d'utiliser le bouton Enregistrer.",
-    "paraTab": "Vous pouvez utiliser la touche {Tab} de votre clavier pour passer d'un champ à l'autre sur les formulaires comportant plusieurs champs.",
+    "paraEsc": "Vous pouvez utiliser la touche {Esc} de votre clavier pour réinitialiser le formulaire plutôt que de cliquer sur le bouton Réinitialiser.",
+    "paraEscDialog": "Vous pouvez utiliser la touche {Esc} de votre clavier pour annuler plutôt que de cliquer sur l'icône {iconCancel} ou le bouton Annuler.",
+    "paraEnter": "Vous pouvez utiliser la touche {Enter} de votre clavier pour enregistrer les modifications plutôt que d'utiliser le bouton Enregistrer.",
+    "paraTab": "Vous pouvez utiliser la touche {Tab} de votre clavier pour passer d'un champ à l'autre dans les formulaires comportant plusieurs champs.",
     "keyEsc": "Échap",
     "keyEnter": "Entrée",
     "keyTab": "Tab"
@@ -94,26 +98,26 @@
   "about": {
     "title": "À propos",
     "origins": "Origines",
-    "introParagraph": "Cette application est une descendante de celle que j'ai initialement construite en suivant {linkTraversy}. J'ai ensuite effectué plusieurs améliorations résumées ci-dessous :",
+    "introParagraph": "Cette application est issue d'une application que j'ai développée en suivant {linkTraversy}. J'y ai ensuite apporté plusieurs améliorations résumées ci-dessous :",
     "linkText": "l'un des cours de Brad Traversy",
     "enhancements": [
-      "Des tests ont été écrits et exécutés pour les composants Vue originaux.",
-      "Les 'props' ont été presque entièrement remplacées par des stores Pinia.",
+      "Des tests ont été écrits et exécutés pour les composants Vue d'origine.",
+      "Les props ont été presque entièrement remplacés par des stores Pinia.",
       "Les composants Vue ont été remplacés par des composants Vuetify.",
-      "Les modules Javascript ont été convertis en TypeScript.",
-      "Une internationalisation/localisation a été effectuée pour que les montants monétaires apparaissent dans le bon format selon la région.",
-      "Une boîte de dialogue de confirmation a été ajoutée pour garantir que l'utilisateur souhaite réellement supprimer la transaction choisie.",
-      "Les composants AccountBalance et IncomeExpense ont été fusionnés dans un nouveau composant appelé AccountSummary.",
-      "Un nouveau composant appelé Money a été créé pour afficher toutes les instances d'argent, sauf lors de la saisie ou de l'édition.",
-      "Une date de transaction a été ajoutée à la définition de la transaction pour permettre aux utilisateurs d'enregistrer la date du revenu ou de la dépense.",
-      "Les diverses boîtes de dialogue de paramètres individuelles ont été fusionnées en une seule boîte de dialogue à onglets, puis simplifiée plus tard.",
-      "Ajout de Sentry pour que les erreurs et avertissements soient correctement journalisés.",
-      "Traduction de tout le texte visible (et audible) pour l'utilisateur dans diverses langues afin que l'application puisse être utilisée partout.",
-      "Ajout de PostHog pour suivre les informations et les messages de réussite à des fins analytiques.",
-      "Ajout de Vue Router et de pages d'inscription/connexion pour authentifier les utilisateurs.",
+      "Les modules JavaScript ont été convertis en TypeScript.",
+      "Une internationalisation et localisation partielle a été effectuée pour afficher les montants monétaires dans le format correct selon la région.",
+      "Une boîte de dialogue de confirmation a été ajoutée pour s'assurer que l'utilisateur souhaite vraiment supprimer la transaction sélectionnée.",
+      "Les composants AccountBalance et IncomeExpense ont été fusionnés en un seul nouveau composant appelé AccountSummary.",
+      "Un nouveau composant appelé Money a été créé pour afficher toutes les instances de montants monétaires, sauf lors de la saisie ou de la modification.",
+      "Une date de transaction a été ajoutée à la définition de la transaction afin que les utilisateurs puissent enregistrer la date de revenu ou de dépense. La date est maintenant saisie dans AddTransaction, affichée dans TransactionHistory et DeleteTransaction, et affichée et modifiée dans UpdateTransaction.",
+      "Les différentes boîtes de dialogue de paramètres ont été fusionnées en une seule boîte de dialogue à onglets, puis simplifiée en une boîte de dialogue sans onglets gérant moins de paramètres.",
+      "Ajout de Sentry pour consigner correctement les erreurs et avertissements, rassurant les utilisateurs et signalant les problèmes aux administrateurs.",
+      "Tous les textes visibles (et audibles) par l'utilisateur ont été traduits dans plusieurs langues et régions afin que l'application soit utilisable dans ces différents contextes.",
+      "Ajout de PostHog pour suivre les informations et les messages de succès à des fins analytiques.",
+      "Ajout de Vue Router et des pages d'inscription/connexion pour permettre l'authentification des utilisateurs et la séparation des données et paramètres de chaque utilisateur.",
       "Remplacement de toutes les utilisations de localStorage par Supabase."
     ],
-    "packages": "Principaux packages utilisés",
+    "packages": "Principaux paquets utilisés",
     "textVue": "Vue 3.x",
     "textVuetify": "Vuetify 3.x",
     "textPinia": "Pinia",
@@ -122,73 +126,78 @@
     "textSupabase": "Supabase",
     "textI18n-ally": "i18n-ally",
     "kudosTitle": "Remerciements",
-    "kudos": "Je n'aurais pas pu terminer ce projet dans sa forme actuelle sans l'aide de trois IA : ChatGPT, Google Gemini, et surtout Claude.AI. Un grand merci aux personnes qui les ont créées !"
+    "kudos": "Je n'aurais pas pu mener ce projet à terme dans sa forme actuelle sans l'aide de trois intelligences artificielles : ChatGPT, Google Gemini, et surtout Claude.AI. Mes sincères remerciements aux personnes qui les ont créées et mises à ma disposition gratuitement !"
   },
   "header": {
-    "title": "Suivi d'argent",
+    "title": "Gestionnaire de finances",
     "settings": "Paramètres",
     "data": "Gestion des données",
-    "textLive": "Live (GitHub Pages)",
-    "textDev": "Serveur Dev",
+    "textLive": "En ligne (GitHub Pages)",
+    "textDev": "Serveur de développement",
     "logoff": "Déconnexion",
     "logout_failed": "La déconnexion a échoué. Veuillez réessayer."
   },
   "history": {
     "title": "Historique des transactions",
     "search": "Rechercher",
-    "alert": "Vous ne verrez aucune transaction ici tant que vous n'en aurez pas ajouté via le formulaire {addNew} ci-dessous.",
+    "alert": "Aucune transaction ne s'affichera ici tant que vous n'en aurez pas ajouté via le formulaire {addNew} ci-dessous.",
     "actions": "Actions",
     "itemsPerPage": "Éléments par page :",
     "pageText": "{start}-{end} sur {total}",
-    "ariaUpdate": "Mettre à jour",
-    "ariaDelete": "Supprimer"
+    "ariaUpdate": "Modifier",
+    "ariaDelete": "Supprimer",
+    "ariaFirstPage": "Première page",
+    "ariaPrevPage": "Page précédente",
+    "ariaNextPage": "Page suivante",
+    "ariaLastPage": "Dernière page",
+    "loading": "Chargement..."
   },
   "updateDialog": {
-    "title": "Mettre à jour la transaction",
+    "title": "Modifier la transaction",
     "btnUpdate": "Mettre à jour la transaction",
-    "noChanges": "Rien n'a été modifié dans cette transaction, aucune mise à jour n'a été effectuée.",
+    "noChanges": "Aucune modification n'a été apportée à cette transaction, aucune mise à jour n'a donc été effectuée.",
     "success": "La transaction a été mise à jour avec succès.",
     "failedUI": "La mise à jour a échoué dans l'interface utilisateur."
   },
   "useApp": {
     "reqd": "Ce champ est obligatoire. Zéro n'est pas autorisé.",
     "reqdZeroOk": "Ce champ est obligatoire. Zéro est autorisé dans un champ numérique.",
-    "transReqd": "Un type de transaction doit être choisi.",
-    "timeoutMin": "Le délai doit être de -1 ou plus.",
-    "timeoutMax": "Le délai doit être de 10 ou moins.",
+    "transReqd": "Un type de transaction doit être sélectionné.",
+    "timeoutMin": "Le délai doit être supérieur ou égal à -1.",
+    "timeoutMax": "Le délai doit être inférieur ou égal à 10.",
     "timeoutInteger": "Le délai doit être un nombre positif ou zéro.",
     "dateReqd": "La date est obligatoire.",
-    "notFuture": "La date de la transaction ne peut pas être dans le futur.",
+    "notFuture": "La date de transaction ne peut pas être dans le futur (demain ou plus tard).",
     "invalidFmt": "Format de date invalide.",
-    "notPrevYear": "La date de la transaction ne peut pas dater d'une année civile précédente {year}.",
+    "notPrevYear": "La date de transaction ne peut pas être d'une année civile précédente {year}.",
     "greater": "Le montant doit être fourni et doit être supérieur à zéro.",
     "wrongSeparator": "Veuillez utiliser {separator} comme séparateur décimal."
   },
   "transactionStore": {
-    "duplicate": "Cette transaction n'a pas été enregistrée car un enregistrement identique existe déjà.",
-    "null_violation": "Cette transaction n'a pas pu être enregistrée car un ou plusieurs champs obligatoires étaient vides.",
+    "duplicate": "Cette transaction n'a pas été enregistrée car un enregistrement identique existe déjà. Aucune action n'est nécessaire — votre transaction existante est inchangée.",
+    "null_violation": "Cette transaction n'a pas pu être enregistrée car un ou plusieurs champs obligatoires étaient vides. Veuillez vous assurer que tous les champs obligatoires sont remplis avant de soumettre.",
     "denied": "Vous n'avez pas la permission d'effectuer cette action.",
-    "connection_failed": "Impossible de se connecter à la base de données."
+    "connection_failed": "Impossible de se connecter à la base de données. Veuillez vérifier votre connexion et réessayer."
   },
   "login": {
     "title": "Connexion",
     "email_label": "Adresse e-mail",
     "password_label": "Mot de passe",
     "no_account": "Vous n'avez pas de compte ?",
-    "fail_generic": "Échec de la connexion. Veuillez réessayer.",
-    "fail_unconfirmed": "Veuillez confirmer votre e-mail avant de vous connecter.",
-    "fail_credentials": "E-mail ou mot de passe invalide.",
-    "error_unexpected": "Une erreur inattendue est survenue lors de la connexion.",
+    "fail_generic": "La connexion a échoué. Veuillez réessayer.",
+    "fail_unconfirmed": "Veuillez confirmer votre adresse e-mail avant de vous connecter.",
+    "fail_credentials": "Adresse e-mail ou mot de passe invalide.",
+    "error_unexpected": "Une erreur inattendue s'est produite lors de la connexion.",
     "button": "Se connecter",
     "go_register": "S'inscrire",
     "success": "Connexion réussie.",
-    "auth_login_failed": "La tentative d'authentification a échoué.",
+    "auth_login_failed": "La tentative de connexion a échoué.",
     "auth_unexpected": "Erreur inattendue lors de la connexion."
   },
   "register": {
-    "title": "S'inscrire",
-    "fail": "Impossible de terminer l'inscription.",
-    "success_check_email": "Inscription réussie ! Vérifiez vos e-mails pour le lien de confirmation.",
+    "title": "Inscription",
+    "fail": "L'inscription n'a pas pu être effectuée.",
+    "success_check_email": "Inscription réussie ! Vérifiez votre e-mail pour un lien de confirmation.",
     "button": "S'inscrire",
     "go_login": "Retour à la connexion"
   },
@@ -202,9 +211,9 @@
     "parseError": "Le validateur n'a pas accepté le format du montant."
   },
   "router": {
-    "auth_check_failed": "L'authentification a échoué lors de la navigation."
+    "auth_check_failed": "La vérification d'authentification a échoué lors de la navigation."
   },
   "localeList": {
-    "intl_supported_values_failed": "Impossible de charger la liste des langues. Une liste par défaut sera utilisée."
+    "intl_supported_values_failed": "Impossible de charger la liste des langues. Une liste par défaut sera utilisée à la place."
   }
 }

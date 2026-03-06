@@ -60,7 +60,7 @@ describe("AddTransaction.vue", () => {
 
     it("renders the date field", () => {
       const wrapper = mountComponent();
-      expect(wrapper.text()).toContain("Date");
+      expect(wrapper.html()).toContain("v-date-input");
     });
 
     it("renders the transaction type radio group", () => {
@@ -115,20 +115,15 @@ describe("AddTransaction.vue", () => {
   });
 
   // -------------------------------------------------------------------------
-  // formattedDisplayDate computed
+  // pickerDate
   // -------------------------------------------------------------------------
-  describe("formattedDisplayDate", () => {
-    it("returns a non-empty string when transaction has a date", () => {
+  describe("pickerDate", () => {
+    it("is initialized to today's date", () => {
       const wrapper = mountComponent();
-      // transaction is initialized with today's date by the composable
-      expect((wrapper.vm as any).formattedDisplayDate).toBeTruthy();
-    });
-
-    it("returns empty string when transaction date is cleared", async () => {
-      const wrapper = mountComponent();
-      (wrapper.vm as any).transaction.date = "";
-      await wrapper.vm.$nextTick();
-      expect((wrapper.vm as any).formattedDisplayDate).toBe("");
+      const today = new Date();
+      expect((wrapper.vm as any).pickerDate.getFullYear()).toBe(today.getFullYear());
+      expect((wrapper.vm as any).pickerDate.getMonth()).toBe(today.getMonth());
+      expect((wrapper.vm as any).pickerDate.getDate()).toBe(today.getDate());
     });
   });
 
@@ -138,7 +133,6 @@ describe("AddTransaction.vue", () => {
   describe("amountHint", () => {
     it("shows format hint when not focused", () => {
       const wrapper = mountComponent();
-      // isFocused is false by default
       const hint = (wrapper.vm as any).amountHint;
       expect(hint).toContain("1,234.56");
     });
@@ -155,7 +149,6 @@ describe("AddTransaction.vue", () => {
     it("shows wrong separator warning when focused with incorrect separator", async () => {
       const wrapper = mountComponent();
       (wrapper.vm as any).isFocused = true;
-      // en-US uses "." as decimal — entering a comma as decimal is wrong
       (wrapper.vm as any).displayAmount = "1,23";
       await wrapper.vm.$nextTick();
       const hint = (wrapper.vm as any).amountHint;
@@ -165,7 +158,7 @@ describe("AddTransaction.vue", () => {
     it("shows format hint when focused with correct separator", async () => {
       const wrapper = mountComponent();
       (wrapper.vm as any).isFocused = true;
-      (wrapper.vm as any).displayAmount = "1234.56"; // correct decimal separator for en-US
+      (wrapper.vm as any).displayAmount = "1234.56";
       await wrapper.vm.$nextTick();
       const hint = (wrapper.vm as any).amountHint;
       expect(hint).toContain("1,234.56");
@@ -178,7 +171,7 @@ describe("AddTransaction.vue", () => {
   describe("onDateSelected", () => {
     it("updates transaction.date when a valid date is selected", async () => {
       const wrapper = mountComponent();
-      const date = new Date(2025, 5, 15); // June 15 2025
+      const date = new Date(2025, 5, 15);
       (wrapper.vm as any).onDateSelected(date);
       await wrapper.vm.$nextTick();
       expect((wrapper.vm as any).transaction.date).toBe("2025-06-15");
@@ -192,12 +185,11 @@ describe("AddTransaction.vue", () => {
       expect((wrapper.vm as any).pickerDate).toEqual(date);
     });
 
-    it("does nothing when null is passed", async () => {
+    it("clears transaction.date when null is passed", async () => {
       const wrapper = mountComponent();
-      const originalDate = (wrapper.vm as any).transaction.date;
       (wrapper.vm as any).onDateSelected(null);
       await wrapper.vm.$nextTick();
-      expect((wrapper.vm as any).transaction.date).toBe(originalDate);
+      expect((wrapper.vm as any).transaction.date).toBe("");
     });
 
     it("does nothing when an array is passed", async () => {
@@ -245,14 +237,6 @@ describe("AddTransaction.vue", () => {
       expect((wrapper.vm as any).transaction.transaction_type).toBe("Expense");
     });
 
-    it("resets dateMenu to false", async () => {
-      const wrapper = mountComponent();
-      (wrapper.vm as any).dateMenu = true;
-      (wrapper.vm as any).resetForm();
-      await wrapper.vm.$nextTick();
-      expect((wrapper.vm as any).dateMenu).toBe(false);
-    });
-
     it("resets dateError to null", async () => {
       const wrapper = mountComponent();
       (wrapper.vm as any).dateError = "some error";
@@ -278,7 +262,6 @@ describe("AddTransaction.vue", () => {
   describe("onSubmit", () => {
     it("calls logValidation and returns early when form is invalid", async () => {
       const wrapper = mountComponent();
-      const fakeEvent = { valid: false } as any;
       const submitEvent = Promise.resolve({ valid: false }) as any;
       await (wrapper.vm as any).onSubmit(submitEvent);
       expect(logValidation).toHaveBeenCalled();
@@ -288,7 +271,6 @@ describe("AddTransaction.vue", () => {
     it("calls logException and returns early when amount is 0", async () => {
       const wrapper = mountComponent();
       (wrapper.vm as any).transaction.amount = 0;
-      const fakeEvent = { valid: true } as any;
       const submitEvent = Promise.resolve({ valid: true }) as any;
       await (wrapper.vm as any).onSubmit(submitEvent);
       expect(logException).toHaveBeenCalled();
@@ -298,7 +280,6 @@ describe("AddTransaction.vue", () => {
     it("calls logException and returns early when amount is negative", async () => {
       const wrapper = mountComponent();
       (wrapper.vm as any).transaction.amount = -100;
-      const fakeEvent = { valid: true } as any;
       const submitEvent = Promise.resolve({ valid: true }) as any;
       await (wrapper.vm as any).onSubmit(submitEvent);
       expect(logException).toHaveBeenCalled();
@@ -354,7 +335,6 @@ describe("AddTransaction.vue", () => {
       (wrapper.vm as any).transaction.description = "Test";
       (wrapper.vm as any).transaction.date = "2025-06-15";
       (wrapper.vm as any).transaction.transaction_type = "Income";
-      const fakeEvent = { valid: true } as any;
       const submitEvent = Promise.resolve({ valid: true }) as any;
       await (wrapper.vm as any).onSubmit(submitEvent);
       await flushPromises();

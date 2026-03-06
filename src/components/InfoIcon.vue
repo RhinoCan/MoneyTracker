@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n';
 /**
  * InfoIcon.vue
  * A reusable information tooltip component.
@@ -9,6 +10,8 @@ interface Props {
   title?: string;
   maxWidth?: string | number;
 }
+
+const { t } = useI18n();
 
 defineProps<Props>();
 
@@ -35,7 +38,7 @@ function handleClick(event: Event) {
         color="info"
         class="ml-2 cursor-help"
         role="button"
-        :aria-label="title || 'Information'"
+        :aria-label="title || t('common.information')"
         @click="handleClick"
       />
     </template>

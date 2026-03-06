@@ -97,6 +97,7 @@ const pageStatusText = computed(() => {
         :loading="transactionStore.loading"
         hover
         class="transaction-table"
+        :loading-text="t('history.loading')"
       >
         <template
           v-for="h in headers"
@@ -106,8 +107,11 @@ const pageStatusText = computed(() => {
           <div
             :class="[
               'd-inline-flex align-center w-100',
-              column.align === 'end' ? 'justify-end' :
-              column.align === 'center' ? 'justify-center' : 'justify-start',
+              column.align === 'end'
+                ? 'justify-end'
+                : column.align === 'center'
+                  ? 'justify-center'
+                  : 'justify-start',
             ]"
             class="header-container"
           >
@@ -115,6 +119,7 @@ const pageStatusText = computed(() => {
               v-if="column.sortable !== false && column.align === 'end'"
               :icon="isSorted(column) ? getSortIcon(column) : 'mdi-arrow-up'"
               :class="isSorted(column) ? 'active-sort' : 'hint-sort'"
+              :aria-label="column.title"
               size="x-small"
               class="me-1"
             />
@@ -125,6 +130,7 @@ const pageStatusText = computed(() => {
               v-if="column.sortable !== false && column.align !== 'end'"
               :icon="isSorted(column) ? getSortIcon(column) : 'mdi-arrow-up'"
               :class="isSorted(column) ? 'active-sort' : 'hint-sort'"
+              :aria-label="column.title"
               size="x-small"
               class="ms-1"
             />
@@ -136,7 +142,7 @@ const pageStatusText = computed(() => {
             <td class="font-weight-medium">{{ item.description }}</td>
             <td class="text-nowrap">{{ formatToMediumDate(item.date) }}</td>
             <td class="text-nowrap">
-              <v-chip size="x-small" label class="text-uppercase font-weight-bold">
+              <v-chip size="x-small" label class="text-uppercase font-weight-bold" aria-hidden="true">
                 {{ t(`common.${item.transaction_type}`) }}
               </v-chip>
             </td>
@@ -194,6 +200,7 @@ const pageStatusText = computed(() => {
                 variant="outlined"
                 hide-details
                 style="width: 90px"
+                :aria-label="t('history.itemsPerPage')"
               />
             </div>
 
@@ -205,6 +212,7 @@ const pageStatusText = computed(() => {
               <v-btn
                 :icon="isRtl ? 'mdi-page-last' : 'mdi-page-first'"
                 :disabled="page <= 1"
+                :aria-label="t('history.ariaFirstPage')"
                 variant="plain"
                 size="small"
                 @click="page = 1"
@@ -212,6 +220,7 @@ const pageStatusText = computed(() => {
               <v-btn
                 :icon="isRtl ? 'mdi-chevron-right' : 'mdi-chevron-left'"
                 :disabled="page <= 1"
+                :aria-label="t('history.ariaPrevPage')"
                 variant="plain"
                 size="small"
                 @click="page--"
@@ -219,6 +228,7 @@ const pageStatusText = computed(() => {
               <v-btn
                 :icon="isRtl ? 'mdi-chevron-left' : 'mdi-chevron-right'"
                 :disabled="page >= pageCount"
+                :aria-label="t('history.ariaNextPage')"
                 variant="plain"
                 size="small"
                 @click="page++"
@@ -226,6 +236,7 @@ const pageStatusText = computed(() => {
               <v-btn
                 :icon="isRtl ? 'mdi-page-first' : 'mdi-page-last'"
                 :disabled="page >= pageCount"
+                :aria-label="t('history.ariaLastPage')"
                 variant="plain"
                 size="small"
                 @click="page = pageCount"
@@ -247,7 +258,7 @@ const pageStatusText = computed(() => {
   font-size: 0.75rem;
   letter-spacing: 0.5px;
   text-transform: uppercase;
-  color: rgba(0,0,0,0.6);
+  color: rgba(0, 0, 0, 0.6);
 }
 
 .header-container {

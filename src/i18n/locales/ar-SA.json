@@ -15,12 +15,14 @@
     "fill_all_fields": "يرجى ملء جميع الحقول.",
     "format": "التنسيق: {example}.",
     "wrongSeparator": "يرجى استخدام {separator} للأرقام العشرية.",
-    "invalidAmount": "يرجى تصحيح تنسيق المبلغ قبل الحفظ."
+    "invalidAmount": "يرجى تصحيح تنسيق المبلغ قبل الحفظ.",
+    "information": "معلومات"
   },
   "app": {
     "fatalHeadline": "فشل بدء التطبيق",
     "noStart": "لم نتمكن من بدء التطبيق. يرجى التحقق من اتصالك.",
-    "retry": "إعادة محاولة الاتصال"
+    "retry": "إعادة محاولة الاتصال",
+    "loading": "جارٍ التحميل..."
   },
   "main": {
     "global_vue_crash": "حدث خطأ جسيم في Vue في main.ts"
@@ -38,7 +40,8 @@
     "persistMsg": "إبقاء الرسائل حتى يتم إغلاقها يدوياً",
     "timeoutMsg": "ضبط مدة الرسالة عبر الشريط المنزلق",
     "persistMsgInfoOn": "ستبقى الرسائل على الشاشة حتى تغلقها يدوياً.",
-    "persistMsgInfoOff": "ستختفي الرسائل تلقائياً بعد الثواني المحددة."
+    "persistMsgInfoOff": "ستختفي الرسائل تلقائياً بعد الثواني المحددة.",
+    "timeoutSlider": "مدة انتهاء الرسالة بالثواني"
   },
   "management": {
     "title": "إدارة البيانات",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "اختصارات لوحة المفاتيح",
-    "paraEsc": "يمكنك استخدام مفتاح {Esc} للإلغاء.",
+    "paraEsc": "يمكنك استخدام {Esc} لإعادة تعيين النموذج.",
+    "paraEscDialog": "يمكنك استخدام {Esc} للإلغاء بدلاً من النقر على أيقونة {iconCancel} أو زر الإلغاء.",
     "paraEnter": "يمكنك استخدام مفتاح {Enter} للحفظ.",
     "paraTab": "يمكنك استخدام مفتاح {Tab} للتنقل بين الحقول.",
     "keyEsc": "Esc",
@@ -141,7 +145,12 @@
     "itemsPerPage": "عناصر لكل صفحة:",
     "pageText": "{start}-{end} من أصل {total}",
     "ariaUpdate": "تحديث",
-    "ariaDelete": "حذف"
+    "ariaDelete": "حذف",
+    "ariaFirstPage": "الصفحة الأولى",
+    "ariaPrevPage": "الصفحة السابقة",
+    "ariaNextPage": "الصفحة التالية",
+    "ariaLastPage": "الصفحة الأخيرة",
+    "loading": "جارٍ التحميل..."
   },
   "updateDialog": {
     "title": "تحديث المعاملة",

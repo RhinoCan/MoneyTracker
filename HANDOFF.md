@@ -3,13 +3,13 @@
 ## Current Status
 
 ### Unit Tests
-- **559 tests passing** across 31 files
+- **557 tests passing** across 31 files
 - **99.29% statement coverage**, **95.63% branch coverage**
 - All passes complete and stable
 
 ### E2E Tests (Playwright)
-- **31 tests** across 4 spec files, 0 skipped
-- **Status: 31/31 passing** — auth (8/8), locales (10/10), transactions (8/8), dataManagement (5/5)
+- **41 tests** across 5 spec files, 0 skipped
+- **Status: 31/31 passing** for existing suite — accessibility suite in progress (10 tests)
 - Browser: Chromium only for local dev (Firefox/WebKit commented out in config)
 - Run with: `npx playwright test --project=chromium` or `npm run test:e2e`
 - View results: `npx playwright show-report`
@@ -36,23 +36,60 @@ These lines are intentionally uncovered and should not be pursued:
 
 ```
 tests/e2e/
-  helpers.ts           — shared login/logout/openSettings/addTransaction etc.
-  auth.spec.ts         — login, logout, register flows
-  transactions.spec.ts — add, update, delete transactions
-  locales.spec.ts      — locale switching, RTL (Arabic), format hints
-  dataManagement.spec.ts — export CSV, delete transactions, restore settings
+  helpers.ts                — shared login/logout/openSettings/addTransaction etc.
+  auth.spec.ts              — login, logout, register flows
+  transactions.spec.ts      — add, update, delete transactions
+  locales.spec.ts           — locale switching, RTL (Arabic), format hints
+  dataManagement.spec.ts    — export CSV, delete transactions, restore settings
+  accessibility.spec.ts     — axe-core accessibility checks (in progress)
 ```
 
 ### Key Design Decisions
 
 - **workers: 1** — tests run serially, not in parallel (Supabase state shared across tests)
-- **test.setTimeout(60000)** on locales.spec.ts — locale tests are slow due to multiple Supabase round-trips
+- **test.setTimeout(60000)** on locales.spec.ts and accessibility.spec.ts
 - **`data-testid` attributes** are the standard approach for all interactive elements to avoid locale-dependent selectors
 - **Dialog close pattern**: always wait for `getByRole('dialog').not.toBeVisible()` + `waitForTimeout(300)` after closing any Vuetify dialog to let the scrim animation fully clear
 - **Vuetify v-select**: must be clicked via `page.locator('[data-testid="locale-select"]').click()` — clicking the inner input directly is unreliable
 - **Locale-dependent UI**: after switching locale, ALL button labels and text change language. Always use `data-testid` for anything clicked after a locale change — never rely on text labels or role+name selectors
 
-### data-testid Inventory
+### Accessibility Spec — Known Vuetify Rule Suppressions
+Two axe rules are suppressed in `accessibility.spec.ts` due to Vuetify internal rendering issues that cannot be fixed without patching Vuetify itself:
+- **`aria-allowed-attr`** — date picker activator input renders with `aria-expanded` which is not valid on `type="text"`
+- **`aria-tooltip-name`** — `v-tooltip` overlay renders a `div[role="tooltip"]` without an accessible name
+
+Both suppressions are applied via `.disableRules(['aria-allowed-attr', 'aria-tooltip-name'])` in `runAxe()`.
+
+### Accessibility Spec — Remaining Work
+- Fix color contrast — primary color `#00897b` gives 4.31:1 against white, needs darkening to meet WCAG AA 4.5:1
+- Fix grey label contrast on form fields (`#757575` on `#f5f5f5` = 4.22:1)
+- Run full accessibility suite and confirm 10/10
+- Run full E2E suite — confirm 31/31 + 10/10
+
+---
+
+## Date Picker — v-date-input Migration (Complete)
+
+Both `AddTransaction.vue` and `UpdateTransaction.vue` have been migrated from the old `v-menu` + `v-date-picker` pattern to the new `v-date-input` Vuetify labs component.
+
+### Benefits
+- Eliminates the `aria-allowed-attr` axe violation (the old date picker activator input had invalid `aria-expanded`)
+- Single component instead of `v-menu` + `v-date-picker` + `v-text-field`
+- Locale-aware date display automatically (e.g. `06.03.2026` in de-DE)
+- Calendar icon rendered inside the field with `prepend-icon=""` + `prepend-inner-icon="mdi-calendar"`
+
+### onDateSelected behaviour
+When `null` is passed (user clears the field), `transaction.date` is set to `""` which triggers the existing `dateRequired` validation rule. The field does not silently reset to today.
+
+### Removed from both components
+- `v-menu`, `v-date-picker`, activator `v-text-field` for date
+- `formattedDisplayDate` computed property
+- `dateMenu` and `closeDatePicker` from `useTransactionFormFields` destructure
+- `formatToMediumDate` from `useDateFormatter` import (still used elsewhere — do not remove from the composable)
+
+---
+
+## data-testid Inventory
 
 | Element | Component | data-testid |
 |---------|-----------|-------------|
@@ -80,36 +117,11 @@ tests/e2e/
 | Restore All Settings button | DataManagement.vue | `restore-settings-btn` |
 | Delete Everything button | DataManagement.vue | `delete-everything-btn` |
 
-### Locale Dropdown Design
-The locale v-select displays options in the format:
-```
-{code} - {English name} - {localized name}
-```
-e.g. `de-DE - German (Germany) - Deutsch (Deutschland)`
-
-The localized name changes with the current UI language; the code and English
-name are always present. `selectLocale` in `helpers.ts` filters on `"{code} -"`
-scoped inside the listbox element:
-
-```ts
-const listbox = page.getByRole('listbox');
-await listbox.locator('[role="option"]').filter({ hasText: `${localeCode} -` }).click();
-```
-
-All locale-related test calls use locale codes (`'de-DE'`, `'en-US'`) not display names.
-
-### Export CSV Test Note
-The Export CSV button is disabled when there are no transactions. The test adds
-a transaction before opening the Data Management dialog to ensure the button is
-always enabled regardless of what prior tests left behind.
-
 ---
 
 ## Dependencies
 
 ### Removed Packages
-The following packages were installed during early development and subsequently removed as unused:
-
 | Package | Reason removed |
 |---------|---------------|
 | `@fontsource/roboto` | Replaced by Google Fonts CDN link in `index.html` |
@@ -117,58 +129,211 @@ The following packages were installed during early development and subsequently 
 | `date-fns` | Not used — Vuetify date picker uses `VuetifyDateAdapter` (built-in) |
 | `@date-io/date-fns` | Not used — Vuetify date picker uses `VuetifyDateAdapter` (built-in) |
 
+### Utility Scripts
+- `scripts/add-locale-keys.mjs` — bulk-adds translation keys to all 16 locale files. Update the `ADDITIONS` object and run with `node scripts/add-locale-keys.mjs`. Safe to re-run — skips keys that already exist.
+
 ---
 
-## Known App Bugs Fixed This Session
+## Known App Bugs Fixed
 
 ### Arabic locale `currencyParser` (ar-SA)
-**Root cause:** JavaScript's `\d` regex character class only matches ASCII digits 0–9.
-`ar-SA` formats numbers using Eastern Arabic-Indic digits (U+0660–U+0669), e.g.
-`100` → `١٠٠`. The cleanup regex stripped these as non-digits, leaving an empty
-string that `parseFloat` turned into `NaN`.
+**Root cause:** JavaScript's `\d` regex character class only matches ASCII digits 0–9. `ar-SA` formats numbers using Eastern Arabic-Indic digits (U+0660–U+0669). **Fix:** digit normalization added as step 2 in `parseCurrency`.
 
-**Fix:** Added digit normalization as step 2 in `parseCurrency`, before any regex
-processing:
-```ts
-rawString = rawString
-  .replace(/[\u0660-\u0669]/g, (d) => String(d.charCodeAt(0) - 0x0660))
-  .replace(/[\u06F0-\u06F9]/g, (d) => String(d.charCodeAt(0) - 0x06F0));
-```
-Also handles Extended Arabic-Indic digits (U+06F0–U+06F9, used in Persian/Urdu).
-The Arabic transaction test in `locales.spec.ts` is now unskipped and passing.
+### Bug 1 — Wrong icon in `KeyboardShortcuts.vue` `#iconHelp` slot
+Renamed slot to `#iconCancel`, changed icon to `mdi-close`, added `role="img"`. Also updated `aria-label` from `common.help` to `common.close`.
+
+### Bug 2 — Escape key did not close the `UpdateTransaction` dialog
+`persistent` outer dialog absorbed Escape before it could reach inner elements. Fixed by adding `@keydown.esc="closeDialog"` to the `v-card` inside the outer dialog.
+
+### Bug 3 — Escape key did not reset the `AddTransaction` form
+Fixed by adding `@keydown.esc="resetForm"` to the `v-form` element.
+
+---
+
+## Settings Dialog — Live Locale Preview (Option A)
+
+The Settings dialog previews the selected locale immediately when the user picks a new value from the dropdown, before pressing Save. If the user cancels, the locale reverts to the last saved value.
+
+---
+
+## Icon Usage Convention
+
+Icons were inconsistently applied throughout the app (Gemini's doing). The current agreed convention:
+
+- **Form fields** — icons only where they aid recognition: date (calendar), email (envelope), password (lock), search (magnify). No icons on description or amount fields.
+- **Buttons** — icons on destructive actions (delete, export) and confirmation actions (update, save) where they reinforce the nature of the action.
+- **Dialog titles** — icons only where they convey type or severity beyond what the text alone signals (e.g. delete warning, keyboard shortcuts). UpdateTransaction title icon was removed.
+
+---
+
+## Phase 3: Accessibility — Complete (pending contrast fix)
+
+### Component Audit Status
+
+| Component | Audited | Issues Found |
+|-----------|---------|--------------|
+| `AccountSummary.vue` | ✅ | 3 issues — all fixed |
+| `TrackerHeader.vue` | ✅ | 4 issues — all fixed |
+| `AddTransaction.vue` | ✅ | 2 issues — all fixed; date picker migrated to v-date-input |
+| `Settings.vue` | ✅ | 2 issues found in axe run — fixed |
+| `UpdateTransaction.vue` | ✅ | 3 issues — all fixed; date picker migrated to v-date-input |
+| `DeleteTransaction.vue` | ✅ | 1 issue fixed; `<dl>` layout deferred |
+| `KeyboardShortcuts.vue` | ✅ | 2 issues + 3 bugs — all fixed |
+| `InfoIcon.vue` | ✅ | 1 issue fixed; `role="button"` low risk |
+| `DataManagement.vue` | ✅ | 2 issues fixed; heading hierarchy low priority |
+| `TransactionHistory.vue` | ✅ | 4 issues — all fixed |
+| `TrackerAbout.vue` | ✅ | 1 accessibility fix + 1 bug fix |
+| `Amount.vue` | ✅ | No issues |
+| `Home.vue` | ✅ | No issues |
+| `App.vue` | ✅ | 1 issue fixed |
+| `Login.vue` | ✅ | 2 issues fixed; password toggle low priority |
+| `Register.vue` | ✅ | 2 issues fixed; password toggle low priority |
+
+### Fixes Applied This Phase
+
+**`AccountSummary.vue`**
+- Added `:aria-label="t('accountSummary.title')"` to `<table>`
+- Changed label `<td>` elements to `<th scope="row">`
+- Added `aria-hidden="true"` to divider row
+
+**`TrackerHeader.vue`**
+- Added `:aria-label` to mobile icon-only Settings and Data Management buttons
+- Added `aria-hidden="true"` to decorative `v-divider`
+- Added `aria-labelledby` to Settings and Data Management dialogs
+
+**`AddTransaction.vue`**
+- Added `@keydown.esc="resetForm"` to `v-form`
+- Added `aria-labelledby` to KeyboardShortcuts dialog
+- Migrated date picker from `v-menu` + `v-date-picker` to `v-date-input`
+
+**`Settings.vue`**
+- Added `id="settings-dialog-title"` to `v-card-title`
+- Added `:aria-label="t('settings.timeoutSlider')"` to `v-slider`
+- Added `:aria-label="t('common.saveChanges')"` to Save button
+
+**`UpdateTransaction.vue`**
+- Added `@keydown.esc="closeDialog"` to `v-card`
+- Added `id="update-transaction-dialog-title"` to `v-card-title`
+- Added `aria-labelledby` to both dialogs
+- Added `closeKeyboardShortcuts()` function
+- Added `:isDialog="true"` prop to `KeyboardShortcuts`
+- Removed title icon (`mdi-pencil-box-outline`)
+- Migrated date picker from `v-menu` + `v-date-picker` to `v-date-input`
+
+**`DeleteTransaction.vue`**
+- Added `id="delete-transaction-dialog-title"` to `v-card-title`
+- Added `aria-labelledby` to dialog
+
+**`KeyboardShortcuts.vue`**
+- Fixed `#iconHelp` → `#iconCancel`, `mdi-help` → `mdi-close`, added `role="img"`
+- Added `isDialog` prop to switch between `keyboard.paraEsc` and `keyboard.paraEscDialog`
+
+**`InfoIcon.vue`**
+- Added `useI18n` and replaced hardcoded `'Information'` fallback with `t('common.information')`
+
+**`DataManagement.vue`**
+- Added `:aria-label="t('common.close')"` to title bar close button
+- Added `id="data-management-dialog-title"` to `v-card-title`
+- Removed dead `|| "Danger Zone"` fallback
+
+**`TransactionHistory.vue`**
+- Added `aria-label` to four pagination buttons
+- Added `:aria-label` to items-per-page `v-select`
+- Added `:aria-label="column.title"` to sort icons
+- Added `aria-hidden="true"` to transaction type `v-chip`
+- Added `:loading-text="t('history.loading')"` to `v-data-table`
+
+**`TrackerAbout.vue`**
+- Added `rel="noopener noreferrer"` to external link
+- Fixed `maincard=width` typo to `maincard-width`
+
+**`App.vue`**
+- Added `:aria-label="t('app.loading')"` to `v-progress-circular`
+
+**`Login.vue`**
+- Replaced `@click="handleLogin"` with `type="submit"` on button
+
+**`Register.vue`**
+- Moved Register button inside `v-form`
+- Replaced `@click="handleRegister"` with `type="submit"`
+
+### New i18n Keys Added This Phase
+
+| Key | Notes |
+|-----|-------|
+| `keyboard.paraEscDialog` | 16 locale files — dialog-specific Escape description |
+| `keyboard.paraEsc` | Updated in 16 locale files — form-specific wording |
+| `common.information` | 16 locale files |
+| `history.ariaFirstPage` | 16 locale files |
+| `history.ariaPrevPage` | 16 locale files |
+| `history.ariaNextPage` | 16 locale files |
+| `history.ariaLastPage` | 16 locale files |
+| `settings.timeoutSlider` | 16 locale files |
+| `app.loading` | 16 locale files |
+| `history.loading` | 16 locale files |
+
+### Known Vuetify Accessibility Limitations
+These axe rules are suppressed in `accessibility.spec.ts` — unfixable without patching Vuetify 3:
+- **`aria-allowed-attr`** — date picker input renders with invalid `aria-expanded`
+- **`aria-tooltip-name`** — tooltip overlay renders without accessible name
 
 ---
 
 ## Remaining Work
 
-### Optional Enhancements
-- **Accessibility audit**: add `@axe-core/playwright` and run it against key pages — a handful of lines per spec file, looks impressive, meaningful signal. Icon buttons already have `aria-label` attributes and RTL is supported for Arabic.
-- **Playwright auth state caching**: currently each test authenticates fresh against Supabase, making the suite slow. Caching auth state would speed it up significantly.
+### Accessibility Suite (next session)
+1. Fix color contrast — primary color `#00897b` gives 4.31:1 against white, needs darkening to meet WCAG AA 4.5:1
+2. Fix grey label contrast on form fields (`#757575` on `#f5f5f5` = 4.22:1)
+3. Run full accessibility suite — confirm 10/10
+4. Run full E2E suite — confirm 31/31 + 10/10
+5. Update handoff doc
+
+### Optional Enhancement
+- **Playwright auth state caching** — currently each test authenticates fresh against Supabase
+- **Password visibility toggle** on Login/Register — low priority accessibility enhancement
 
 ---
 
 ## Key Tips for Future Sessions
 
 ### Unit Testing
-1. Always `cat` files with line numbers before writing tests — don't trust line number guesses
-2. For `Intl.NumberFormat` mocks — always use `vi.spyOn` + `spy.mockRestore()` at end of test to avoid poisoning subsequent tests
-3. For store error branches — use `.mockResolvedValueOnce({ error: {...} })` on the supabase chain
-4. For `deleteTransaction`/`deleteAllTransactions` — do NOT set up `eq` mocks in `beforeEach`; each test sets up its own locally
+1. Always `cat` files with line numbers before writing tests
+2. For `Intl.NumberFormat` mocks — always use `vi.spyOn` + `spy.mockRestore()`
+3. For store error branches — use `.mockResolvedValueOnce({ error: {...} })`
+4. For `deleteTransaction`/`deleteAllTransactions` — do NOT set up `eq` mocks in `beforeEach`
 5. `vi.unmock("@/lib/Logger")` in `Logger.spec.ts` must remain the very first line
 6. Request full file contents before regenerating any spec file
-7. When a source file gains new properties on a type (e.g. `LocaleItem` gaining `englishName`), search for all spec files that assert against that type and update their `toEqual` expectations
+7. When a source file gains new properties on a type, search for all spec files that assert against that type
+8. When a component is refactored (e.g. date picker swap), check all spec files for tests against removed computed properties or state variables
 
 ### E2E Testing
-8. Vuetify dialogs leave a `.v-overlay__scrim` that blocks clicks — always wait for dialog to be fully gone before next action
-9. Always use `data-testid` for any element that might be clicked after a locale change — never rely on text labels
-10. `row.locator('.v-chip', { hasText: /expense/i })` is the correct way to assert transaction type in a row — `getByRole('cell', { name: /expense/i })` causes a strict mode violation when the description also contains the word "expense"
-11. The Playwright HTML report (`npx playwright show-report`) is far more useful than terminal output for debugging failures
-12. To inspect Vuetify dropdown DOM without it closing: use `setTimeout(() => { console.log(...) }, 3000)` in the console then quickly open the dropdown
-13. TrackerHeader.vue has TWO buttons each for Settings and Data Management (desktop + mobile responsive variants) — both need `data-testid`; always use `.first()` when clicking them
-14. `openSettings` and `openDataManagement` both use `expect(page.getByRole('dialog')).toBeVisible()` — NOT text content, which breaks in non-English locales and causes strict mode violations
-15. `selectLocale` scopes option lookup inside `page.getByRole('listbox')` — page-wide `getByRole('option')` matching is unreliable with Vuetify selects
-16. `addTransaction` in helpers.ts uses `.first()` on the final cell assertion — duplicate rows from prior test runs would otherwise cause a strict mode violation
-17. All DataManagement.vue action buttons have `data-testid` attributes — always use these in tests, never button text, since the dialog renders in whatever locale is currently active
-18. `window.confirm()` in DataManagement.vue handlers must be handled with `page.on('dialog', d => d.accept())` registered **before** the button click, otherwise Playwright hangs
-19. The nuclear option (`delete-everything-btn`) calls `window.location.reload()` — follow it with `page.waitForLoadState('networkidle')` before making further assertions
-20. The Export CSV button is disabled when there are no transactions — always add a transaction before testing it
+9. Vuetify dialogs leave a `.v-overlay__scrim` that blocks clicks — always wait for dialog to be fully gone
+10. Always use `data-testid` after a locale change — never rely on text labels
+11. `row.locator('.v-chip', { hasText: /expense/i })` is the correct way to assert transaction type
+12. The Playwright HTML report is far more useful than terminal output for debugging
+13. To inspect Vuetify dropdown DOM: use `setTimeout(() => { console.log(...) }, 3000)` in console
+14. TrackerHeader.vue has TWO buttons each for Settings and Data Management — always use `.first()`
+15. `openSettings` and `openDataManagement` use `expect(page.getByRole('dialog')).toBeVisible()`
+16. `selectLocale` scopes option lookup inside `page.getByRole('listbox')`
+17. `addTransaction` uses `.first()` on the final cell assertion
+18. All DataManagement.vue action buttons have `data-testid` — always use these
+19. `window.confirm()` handlers must use `page.on('dialog', d => d.accept())` registered BEFORE the click
+20. The nuclear option calls `window.location.reload()` — follow with `page.waitForLoadState('networkidle')`
+21. Export CSV button is disabled when no transactions exist
+22. Vuetify nested dialogs: Escape is captured by outermost `persistent` dialog — wire `@keydown.esc` explicitly on inner elements
+23. Settings dialog previews locale changes live (Option A) — Cancel reverts, Save commits
+24. `accessibility.spec.ts` uses `requiresLogout` flag to skip logout in `afterEach` for logged-out page tests
+25. Two axe rules suppressed due to Vuetify internals: `aria-allowed-attr` and `aria-tooltip-name`
+26. In accessibility spec, scope Help button clicks to `[role="dialog"].first()` to avoid strict mode violation when two dialogs are open
+
+### Vuetify v-date-input
+27. Use `prepend-icon=""` to suppress the outer icon, `prepend-inner-icon="mdi-calendar"` for inner icon
+28. `v-date-input` manages its own open/close state — do not call `closeDatePicker()` from the update handler
+29. When `null` is passed to the update handler, set `transaction.date = ""` to trigger validation rather than silently resetting to today
+30. `v-date-input` is a Vuetify labs component — stub it as `"v-date-input": true` in unit tests, then assert presence via `wrapper.html().toContain('v-date-input')` or `document.body.innerHTML.toContain('v-date-input')` for teleported components
+
+### General
+31. `scripts/add-locale-keys.mjs` — use this for all future bulk i18n key additions across 16 locale files
+32. fr-FR, fr-CA, fr-CH locale files have been properly retranslated with genuine dialect variations
+33. `TrackerHeader.vue` is registered globally in `main.ts` rather than imported in `App.vue`
+34. Color contrast fix pending — primary `#00897b` needs darkening; grey form labels need darkening

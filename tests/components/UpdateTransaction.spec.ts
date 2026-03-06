@@ -1,3 +1,4 @@
+// tests/components/UpdateTransaction.spec.ts
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import { mount, flushPromises } from "@vue/test-utils";
 import { setActivePinia, createPinia } from "pinia";
@@ -67,7 +68,7 @@ describe("UpdateTransaction.vue", () => {
       },
       global: {
         stubs: {
-          "v-date-picker": true,
+          "v-date-input": true,
           KeyboardShortcuts: true,
         },
       },
@@ -90,7 +91,7 @@ describe("UpdateTransaction.vue", () => {
     });
     it("renders the date field", () => {
       wrapper = mountComponent();
-      expect(document.body.textContent).toContain("Date");
+      expect(document.body.innerHTML).toContain("v-date-input");
     });
     it("renders Income and Expense radio options", () => {
       wrapper = mountComponent();
@@ -226,10 +227,10 @@ describe("UpdateTransaction.vue", () => {
       wrapper.vm.onDateSelected(d);
       expect(wrapper.vm.pickerDate).toEqual(d);
     });
-    it("ignores null", () => {
+    it("clears date when null is passed", () => {
       wrapper = mountComponent();
       wrapper.vm.onDateSelected(null);
-      expect(wrapper.vm.localTransaction.date).toBe(`${currentYear}-05-20`);
+      expect(wrapper.vm.localTransaction.date).toBe("");
     });
     it("ignores array", () => {
       wrapper = mountComponent();

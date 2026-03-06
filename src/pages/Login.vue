@@ -107,7 +107,7 @@ async function handleLogin() {
             size="large"
             class="mt-4"
             :loading="loading"
-            @click="handleLogin"
+            type="submit"
           >
             {{ t("login.button") }}
           </v-btn>

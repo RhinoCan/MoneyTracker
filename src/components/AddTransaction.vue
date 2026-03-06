@@ -14,10 +14,9 @@ import { useI18n } from "vue-i18n";
 const { t } = useI18n();
 
 const transactionStore = useTransactionStore();
-const { formatToMediumDate, formatToIsoDateOnly } = useDateFormatter();
+const { formatToIsoDateOnly } = useDateFormatter();
 const { required, transactionTypeRequired, dateRules, amountRules } = useAppValidationRules();
-const { amountExample, hasCorrectSeparator, decimalSeparator } =
-  useNumberFormatHints();
+const { amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
 const newTransactionForm = ref();
@@ -25,23 +24,16 @@ const dateError = ref<string | null>(null);
 
 // Pull logic from the shared form composable
 const {
-  transaction, // This holds description, date, amount, type
+  transaction,
   displayAmount,
   isFocused,
   colorClass,
   handleFocus,
   handleBlur,
-  dateMenu,
-  closeDatePicker,
 } = useTransactionFormFields();
 
 // Date picker needs a Date object
 const pickerDate = ref<Date>(new Date());
-
-// Display date in localized format for the text field
-const formattedDisplayDate = computed(() => {
-  return transaction.value?.date ? formatToMediumDate(transaction.value.date) : "";
-});
 
 // Amount format hint
 const amountHint = computed(() => {
@@ -66,15 +58,19 @@ const rules = {
 
 // Handle date selection from picker
 function onDateSelected(date: Date | Date[] | null) {
-  if (!date || Array.isArray(date)) return;
+  if (Array.isArray(date)) return;
 
-  // Update the source of truth (YYYY-MM-DD string)
+  if (!date) {
+    if (transaction.value) {
+      transaction.value.date = "";
+    }
+    return;
+  }
+
   if (transaction.value) {
     transaction.value.date = formatToIsoDateOnly(date);
     pickerDate.value = date;
   }
-
-  closeDatePicker();
 }
 
 async function onSubmit(event: SubmitEventPromise) {
@@ -117,7 +113,6 @@ async function onSubmit(event: SubmitEventPromise) {
     });
 
     resetForm();
-
   } catch (error) {
     logException(error, {
       module: "AddTransaction",
@@ -128,21 +123,18 @@ async function onSubmit(event: SubmitEventPromise) {
 }
 
 function resetForm() {
-
   const today = new Date();
 
-  // Explicitly reset the composable's state
   if (transaction.value) {
     transaction.value.description = "";
     transaction.value.amount = 0;
-    transaction.value.date = formatToIsoDateOnly(today); // YYYY-MM-DD format
+    transaction.value.date = formatToIsoDateOnly(today);
     transaction.value.transaction_type = TransactionTypeValues.Expense;
   }
 
   pickerDate.value = today;
   displayAmount.value = "";
   dateError.value = null;
-  dateMenu.value = false;
 
   if (newTransactionForm.value) {
     nextTick(() => {
@@ -170,31 +162,31 @@ function resetForm() {
       </v-tooltip>
     </v-card-title>
 
-    <v-form ref="newTransactionForm" @submit.prevent="onSubmit" class="pa-4">
+    <v-form
+      ref="newTransactionForm"
+      @submit.prevent="onSubmit"
+      @keydown.esc="resetForm"
+      class="pa-4"
+    >
       <v-text-field
         data-testid="description-field"
         v-model="transaction!.description"
         :label="t('addTrans.labelDescription')"
         variant="outlined"
         :rules="[rules.required]"
-        prepend-inner-icon="mdi-format-text"
       />
 
-      <v-menu v-model="dateMenu" :close-on-content-click="false" location="bottom center">
-        <template v-slot:activator="{ props }">
-          <v-text-field
-            v-bind="props"
-            v-model="formattedDisplayDate"
-            :label="t('addTrans.labelDate')"
-            variant="outlined"
-            readonly
-            :rules="[rules.dateRequired]"
-            :error-messages="dateError"
-            prepend-inner-icon="mdi-calendar"
-          />
-        </template>
-        <v-date-picker v-model="pickerDate" @update:model-value="onDateSelected" color="primary" />
-      </v-menu>
+      <v-date-input
+        v-model="pickerDate"
+        :label="t('addTrans.labelDate')"
+        variant="outlined"
+        prepend-icon=""
+        prepend-inner-icon="mdi-calendar"
+        :rules="[rules.dateRequired]"
+        :error-messages="dateError"
+        color="primary"
+        @update:model-value="onDateSelected"
+      />
 
       <v-radio-group
         v-model="transaction!.transaction_type"
@@ -246,11 +238,12 @@ function resetForm() {
       </div>
     </v-form>
 
-    <v-dialog v-model="showKeyboardShortcuts" max-width="400">
-      <KeyboardShortcuts
-        v-if="showKeyboardShortcuts"
-        @close="showKeyboardShortcuts = false"
-      />
+    <v-dialog
+      v-model="showKeyboardShortcuts"
+      max-width="400"
+      aria-labelledby="keyboard-shortcuts-dialog-title"
+    >
+      <KeyboardShortcuts v-if="showKeyboardShortcuts" @close="showKeyboardShortcuts = false" />
     </v-dialog>
   </v-card>
 </template>

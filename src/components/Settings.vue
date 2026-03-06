@@ -81,7 +81,6 @@ async function handleSave() {
     settingsStore.locale = localLocale.value;
     settingsStore.currency = localCurrency.value;
     settingsStore.messageTimeoutSeconds = localTimeout.value;
-    locale.value = localLocale.value; //triggers App.vue RTL watcher
     vuetifyLocale.value = localLocale.value;
     await settingsStore.saveToDb();
     emit("close");
@@ -92,7 +91,20 @@ async function handleSave() {
   }
 }
 
+// --- Handle Cancel ---
+// Revert the i18n preview locale back to the last saved value
+function handleCancel() {
+  locale.value = settingsStore.locale;
+  vuetifyLocale.value = settingsStore.locale;
+  emit("close");
+}
+
 watch(localLocale, (newLocale) => {
+  // Preview the locale immediately in the dialog before the user hits Save
+  locale.value = newLocale;
+  vuetifyLocale.value = newLocale;
+
+  // Also update the default currency for the new locale
   const defaultCurrency = localeToCurrency[newLocale];
   if (defaultCurrency) {
     localCurrency.value = defaultCurrency;
@@ -102,7 +114,7 @@ watch(localLocale, (newLocale) => {
 
 <template>
   <v-card>
-    <v-card-title class="bg-primary text-on-primary">
+    <v-card-title class="bg-primary text-on-primary" id="settings-dialog-title">
       {{ t("settings.title") }}
     </v-card-title>
 
@@ -156,6 +168,7 @@ watch(localLocale, (newLocale) => {
             tick-size="4"
             prepend-icon="mdi-timer-outline"
             thumb-label
+            :aria-label="t('settings.timeoutSlider')"
           >
             <template #append>
               <span class="text-caption">{{ localTimeout.toFixed(1) }} s</span>
@@ -167,8 +180,8 @@ watch(localLocale, (newLocale) => {
 
     <v-card-actions>
       <v-spacer />
-      <v-btn variant="text" data-testid="settings-cancel" @click="emit('close')">{{ t("common.cancel") }}</v-btn>
-      <v-btn color="primary" variant="elevated" data-testid="settings-save" @click="handleSave" :loading="savingSettings">
+      <v-btn variant="text" data-testid="settings-cancel" @click="handleCancel">{{ t("common.cancel") }}</v-btn>
+      <v-btn color="primary" variant="elevated" data-testid="settings-save" @click="handleSave" :loading="savingSettings" :aria-label="t('common.saveChanges')">
         {{ t("common.saveChanges") }}
       </v-btn>
     </v-card-actions>

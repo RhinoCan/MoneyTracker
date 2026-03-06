@@ -15,12 +15,14 @@
     "fill_all_fields": "请填写所有字段。",
     "format": "格式：{example}。",
     "wrongSeparator": "请使用 {separator} 作为小数点。",
-    "invalidAmount": "保存前请更正金额格式。"
+    "invalidAmount": "保存前请更正金额格式。",
+    "information": "信息"
   },
   "app": {
     "fatalHeadline": "应用程序启动失败",
     "noStart": "无法启动应用程序。请检查网络连接。",
-    "retry": "重试连接"
+    "retry": "重试连接",
+    "loading": "加载中..."
   },
   "main": {
     "global_vue_crash": "main.ts 中的 Vue 发生重大崩溃"
@@ -38,7 +40,8 @@
     "persistMsg": "手动关闭前保留消息",
     "timeoutMsg": "通过滑块设置消息显示时长",
     "persistMsgInfoOn": "消息将留在屏幕上，直到您手动关闭。关闭此开关可设置超时。",
-    "persistMsgInfoOff": "消息将在滑块设置的秒数后自动消失。开启此开关可保持显示。"
+    "persistMsgInfoOff": "消息将在滑块设置的秒数后自动消失。开启此开关可保持显示。",
+    "timeoutSlider": "消息超时时间（秒）"
   },
   "management": {
     "title": "数据管理",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "键盘快捷键",
-    "paraEsc": "您可以使用键盘上的 {Esc} 键取消更新，无需点击 {iconHelp} 图标或取消按钮。",
+    "paraEsc": "您可以使用键盘上的 {Esc} 键重置表单，而无需点击重置按钮。",
+    "paraEscDialog": "您可以使用键盘上的 {Esc} 键取消，无需点击 {iconCancel} 图标或取消按钮。",
     "paraEnter": "您可以使用键盘上的 {Enter} 键保存更改。",
     "paraTab": "您可以使用 {Tab} 键在多个字段之间切换。",
     "keyEsc": "Esc",
@@ -141,7 +145,12 @@
     "itemsPerPage": "每页条目数：",
     "pageText": "{start}-{end} / 共 {total}",
     "ariaUpdate": "更新",
-    "ariaDelete": "删除"
+    "ariaDelete": "删除",
+    "ariaFirstPage": "第一页",
+    "ariaPrevPage": "上一页",
+    "ariaNextPage": "下一页",
+    "ariaLastPage": "最后一页",
+    "loading": "加载中..."
   },
   "updateDialog": {
     "title": "更新交易",

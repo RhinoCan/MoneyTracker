@@ -41,7 +41,7 @@ const techStack = [
             <template #linkTraversy>
               <a
                 href="https://www.youtube.com/watch?v=hNPwdOZ3qFU"
-                target="_blank"
+                target="_blank" rel="noopener noreferrer"
                 class="text-decoration-none text-secondary font-weight-bold"
               >
                 {{ t("about.linkText") }}
@@ -74,7 +74,7 @@ const techStack = [
             </v-col>
           </v-row>
         </v-card>
-        <v-card flat class="mx-auto maincard=width">
+        <v-card flat class="mx-auto maincard-width">
           <v-card-title class="maincard-title text-primary">{{ t('about.kudosTitle') }}</v-card-title>
           <v-card-text>{{ t('about.kudos') }}</v-card-text>
         </v-card>

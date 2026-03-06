@@ -5,12 +5,13 @@
  */
 import { useI18n } from "vue-i18n";
 const { t } = useI18n();
+const props = defineProps<{ isDialog?: boolean }>();
 const emit = defineEmits(["close"]);
 </script>
 
 <template>
   <v-card color="surface" elevation="12" rounded="lg">
-    <v-card-title class="bg-primary text-on-primary d-flex align-center">
+    <v-card-title id="keyboard-shortcuts-dialog-title" class="bg-primary text-on-primary d-flex align-center">
       <v-icon start icon="mdi-keyboard-outline" />
       {{ t("keyboard.title") }}
 
@@ -28,12 +29,18 @@ const emit = defineEmits(["close"]);
 
     <v-card-text class="pa-6">
       <div class="shortcut-row mb-4">
-        <i18n-t keypath="keyboard.paraEsc" tag="div" class="text-body-1">
+        <i18n-t :keypath="props.isDialog ? 'keyboard.paraEscDialog' : 'keyboard.paraEsc'" tag="div" class="text-body-1">
           <template #Esc>
             <kbd class="key-cap">{{ t("keyboard.keyEsc") }}</kbd>
           </template>
-          <template #iconHelp>
-            <v-icon icon="mdi-help" size="small" color="primary" :aria-label="t('common.help')" />
+          <template #iconCancel>
+            <v-icon
+              icon="mdi-close"
+              size="small"
+              color="primary"
+              role="img"
+              :aria-label="t('common.close')"
+            />
           </template>
         </i18n-t>
       </div>

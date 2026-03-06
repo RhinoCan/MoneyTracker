@@ -106,7 +106,7 @@ const handleExport = () => {
   <v-card class="data-management-card">
     <v-card-title class="bg-primary text-on-primary d-flex align-center justify-space-between">
       <span>{{ t("management.title") }}</span>
-      <v-btn icon="mdi-close" variant="text" density="comfortable" @click="$emit('close')" />
+      <v-btn icon="mdi-close" variant="text" density="comfortable" :aria-label="t('common.close')" @click="$emit('close')" />
     </v-card-title>
 
     <v-card-text class="pa-6">
@@ -128,7 +128,7 @@ const handleExport = () => {
       <v-divider class="mb-8"></v-divider>
 
       <section>
-        <h3 class="text-h6 text-warning mb-4">{{ t("management.dangerZone") || "Danger Zone" }}</h3>
+        <h3 class="text-h6 text-warning mb-4">{{ t("management.dangerZone") }}</h3>
 
         <div class="mb-6">
           <div class="text-subtitle-1 font-weight-bold">{{ t("management.deleteTransTitle") }}</div>

@@ -15,12 +15,14 @@
     "fill_all_fields": "Please fill in all of the fields.",
     "format": "Format: {example}.",
     "wrongSeparator": "Please use {separator} for decimals.",
-    "invalidAmount": "Please correct the amount format before saving."
+    "invalidAmount": "Please correct the amount format before saving.",
+    "information": "Information"
   },
   "app": {
     "fatalHeadline": "Application Failed to Start",
     "noStart": "We couldn't start the application. Please check your connection and try again.",
-    "retry": "Retry Connection."
+    "retry": "Retry Connection.",
+    "loading": "Loading..."
   },
   "main": {
     "global_vue_crash": "Vue has experienced a major crash in main.ts"
@@ -38,7 +40,8 @@
     "persistMsg": "Persist messages until you close them manually",
     "timeoutMsg": "Set the duration of the message via the slider",
     "persistMsgInfoOn": "Messages will stay on screen until you close them manually. Turn the switch off to set a timeout instead.",
-    "persistMsgInfoOff": "Messages will disappear automatically after the number of seconds set on the slider. Turn the switch on to keep them visible until manually closed."
+    "persistMsgInfoOff": "Messages will disappear automatically after the number of seconds set on the slider. Turn the switch on to keep them visible until manually closed.",
+    "timeoutSlider": "Message timeout in seconds"
   },
   "management": {
     "title": "Data Management",
@@ -84,7 +87,8 @@
   },
   "keyboard": {
     "title": "Keyboard Shortcuts",
-    "paraEsc": "You may use the {Esc} key on your keyboard to cancel this update rather than using the {iconHelp} icon or the Cancel button.",
+    "paraEsc": "You may use the {Esc} key on your keyboard to reset the form rather than clicking the Reset button.",
+    "paraEscDialog": "You may use the {Esc} key on your keyboard to cancel rather than clicking the {iconCancel} icon or the Cancel button.",
     "paraEnter": "You may use the {Enter} key on your keyboard to save the changes you made here rather than using the Save button.",
     "paraTab": "You may use the {Tab} key on your keyboard to jump between fields on forms that contain multiple fields.",
     "keyEsc": "Esc",
@@ -122,7 +126,7 @@
     "textSupabase": "Supabase",
     "textI18n-ally": "i18n-ally",
     "kudosTitle": "Acknowledgements",
-    "kudos": "I could not have completed this project in its present form without the help of three AIs: ChatGPT, Google Gemini, and especially Claude.AI. Many thanks to the people who created them and made them available for me for free!"
+    "kudos": "I could not have completed this project in its present form without the help of three AIs: ChatGPT, Google Gemini, and especially Claude.AI. Many thanks to the people who created them and made them available to me for free!"
   },
   "header": {
     "title": "Money Tracker",
@@ -141,7 +145,12 @@
     "itemsPerPage": "Items per page:",
     "pageText": "{start}-{end} of {total}",
     "ariaUpdate": "Update",
-    "ariaDelete": "Delete"
+    "ariaDelete": "Delete",
+    "ariaFirstPage": "First page",
+    "ariaPrevPage": "Previous page",
+    "ariaNextPage": "Next page",
+    "ariaLastPage": "Last page",
+    "loading": "Loading..."
   },
   "updateDialog": {
     "title": "Update Transaction",
