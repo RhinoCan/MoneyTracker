@@ -3,16 +3,16 @@
 ## Current Status
 
 ### Version
-**1.7.1** — deployed to https://rhinocan.github.io/MoneyTracker/
+**1.7.2** — deployed to https://rhinocan.github.io/MoneyTracker/
 
 ### Unit Tests
-- **557 tests passing** across 31 files
+- **561 tests passing** across 31 files
 - **99.29% statement coverage**, **95.63% branch coverage**
 - All passes complete and stable
 
 ### E2E Tests (Playwright)
-- **41 tests** across 5 spec files, 0 skipped
-- **Status: 31/31 + 10/10 accessibility tests passing — all green**
+- **44 tests** across 5 spec files, 0 skipped
+- **Status: 34/34 + 10/10 accessibility tests passing — all green**
 - Browser: Chromium only for local dev (Firefox/WebKit commented out in config)
 - Run with: `npx playwright test --project=chromium` or `npm run test:e2e`
 - View results: `npx playwright show-report`
@@ -86,6 +86,7 @@ When `null` is passed (user clears the field), `transaction.date` is set to `""`
 - `v-menu`, `v-date-picker`, activator `v-text-field` for date
 - `formattedDisplayDate` computed property
 - `dateMenu` and `closeDatePicker` from `useTransactionFormFields` destructure
+- `formatToMediumDate` from `useDateFormatter` import (still used elsewhere — do not remove from the composable)
 
 ---
 
@@ -116,6 +117,9 @@ When `null` is passed (user clears the field), `transaction.date` is set to `""`
 | Delete All Transactions button | DataManagement.vue | `delete-all-transactions-btn` |
 | Restore All Settings button | DataManagement.vue | `restore-settings-btn` |
 | Delete Everything button | DataManagement.vue | `delete-everything-btn` |
+| Password field | Login.vue | `password-field` |
+| Password field | Register.vue | `password-field` |
+| Confirm Password field | Register.vue | `confirm-password-field` |
 
 ---
 
@@ -166,7 +170,7 @@ Icons were inconsistently applied throughout the app (Gemini's doing). The curre
 
 ---
 
-## Phase 3: Accessibility — Complete
+## Phase 3: Accessibility — Complete 
 
 ### Component Audit Status
 
@@ -290,7 +294,6 @@ These axe rules are suppressed in `accessibility.spec.ts` — unfixable without 
 
 ### Optional Enhancements
 - **Playwright auth state caching** — currently each test authenticates fresh against Supabase
-- **Password visibility toggle** on Login/Register — low priority accessibility enhancement
 
 ---
 
@@ -350,3 +353,8 @@ These axe rules are suppressed in `accessibility.spec.ts` — unfixable without 
 43. Vuetify theme colors changed for WCAG AA compliance — primary `#00796B`, success/info `#00695C`, warning `#616161`, error `#C62828`
 44. Success snackbar text must be white (`#ffffff`) not black — `#000000` on `#00695C` only gives 3.17:1, white gives 5.33:1
 45. `App.vue` fatal error screen uses `role="alert"` for dynamic appearance announcement to screen readers
+46. Password visibility toggle: use `:append-inner-icon` and `:type="showPassword ? 'text' : 'password'"` on `v-text-field` — adding `aria-label` to the toggle button causes `getByLabel(/password/i)` to match 2 elements in Playwright; always use `data-testid` on password fields instead
+47. Supabase auto-confirms and auto-logs-in new accounts when email confirmation is disabled — `signUp` triggers the session watcher in `App.vue` and redirects to home, bypassing `router.push({ name: 'login' })`. The `register` helper in `helpers.ts` accepts either `/login` or home URL for this reason
+48. NIST SP 800-63B recommends minimum 8 characters, maximum 64+ characters, and NO complexity rules (no required uppercase/numbers/symbols) — password rules enforced on Register only, not Login, to avoid blocking existing accounts
+49. `.v-card-title` needs `color: rgba(0,0,0,0.87) !important` in global CSS — on Login/Register pages the card sits on `bg-grey-lighten-4` (#f0f0f0) which is lighter than the main surface color, causing inherited title color to fail contrast
+50. `.text-medium-emphasis` needs `color: #616161 !important; opacity: 1 !important` in global CSS — the CSS variable `--v-medium-emphasis-opacity` alone does not win on all pages
