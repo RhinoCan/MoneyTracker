@@ -6,8 +6,8 @@
 
 ---
 
-![MoneyTracker Screenshot](docs/screenshot.png)
-*Screenshot placeholder — replace with an actual screenshot of the running app*
+![MoneyTracker Screenshot](docs/MoneyTracker.png)
+(https://rhinocan.github.io/docs/MoneyTracker.png)
 
 ---
 
@@ -161,7 +161,6 @@ This project started as a follow-along with a Brad Traversy course and was incre
 
 - **No category tagging** — transactions cannot be filtered or grouped by category
 - **No recurring transactions** — each transaction must be entered manually
-- **Date range limited** — transactions cannot be dated earlier than the previous calendar year or in the future
 
 ---
 

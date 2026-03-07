@@ -170,7 +170,7 @@ Icons were inconsistently applied throughout the app (Gemini's doing). The curre
 
 ---
 
-## Phase 3: Accessibility — Complete 
+## Phase 3: Accessibility — Complete
 
 ### Component Audit Status
 
@@ -190,8 +190,8 @@ Icons were inconsistently applied throughout the app (Gemini's doing). The curre
 | `Amount.vue` | ✅ | No issues |
 | `Home.vue` | ✅ | No issues |
 | `App.vue` | ✅ | 1 issue fixed |
-| `Login.vue` | ✅ | 2 issues fixed; password toggle low priority |
-| `Register.vue` | ✅ | 2 issues fixed; password toggle low priority |
+| `Login.vue` | ✅ | 2 issues fixed; password visibility toggle added |
+| `Register.vue` | ✅ | 2 issues fixed; password visibility toggle + confirm password field added |
 
 ### Fixes Applied This Phase
 
@@ -256,10 +256,15 @@ Icons were inconsistently applied throughout the app (Gemini's doing). The curre
 
 **`Login.vue`**
 - Replaced `@click="handleLogin"` with `type="submit"` on button
+- Added password visibility toggle (`showPassword` ref, eye/eye-off icon, `data-testid="password-field"`)
 
 **`Register.vue`**
 - Moved Register button inside `v-form`
 - Replaced `@click="handleRegister"` with `type="submit"`
+- Added password visibility toggle (`showPassword` ref, eye/eye-off icon, `data-testid="password-field"`)
+- Added confirm password field with real-time mismatch validation (`data-testid="confirm-password-field"`)
+- Added NIST-aligned password length rules (min 8, max 128 characters)
+- Added demonstration disclaimer (`register.caution`) below Sign Up button
 
 ### New i18n Keys Added This Phase
 
