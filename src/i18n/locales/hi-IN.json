@@ -192,14 +192,20 @@
     "go_register": "रजिस्टर",
     "success": "लॉगिन सफल।",
     "auth_login_failed": "प्रमाणीकरण विफल।",
-    "auth_unexpected": "अनपेक्षित त्रुटि।"
+    "auth_unexpected": "अनपेक्षित त्रुटि।",
+    "show_password": "पासवर्ड दिखाएं",
+    "hide_password": "पासवर्ड छुपाएं"
   },
   "register": {
     "title": "रजिस्टर",
     "fail": "पंजीकरण विफल।",
     "success_check_email": "सफल! पुष्टि के लिए अपना ईमेल जांचें।",
     "button": "साइन अप",
-    "go_login": "लॉगिन पर वापस जाएं"
+    "go_login": "लॉगिन पर वापस जाएं",
+    "confirm_password_label": "पासवर्ड की पुष्टि करें",
+    "password_mismatch": "पासवर्ड मेल नहीं खाते।",
+    "password_too_short": "पासवर्ड कम से कम 8 अक्षरों का होना चाहिए।",
+    "password_too_long": "पासवर्ड 128 अक्षरों से अधिक नहीं हो सकता।"
   },
   "currFormat": {
     "failed": "मुद्रा प्रारूप विफल।"

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, computed } from "vue";
 import { useRouter } from "vue-router";
 import { supabase } from "@/lib/supabase";
 import { useNotificationStore } from "@/stores/NotificationStore";
@@ -10,14 +10,35 @@ const { t } = useI18n();
 const router = useRouter();
 const notificationStore = useNotificationStore();
 
-// Reactive state for the form
 const email = ref("");
 const password = ref("");
+const confirmPassword = ref("");
+const showPassword = ref(false);
+const showConfirmPassword = ref(false);
 const loading = ref(false);
 
+const passwordRules = [
+  (v: string) => v.length >= 8 || t("register.password_too_short"),
+  (v: string) => v.length <= 128 || t("register.password_too_long"),
+];
+
+const passwordMismatch = computed(
+  () => confirmPassword.value.length > 0 && confirmPassword.value !== password.value
+);
+
 async function handleRegister() {
-  if (!email.value || !password.value) {
+  if (!email.value || !password.value || !confirmPassword.value) {
     notificationStore.showMessage(t("common.fill_all_fields"), "error");
+    return;
+  }
+
+  if (password.value.length < 8) {
+    notificationStore.showMessage(t("register.password_too_short"), "error");
+    return;
+  }
+
+  if (password.value !== confirmPassword.value) {
+    notificationStore.showMessage(t("register.password_mismatch"), "error");
     return;
   }
 
@@ -35,15 +56,13 @@ async function handleRegister() {
         action: "handleRegister",
         slug: "register.auth_register_failed",
       });
-      // Raw Supabase error message is logged above; show a clean localized message to the user
       notificationStore.showMessage(t("register.fail"), "error");
       return;
     }
 
     if (data.user) {
-      // Supabase usually sends a confirmation email by default
       notificationStore.showMessage(t("register.success_check_email"), "success");
-      router.push({ name: "login" });
+      router.push('/');
     }
   } catch (err) {
     logException(err, {
@@ -79,20 +98,32 @@ async function handleRegister() {
           <v-text-field
             v-model="password"
             :label="t('login.password_label')"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             variant="outlined"
             density="comfortable"
             :disabled="loading"
             prepend-inner-icon="mdi-lock-outline"
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            :aria-label="showPassword ? t('login.hide_password') : t('login.show_password')"
+            data-testid="password-field"
+            :rules="passwordRules"
+            @click:append-inner="showPassword = !showPassword"
           />
-          <v-btn
-            color="primary"
-            block
-            size="large"
-            type="submit"
-            :loading="loading"
-            class="mt-4"
-          >
+          <v-text-field
+            v-model="confirmPassword"
+            :label="t('register.confirm_password_label')"
+            :type="showConfirmPassword ? 'text' : 'password'"
+            variant="outlined"
+            density="comfortable"
+            :disabled="loading"
+            prepend-inner-icon="mdi-lock-check-outline"
+            :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            :aria-label="showConfirmPassword ? t('login.hide_password') : t('login.show_password')"
+            data-testid="confirm-password-field"
+            :error-messages="passwordMismatch ? t('register.password_mismatch') : ''"
+            @click:append-inner="showConfirmPassword = !showConfirmPassword"
+          />
+          <v-btn color="primary" block size="large" type="submit" :loading="loading" class="mt-4">
             {{ t("register.button") }}
           </v-btn>
         </v-form>

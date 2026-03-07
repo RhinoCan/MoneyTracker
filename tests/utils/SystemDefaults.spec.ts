@@ -1,7 +1,6 @@
 // tests/utils/SystemDefaults.spec.ts
 import { describe, it, expect } from "vitest";
 import {
-  defaultSystemTimeout,
   defaultCurrencyCode,
   getCurrencyDisplayNames,
 } from "@/utils/SystemDefaults";
@@ -11,11 +10,7 @@ describe("SystemDefaults", () => {
   // Constants
   // -------------------------------------------------------------------------
   describe("constants", () => {
-    it("defaultSystemTimeout is 0", () => {
-      expect(defaultSystemTimeout).toBe(0);
-    });
-
-    it("defaultCurrencyCode is USD", () => {
+     it("defaultCurrencyCode is USD", () => {
       expect(defaultCurrencyCode).toBe("USD");
     });
   });

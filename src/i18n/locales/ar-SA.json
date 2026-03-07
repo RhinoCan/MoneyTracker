@@ -192,14 +192,20 @@
     "go_register": "تسجيل جديد",
     "success": "تم الدخول بنجاح.",
     "auth_login_failed": "فشلت عملية المصادقة.",
-    "auth_unexpected": "خطأ غير متوقع أثناء الدخول."
+    "auth_unexpected": "خطأ غير متوقع أثناء الدخول.",
+    "show_password": "إظهار كلمة المرور",
+    "hide_password": "إخفاء كلمة المرور"
   },
   "register": {
     "title": "تسجيل جديد",
     "fail": "تعذر إتمام التسجيل.",
     "success_check_email": "تم التسجيل! تفقد بريدك للتفعيل.",
     "button": "إنشاء حساب",
-    "go_login": "العودة للدخول"
+    "go_login": "العودة للدخول",
+    "confirm_password_label": "تأكيد كلمة المرور",
+    "password_mismatch": "كلمتا المرور غير متطابقتين.",
+    "password_too_short": "يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.",
+    "password_too_long": "يجب ألا تتجاوز كلمة المرور 128 حرفاً."
   },
   "currFormat": {
     "failed": "فشل تنسيق العملة."

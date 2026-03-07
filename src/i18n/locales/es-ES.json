@@ -192,14 +192,20 @@
     "go_register": "Registrarse",
     "success": "Sesión iniciada con éxito.",
     "auth_login_failed": "Fallo en el intento de autenticación.",
-    "auth_unexpected": "Error inesperado al autenticar."
+    "auth_unexpected": "Error inesperado al autenticar.",
+    "show_password": "Mostrar contraseña",
+    "hide_password": "Ocultar contraseña"
   },
   "register": {
     "title": "Registrarse",
     "fail": "No se pudo completar el registro.",
     "success_check_email": "¡Registro con éxito! Revise su correo para confirmar.",
     "button": "Registrarse",
-    "go_login": "Volver al inicio de sesión"
+    "go_login": "Volver al inicio de sesión",
+    "confirm_password_label": "Confirmar contraseña",
+    "password_mismatch": "Las contraseñas no coinciden.",
+    "password_too_short": "La contraseña debe tener al menos 8 caracteres.",
+    "password_too_long": "La contraseña no puede tener más de 128 caracteres."
   },
   "currFormat": {
     "failed": "Error al formatear moneda."

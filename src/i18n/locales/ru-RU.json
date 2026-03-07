@@ -192,14 +192,20 @@
     "go_register": "Регистрация",
     "success": "Успешный вход.",
     "auth_login_failed": "Ошибка аутентификации.",
-    "auth_unexpected": "Ошибка при входе."
+    "auth_unexpected": "Ошибка при входе.",
+    "show_password": "Показать пароль",
+    "hide_password": "Скрыть пароль"
   },
   "register": {
     "title": "Регистрация",
     "fail": "Ошибка регистрации.",
     "success_check_email": "Успешно! Проверьте почту.",
     "button": "Создать аккаунт",
-    "go_login": "Назад ко входу"
+    "go_login": "Назад ко входу",
+    "confirm_password_label": "Подтвердите пароль",
+    "password_mismatch": "Пароли не совпадают.",
+    "password_too_short": "Пароль должен содержать не менее 8 символов.",
+    "password_too_long": "Пароль не может превышать 128 символов."
   },
   "currFormat": {
     "failed": "Ошибка формата валюты."

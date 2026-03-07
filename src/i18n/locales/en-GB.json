@@ -191,14 +191,20 @@
     "go_register": "Register",
     "success": "Login successful.",
     "auth_login_failed": "Authentication login attempt failed.",
-    "auth_unexpected": "Unexpected error during login."
+    "auth_unexpected": "Unexpected error during login.",
+    "show_password": "Show password",
+    "hide_password": "Hide password"
   },
   "register": {
     "title": "Register",
     "fail": "Could not complete registration.",
     "success_check_email": "Registration successful! Check your email for a confirmation link.",
     "button": "Sign Up",
-    "go_login": "Back to Login"
+    "go_login": "Back to Login",
+    "confirm_password_label": "Confirm Password",
+    "password_mismatch": "Passwords do not match.",
+    "password_too_short": "Password must be at least 8 characters.",
+    "password_too_long": "Password must be no more than 128 characters."
   },
   "currFormat": {
     "failed": "Failed to format currency."

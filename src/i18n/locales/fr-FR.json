@@ -192,14 +192,20 @@
     "go_register": "S'inscrire",
     "success": "Connexion réussie.",
     "auth_login_failed": "La tentative de connexion a échoué.",
-    "auth_unexpected": "Erreur inattendue lors de la connexion."
+    "auth_unexpected": "Erreur inattendue lors de la connexion.",
+    "show_password": "Afficher le mot de passe",
+    "hide_password": "Masquer le mot de passe"
   },
   "register": {
     "title": "Inscription",
     "fail": "L'inscription n'a pas pu être effectuée.",
     "success_check_email": "Inscription réussie ! Vérifiez votre e-mail pour un lien de confirmation.",
     "button": "S'inscrire",
-    "go_login": "Retour à la connexion"
+    "go_login": "Retour à la connexion",
+    "confirm_password_label": "Confirmer le mot de passe",
+    "password_mismatch": "Les mots de passe ne correspondent pas.",
+    "password_too_short": "Le mot de passe doit comporter au moins 8 caractères.",
+    "password_too_long": "Le mot de passe ne peut pas dépasser 128 caractères."
   },
   "currFormat": {
     "failed": "Échec du formatage de la devise."

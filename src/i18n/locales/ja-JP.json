@@ -192,14 +192,20 @@
     "go_register": "登録する",
     "success": "ログインしました。",
     "auth_login_failed": "認証に失敗しました。",
-    "auth_unexpected": "認証中に予期しないエラーが発生しました。"
+    "auth_unexpected": "認証中に予期しないエラーが発生しました。",
+    "show_password": "パスワードを表示",
+    "hide_password": "パスワードを非表示"
   },
   "register": {
     "title": "登録",
     "fail": "登録を完了できませんでした。",
     "success_check_email": "登録成功！確認メールをチェックしてください。",
     "button": "サインアップ",
-    "go_login": "ログインに戻る"
+    "go_login": "ログインに戻る",
+    "confirm_password_label": "パスワードを確認",
+    "password_mismatch": "パスワードが一致しません。",
+    "password_too_short": "パスワードは8文字以上にしてください。",
+    "password_too_long": "パスワードは128文字以内にしてください。"
   },
   "currFormat": {
     "failed": "通貨形式の変換に失敗しました。"

@@ -192,14 +192,20 @@
     "go_register": "注册",
     "success": "登录成功。",
     "auth_login_failed": "身份验证登录尝试失败。",
-    "auth_unexpected": "登录期间发生意外错误。"
+    "auth_unexpected": "登录期间发生意外错误。",
+    "show_password": "显示密码",
+    "hide_password": "隐藏密码"
   },
   "register": {
     "title": "注册",
     "fail": "无法完成注册。",
     "success_check_email": "注册成功！请检查您的邮箱获取确认链接。",
     "button": "注册",
-    "go_login": "返回登录"
+    "go_login": "返回登录",
+    "confirm_password_label": "确认密码",
+    "password_mismatch": "密码不匹配。",
+    "password_too_short": "密码必须至少包含8个字符。",
+    "password_too_long": "密码不能超过128个字符。"
   },
   "currFormat": {
     "failed": "货币格式化失败。"

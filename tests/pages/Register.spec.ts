@@ -62,6 +62,10 @@ describe("Register.vue", () => {
       wrapper = mountComponent();
       expect(wrapper.text()).toContain("Password");
     });
+    it("renders the confirm password field", () => {
+      wrapper = mountComponent();
+      expect(wrapper.text()).toContain("Confirm Password");
+    });
     it("renders the Sign Up button", () => {
       wrapper = mountComponent();
       expect(wrapper.text()).toContain("Sign Up");
@@ -87,7 +91,8 @@ describe("Register.vue", () => {
     it("shows error when email is empty", async () => {
       wrapper = mountComponent();
       const notificationStore = useNotificationStore();
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       expect(notificationStore.text).toBe("Please fill in all of the fields.");
     });
@@ -98,8 +103,42 @@ describe("Register.vue", () => {
       await wrapper.vm.handleRegister();
       expect(notificationStore.text).toBe("Please fill in all of the fields.");
     });
+    it("shows error when confirm password is empty", async () => {
+      wrapper = mountComponent();
+      const notificationStore = useNotificationStore();
+      wrapper.vm.email = "a@b.com";
+      wrapper.vm.password = "secret12";
+      await wrapper.vm.handleRegister();
+      expect(notificationStore.text).toBe("Please fill in all of the fields.");
+    });
+    it("shows error when password is too short", async () => {
+      wrapper = mountComponent();
+      const notificationStore = useNotificationStore();
+      wrapper.vm.email = "a@b.com";
+      wrapper.vm.password = "short";
+      wrapper.vm.confirmPassword = "short";
+      await wrapper.vm.handleRegister();
+      expect(notificationStore.text).toBe("Password must be at least 8 characters.");
+    });
+    it("shows error when passwords do not match", async () => {
+      wrapper = mountComponent();
+      const notificationStore = useNotificationStore();
+      wrapper.vm.email = "a@b.com";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret99";
+      await wrapper.vm.handleRegister();
+      expect(notificationStore.text).toBe("Passwords do not match.");
+    });
     it("does not call supabase when fields are empty", async () => {
       wrapper = mountComponent();
+      await wrapper.vm.handleRegister();
+      expect(mockSignUp).not.toHaveBeenCalled();
+    });
+    it("does not call supabase when passwords do not match", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.email = "a@b.com";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret99";
       await wrapper.vm.handleRegister();
       expect(mockSignUp).not.toHaveBeenCalled();
     });
@@ -117,35 +156,41 @@ describe("Register.vue", () => {
     it("calls signUp with email and password", async () => {
       wrapper = mountComponent();
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(mockSignUp).toHaveBeenCalledWith({
         email: "a@b.com",
-        password: "secret",
+        password: "secret12",
       });
     });
     it("shows success notification", async () => {
       wrapper = mountComponent();
       const notificationStore = useNotificationStore();
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
-      expect(notificationStore.text).toBe("Registration successful! Check your email for a confirmation link.");
+      expect(notificationStore.text).toBe(
+        "Registration successful! Check your email for a confirmation link."
+      );
     });
-    it("redirects to login on success", async () => {
+    it("redirects to home on success", async () => {
       wrapper = mountComponent();
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
-      expect(mockPush).toHaveBeenCalledWith({ name: "login" });
+      expect(mockPush).toHaveBeenCalledWith("/");
     });
     it("resets loading to false after success", async () => {
       wrapper = mountComponent();
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(wrapper.vm.loading).toBe(false);
@@ -158,10 +203,12 @@ describe("Register.vue", () => {
       wrapper = mountComponent();
       const notificationStore = useNotificationStore();
       mockSignUp.mockResolvedValue({
-        data: {}, error: { message: "User already registered" },
+        data: {},
+        error: { message: "User already registered" },
       });
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(notificationStore.text).toBe("Could not complete registration.");
@@ -169,10 +216,12 @@ describe("Register.vue", () => {
     it("calls logException on auth error", async () => {
       wrapper = mountComponent();
       mockSignUp.mockResolvedValue({
-        data: {}, error: { message: "User already registered" },
+        data: {},
+        error: { message: "User already registered" },
       });
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(logException).toHaveBeenCalled();
@@ -180,10 +229,12 @@ describe("Register.vue", () => {
     it("resets loading to false after auth error", async () => {
       wrapper = mountComponent();
       mockSignUp.mockResolvedValue({
-        data: {}, error: { message: "User already registered" },
+        data: {},
+        error: { message: "User already registered" },
       });
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(wrapper.vm.loading).toBe(false);
@@ -191,10 +242,12 @@ describe("Register.vue", () => {
     it("does not redirect on auth error", async () => {
       wrapper = mountComponent();
       mockSignUp.mockResolvedValue({
-        data: {}, error: { message: "User already registered" },
+        data: {},
+        error: { message: "User already registered" },
       });
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(mockPush).not.toHaveBeenCalled();
@@ -208,7 +261,8 @@ describe("Register.vue", () => {
       const notificationStore = useNotificationStore();
       mockSignUp.mockRejectedValueOnce(new Error("Network failure"));
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(notificationStore.text).toBe("Something went wrong. Please try again later.");
@@ -217,7 +271,8 @@ describe("Register.vue", () => {
       wrapper = mountComponent();
       mockSignUp.mockRejectedValueOnce(new Error("Network failure"));
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(logException).toHaveBeenCalled();
@@ -226,7 +281,8 @@ describe("Register.vue", () => {
       wrapper = mountComponent();
       mockSignUp.mockRejectedValueOnce(new Error("Network failure"));
       wrapper.vm.email = "a@b.com";
-      wrapper.vm.password = "secret";
+      wrapper.vm.password = "secret12";
+      wrapper.vm.confirmPassword = "secret12";
       await wrapper.vm.handleRegister();
       await flushPromises();
       expect(wrapper.vm.loading).toBe(false);

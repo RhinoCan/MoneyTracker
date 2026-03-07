@@ -192,14 +192,20 @@
     "go_register": "Registrati",
     "success": "Login effettuato.",
     "auth_login_failed": "Autenticazione fallita.",
-    "auth_unexpected": "Errore imprevisto."
+    "auth_unexpected": "Errore imprevisto.",
+    "show_password": "Mostra password",
+    "hide_password": "Nascondi password"
   },
   "register": {
     "title": "Registrazione",
     "fail": "Registrazione fallita.",
     "success_check_email": "Riuscito! Controlla l'e-mail per conferma.",
     "button": "Registrati",
-    "go_login": "Torna al Login"
+    "go_login": "Torna al Login",
+    "confirm_password_label": "Conferma password",
+    "password_mismatch": "Le password non corrispondono.",
+    "password_too_short": "La password deve contenere almeno 8 caratteri.",
+    "password_too_long": "La password non può superare i 128 caratteri."
   },
   "currFormat": {
     "failed": "Errore formattazione valuta."

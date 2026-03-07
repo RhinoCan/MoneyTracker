@@ -39,6 +39,12 @@
   white-space: normal;
   height: auto;
   line-height: 1.4;
+  color: rgba(0, 0, 0, 0.87) !important;
+}
+
+.text-medium-emphasis {
+  color: #616161 !important;
+  opacity: 1 !important;
 }
 
 .v-btn .v-btn__content {

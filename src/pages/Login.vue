@@ -12,6 +12,7 @@ const notificationStore = useNotificationStore();
 
 const email = ref("");
 const password = ref("");
+const showPassword = ref(false);
 const loading = ref(false);
 
 const goToRegister = () => {
@@ -33,7 +34,6 @@ async function handleLogin() {
     });
 
     if (error) {
-      // Map specific Supabase errors to localized messages
       let userMessage = t("login.fail_generic");
 
       if (error.message.includes("Email not confirmed")) {
@@ -44,7 +44,6 @@ async function handleLogin() {
 
       notificationStore.showMessage(userMessage, "error");
 
-      // Log it so we know if there's a system-wide auth issue
       logException(error, {
         module: "Login",
         action: "handleLogin",
@@ -56,7 +55,6 @@ async function handleLogin() {
 
     if (data.session && data.user) {
       notificationStore.showMessage(t("login.success"), "success");
-      // The watcher in App.vue will detect the session and run initializeAppSettings()
       router.push("/");
     }
   } catch (err) {
@@ -94,21 +92,18 @@ async function handleLogin() {
           <v-text-field
             v-model="password"
             :label="t('login.password_label')"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             variant="outlined"
             density="comfortable"
             prepend-inner-icon="mdi-lock-outline"
+            :append-inner-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+            :aria-label="showPassword ? t('login.hide_password') : t('login.show_password')"
+            data-testid="password-field"
+            @click:append-inner="showPassword = !showPassword"
             :disabled="loading"
           />
 
-          <v-btn
-            block
-            color="primary"
-            size="large"
-            class="mt-4"
-            :loading="loading"
-            type="submit"
-          >
+          <v-btn block color="primary" size="large" class="mt-4" :loading="loading" type="submit">
             {{ t("login.button") }}
           </v-btn>
         </v-form>

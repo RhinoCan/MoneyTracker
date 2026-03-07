@@ -192,14 +192,20 @@
     "go_register": "가입하기",
     "success": "로그인 성공.",
     "auth_login_failed": "인증 시도에 실패했습니다.",
-    "auth_unexpected": "인증 중 오류가 발생했습니다."
+    "auth_unexpected": "인증 중 오류가 발생했습니다.",
+    "show_password": "비밀번호 표시",
+    "hide_password": "비밀번호 숨기기"
   },
   "register": {
     "title": "회원가입",
     "fail": "가입을 완료할 수 없습니다.",
     "success_check_email": "가입 성공! 확인 링크가 포함된 이메일을 확인해 주세요.",
     "button": "가입하기",
-    "go_login": "로그인으로 돌아가기"
+    "go_login": "로그인으로 돌아가기",
+    "confirm_password_label": "비밀번호 확인",
+    "password_mismatch": "비밀번호가 일치하지 않습니다.",
+    "password_too_short": "비밀번호는 최소 8자 이상이어야 합니다.",
+    "password_too_long": "비밀번호는 128자를 초과할 수 없습니다."
   },
   "currFormat": {
     "failed": "통화 형식 변환 실패."

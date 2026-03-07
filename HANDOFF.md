@@ -2,6 +2,9 @@
 
 ## Current Status
 
+### Version
+**1.7.1** — deployed to https://rhinocan.github.io/MoneyTracker/
+
 ### Unit Tests
 - **557 tests passing** across 31 files
 - **99.29% statement coverage**, **95.63% branch coverage**
@@ -14,6 +17,9 @@
 - Run with: `npx playwright test --project=chromium` or `npm run test:e2e`
 - View results: `npx playwright show-report`
 - Run a single test: `npx playwright test --project=chromium <file> --grep "<partial test name>"`
+
+### Visual QA (1.7.1)
+Manual review across de-DE, fr-FR, ar-SA, ru-RU, pt-BR, en-US complete. No outstanding issues.
 
 ---
 
@@ -80,7 +86,6 @@ When `null` is passed (user clears the field), `transaction.date` is set to `""`
 - `v-menu`, `v-date-picker`, activator `v-text-field` for date
 - `formattedDisplayDate` computed property
 - `dateMenu` and `closeDatePicker` from `useTransactionFormFields` destructure
-- `formatToMediumDate` from `useDateFormatter` import (still used elsewhere — do not remove from the composable)
 
 ---
 
@@ -161,7 +166,7 @@ Icons were inconsistently applied throughout the app (Gemini's doing). The curre
 
 ---
 
-## Phase 3: Accessibility — Complete (pending contrast fix)
+## Phase 3: Accessibility — Complete
 
 ### Component Audit Status
 
@@ -277,8 +282,11 @@ These axe rules are suppressed in `accessibility.spec.ts` — unfixable without 
 
 ## Remaining Work
 
-### Phase 3: Accessibility — COMPLETE ✅
-All 10 accessibility tests passing. All 31 E2E tests passing. All 557 unit tests passing.
+### All Phases Complete ✅
+- Unit tests: 557/557 passing
+- E2E tests: 31/31 passing
+- Accessibility tests: 10/10 passing
+- Visual QA: complete across 6 locales
 
 ### Optional Enhancements
 - **Playwright auth state caching** — currently each test authenticates fresh against Supabase
@@ -320,16 +328,25 @@ All 10 accessibility tests passing. All 31 E2E tests passing. All 557 unit tests
 27. Always wrap `runAxe()` in try/finally to ensure dialogs are closed even when axe finds violations — otherwise logout in `afterEach` will hang and time out
 
 ### Vuetify v-date-input
-27. Use `prepend-icon=""` to suppress the outer icon, `prepend-inner-icon="mdi-calendar"` for inner icon
-28. `v-date-input` manages its own open/close state — do not call `closeDatePicker()` from the update handler
-29. When `null` is passed to the update handler, set `transaction.date = ""` to trigger validation rather than silently resetting to today
-30. `v-date-input` is a Vuetify labs component — stub it as `"v-date-input": true` in unit tests, then assert presence via `wrapper.html().toContain('v-date-input')` or `document.body.innerHTML.toContain('v-date-input')` for teleported components
+28. Use `prepend-icon=""` to suppress the outer icon, `prepend-inner-icon="mdi-calendar"` for inner icon
+29. `v-date-input` manages its own open/close state — do not call `closeDatePicker()` from the update handler
+30. When `null` is passed to the update handler, set `transaction.date = ""` to trigger validation rather than silently resetting to today
+31. `v-date-input` is a Vuetify labs component — stub it as `"v-date-input": true` in unit tests, then assert presence via `wrapper.html().toContain('v-date-input')` or `document.body.innerHTML.toContain('v-date-input')` for teleported components
+32. Use `:display-format="(date: unknown) => formatToMediumDate(formatToIsoDateOnly(date as Date))"` to match medium date format used elsewhere in the app
+
+### Visual QA / i18n
+33. French and German are the best locales for catching truncation — French runs ~25% longer than English, German compounds words
+34. ar-SA RTL: mixing LTR text into Arabic text fields causes bidi cursor confusion — browser-level issue, not an app bug
+35. Vuetify applies `white-space: nowrap` on `.v-btn__content` span internally — to allow button text to wrap you must target that inner span, not just the outer button
+36. `v-card-title` needs `white-space: normal; height: auto; line-height: 1.4` in global CSS to prevent long translated titles from truncating
+37. `v-card-actions` needs `flex-wrap: wrap; gap: 8px` to prevent buttons from clipping on narrow screens in long-text locales
+38. Always use `:not(.v-btn--icon)` when applying `height: auto` to buttons — icon buttons must stay circular
 
 ### General
-35. `scripts/add-locale-keys.mjs` — use this for all future bulk i18n key additions across 16 locale files
-36. fr-FR, fr-CA, fr-CH locale files have been properly retranslated with genuine dialect variations
-37. `TrackerHeader.vue` is registered globally in `main.ts` rather than imported in `App.vue`
-38. Vuetify renders label colors via opacity on a parent element (`.v-field__input`) not as a direct color — override with `.v-field__input { opacity: 1 !important }` in global CSS
-39. Vuetify theme colors changed for WCAG AA compliance — primary `#00796B`, success/info `#00695C`, warning `#616161`, error `#C62828`
-40. Success snackbar text must be white (`#ffffff`) not black — `#000000` on `#00695C` only gives 3.17:1, white gives 5.33:1
-41. `App.vue` fatal error screen uses `role="alert"` for dynamic appearance announcement to screen readers
+39. `scripts/add-locale-keys.mjs` — use this for all future bulk i18n key additions across 16 locale files
+40. fr-FR, fr-CA, fr-CH locale files have been properly retranslated with genuine dialect variations
+41. `TrackerHeader.vue` is registered globally in `main.ts` rather than imported in `App.vue`
+42. Vuetify renders label colors via opacity on a parent element (`.v-field__input`) not as a direct color — override with `.v-field__input { opacity: 1 !important }` in global CSS
+43. Vuetify theme colors changed for WCAG AA compliance — primary `#00796B`, success/info `#00695C`, warning `#616161`, error `#C62828`
+44. Success snackbar text must be white (`#ffffff`) not black — `#000000` on `#00695C` only gives 3.17:1, white gives 5.33:1
+45. `App.vue` fatal error screen uses `role="alert"` for dynamic appearance announcement to screen readers

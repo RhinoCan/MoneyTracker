@@ -192,14 +192,20 @@
     "go_register": "Registrar",
     "success": "Login realizado.",
     "auth_login_failed": "Falha na autenticação.",
-    "auth_unexpected": "Erro inesperado."
+    "auth_unexpected": "Erro inesperado.",
+    "show_password": "Mostrar senha",
+    "hide_password": "Ocultar senha"
   },
   "register": {
     "title": "Cadastro",
     "fail": "Não foi possível cadastrar.",
     "success_check_email": "Sucesso! Verifique seu e-mail.",
     "button": "Cadastrar",
-    "go_login": "Voltar para Login"
+    "go_login": "Voltar para Login",
+    "confirm_password_label": "Confirmar senha",
+    "password_mismatch": "As senhas não coincidem.",
+    "password_too_short": "A senha deve ter pelo menos 8 caracteres.",
+    "password_too_long": "A senha não pode ter mais de 128 caracteres."
   },
   "currFormat": {
     "failed": "Falha ao formatar moeda."
