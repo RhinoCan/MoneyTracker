@@ -126,6 +126,7 @@ async function handleRegister() {
           <v-btn color="primary" block size="large" type="submit" :loading="loading" class="mt-4">
             {{ t("register.button") }}
           </v-btn>
+          <v-card-text class="text-medium-emphasis text-center text-caption px-4 pt-0">{{ t('register.caution') }}</v-card-text>
         </v-form>
       </v-card-text>
 

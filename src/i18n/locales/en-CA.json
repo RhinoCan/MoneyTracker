@@ -205,7 +205,8 @@
     "confirm_password_label": "Confirm Password",
     "password_mismatch": "Passwords do not match.",
     "password_too_short": "Password must be at least 8 characters.",
-    "password_too_long": "Password must be no more than 128 characters."
+    "password_too_long": "Password must be no more than 128 characters.",
+    "caution": "This is a demonstration/portfolio app - do not enter real financial data."
   },
   "currFormat": {
     "failed": "Failed to format currency."

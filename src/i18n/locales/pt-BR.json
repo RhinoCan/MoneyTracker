@@ -205,7 +205,8 @@
     "confirm_password_label": "Confirmar senha",
     "password_mismatch": "As senhas não coincidem.",
     "password_too_short": "A senha deve ter pelo menos 8 caracteres.",
-    "password_too_long": "A senha não pode ter mais de 128 caracteres."
+    "password_too_long": "A senha não pode ter mais de 128 caracteres.",
+    "caution": "Este é um aplicativo de demonstração - não insira dados financeiros reais."
   },
   "currFormat": {
     "failed": "Falha ao formatar moeda."

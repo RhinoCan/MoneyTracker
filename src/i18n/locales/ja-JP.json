@@ -205,7 +205,8 @@
     "confirm_password_label": "パスワードを確認",
     "password_mismatch": "パスワードが一致しません。",
     "password_too_short": "パスワードは8文字以上にしてください。",
-    "password_too_long": "パスワードは128文字以内にしてください。"
+    "password_too_long": "パスワードは128文字以内にしてください。",
+    "caution": "これはデモ用アプリです - 実際の金融データを入力しないでください。"
   },
   "currFormat": {
     "failed": "通貨形式の変換に失敗しました。"

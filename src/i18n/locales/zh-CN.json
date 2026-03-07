@@ -205,7 +205,8 @@
     "confirm_password_label": "确认密码",
     "password_mismatch": "密码不匹配。",
     "password_too_short": "密码必须至少包含8个字符。",
-    "password_too_long": "密码不能超过128个字符。"
+    "password_too_long": "密码不能超过128个字符。",
+    "caution": "这是一个演示应用 - 请勿输入真实财务数据。"
   },
   "currFormat": {
     "failed": "货币格式化失败。"

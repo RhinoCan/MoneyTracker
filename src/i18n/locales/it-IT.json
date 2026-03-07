@@ -205,7 +205,8 @@
     "confirm_password_label": "Conferma password",
     "password_mismatch": "Le password non corrispondono.",
     "password_too_short": "La password deve contenere almeno 8 caratteri.",
-    "password_too_long": "La password non può superare i 128 caratteri."
+    "password_too_long": "La password non può superare i 128 caratteri.",
+    "caution": "Questa è un'app dimostrativa - non inserire dati finanziari reali."
   },
   "currFormat": {
     "failed": "Errore formattazione valuta."

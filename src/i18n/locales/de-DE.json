@@ -205,7 +205,8 @@
     "confirm_password_label": "Passwort bestätigen",
     "password_mismatch": "Die Passwörter stimmen nicht überein.",
     "password_too_short": "Das Passwort muss mindestens 8 Zeichen lang sein.",
-    "password_too_long": "Das Passwort darf höchstens 128 Zeichen lang sein."
+    "password_too_long": "Das Passwort darf höchstens 128 Zeichen lang sein.",
+    "caution": "Dies ist eine Demo-App – bitte keine echten Finanzdaten eingeben."
   },
   "currFormat": {
     "failed": "Währungsformatierung fehlgeschlagen."

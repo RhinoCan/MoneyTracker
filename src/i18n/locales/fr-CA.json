@@ -205,7 +205,8 @@
     "confirm_password_label": "Confirmer le mot de passe",
     "password_mismatch": "Les mots de passe ne correspondent pas.",
     "password_too_short": "Le mot de passe doit comporter au moins 8 caractères.",
-    "password_too_long": "Le mot de passe ne peut pas dépasser 128 caractères."
+    "password_too_long": "Le mot de passe ne peut pas dépasser 128 caractères.",
+    "caution": "Cette application est une démo - ne saisissez pas de données financières réelles."
   },
   "currFormat": {
     "failed": "Échec du formatage de la devise."

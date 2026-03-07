@@ -205,7 +205,8 @@
     "confirm_password_label": "비밀번호 확인",
     "password_mismatch": "비밀번호가 일치하지 않습니다.",
     "password_too_short": "비밀번호는 최소 8자 이상이어야 합니다.",
-    "password_too_long": "비밀번호는 128자를 초과할 수 없습니다."
+    "password_too_long": "비밀번호는 128자를 초과할 수 없습니다.",
+    "caution": "이것은 데모 앱입니다 - 실제 금융 데이터를 입력하지 마세요."
   },
   "currFormat": {
     "failed": "통화 형식 변환 실패."
