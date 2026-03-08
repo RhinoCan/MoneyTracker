@@ -90,7 +90,7 @@ describe("UpdateTransaction.vue", () => {
       expect(document.body.textContent).toContain("Description");
     });
     it("renders the date field", () => {
-      wrapper = mountComponent();
+      const wrapper = mountComponent();
       expect(document.body.innerHTML).toContain("v-date-input");
     });
     it("renders Income and Expense radio options", () => {
@@ -334,6 +334,16 @@ describe("UpdateTransaction.vue", () => {
       wrapper.vm.isFocused = true;
       wrapper.vm.displayAmount = "12.34";
       expect(wrapper.vm.amountHint).toBeDefined();
+    });
+    it("detects amount change entered via displayAmount", async () => {
+      wrapper = mountComponent();
+      wrapper.vm.displayAmount = "25.99";
+      wrapper.vm.transaction.amount = 25.99;
+      await wrapper.vm.onSubmit(Promise.resolve({ valid: true }) as any);
+      expect(mockUpdateTransaction).toHaveBeenCalledWith(
+        123,
+        expect.objectContaining({ amount: 25.99 })
+      );
     });
   });
 

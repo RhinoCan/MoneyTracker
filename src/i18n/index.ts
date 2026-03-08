@@ -1,5 +1,6 @@
 // @/i18n/index.ts
 import { createI18n } from "vue-i18n";
+import { en, ar, de, es, fr, it, ja, ko, pt, ru, zhHans } from "vuetify/locale";
 import enUS from "./locales/en-US.json";
 import enCA from "./locales/en-CA.json";
 import enGB from "./locales/en-GB.json";
@@ -17,26 +18,27 @@ import ruRU from "./locales/ru-RU.json";
 import ptBR from "./locales/pt-BR.json";
 import itIT from "./locales/it-IT.json";
 
+// There are no Hindi translations for the native Vuetify messages so we have an English fallback for those words.
 export const i18n = createI18n({
   legacy: false,
   locale: "en-US",
   fallbackLocale: "en-US",
   messages: {
-    "en-US": enUS,
-    "en-CA": enCA,
-    "en-GB": enGB,
-    "fr-FR": frFR,
-    "fr-CA": frCA,
-    "fr-CH": frCH,
-    "es-ES": esES,
-    "de-DE": deDE,
-    "zh-CN": zhCN,
-    "ja-JP": jaJP,
-    "ko-KR": koKR,
-    "hi-IN": hiIN,
-    "ar-SA": arSA,
-    "ru-RU": ruRU,
-    "pt-BR": ptBR,
-    "it-IT": itIT,
+    "en-US": { ...enUS, $vuetify: en },
+    "en-CA": { ...enCA, $vuetify: en },
+    "en-GB": { ...enGB, $vuetify: en },
+    "fr-FR": { ...frFR, $vuetify: fr },
+    "fr-CA": { ...frCA, $vuetify: fr },
+    "fr-CH": { ...frCH, $vuetify: fr },
+    "es-ES": { ...esES, $vuetify: es },
+    "de-DE": { ...deDE, $vuetify: de },
+    "zh-CN": { ...zhCN, $vuetify: zhHans },
+    "ja-JP": { ...jaJP, $vuetify: ja },
+    "ko-KR": { ...koKR, $vuetify: ko },
+    "hi-IN": { ...hiIN, $vuetify: en },
+    "ar-SA": { ...arSA, $vuetify: ar },
+    "ru-RU": { ...ruRU, $vuetify: ru },
+    "pt-BR": { ...ptBR, $vuetify: pt },
+    "it-IT": { ...itIT, $vuetify: it },
   },
 });

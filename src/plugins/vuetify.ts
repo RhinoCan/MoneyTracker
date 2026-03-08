@@ -6,29 +6,27 @@ import * as components from "vuetify/components";
 import * as directives from "vuetify/directives";
 import { VDateInput } from "vuetify/labs/VDateInput";
 import { VuetifyDateAdapter } from "vuetify/date/adapters/vuetify";
-// Vuetify's own internal UI strings (clear button, calendar labels, etc.)
-import { en } from "vuetify/locale";
+import { createVueI18nAdapter } from "vuetify/locale/adapters/vue-i18n";
+import { useI18n } from "vue-i18n";
+import { i18n } from "@/i18n";
 
-// 1. Define your custom light theme with a strict type
 const light: ThemeDefinition = {
   dark: false,
   colors: {
-    primary: "#00796B", // soft teal
-    secondary: "#455A64", // blue-grey
-    surface: "#F5F5F5", // light grey panels/cards
+    primary: "#00796B",
+    secondary: "#455A64",
+    surface: "#F5F5F5",
     background: "#FAFAFA",
-    info: "#00796B", // lighter teal
-    success: "#00695C", // desaturated teal
-    warning: "#616161", // neutral grey
-    error: "#C62828", // muted red
+    info: "#00796B",
+    success: "#00695C",
+    warning: "#616161",
+    error: "#C62828",
   },
 };
 
 export default createVuetify({
   locale: {
-    locale: "en",
-    fallback: "en",
-    messages: { en },
+    adapter: createVueI18nAdapter({ i18n, useI18n }),
     rtl: { ar: true, "ar-SA": true },
   },
   components: {
@@ -47,10 +45,7 @@ export default createVuetify({
     },
   },
   defaults: {
-    global: {
-      // Note: 'font' isn't a standard Vuetify default property,
-      // usually handled in CSS, but keeping it here for your config.
-    },
+    global: {},
   },
   theme: {
     defaultTheme: "light",

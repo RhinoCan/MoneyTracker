@@ -20,7 +20,6 @@ const { required, dateRules, amountRules } = useAppValidationRules();
 const { amountExample, hasCorrectSeparator, decimalSeparator } = useNumberFormatHints();
 
 const showKeyboardShortcuts = ref(false);
-
 const dateError = ref<string | null>(null);
 
 // The component's v-model prop
@@ -32,7 +31,10 @@ const localTransaction = ref<Transaction | null>(null);
 // Date picker needs a Date object
 const pickerDate = ref<Date>(new Date());
 
-const { displayAmount, isFocused, colorClass, handleFocus, handleBlur } =
+// Track the original formatted amount to detect user edits to the amount field
+const originalDisplayAmount = ref("");
+
+const { displayAmount, isFocused, colorClass, handleFocus, handleBlur, transaction } =
   useTransactionFormFields();
 
 // Amount format hint
@@ -71,7 +73,9 @@ watch(
 
       localTransaction.value = cloned;
       if (localTransaction.value) {
+        transaction.value.amount = localTransaction.value.amount;
         displayAmount.value = formatCurrency(localTransaction.value.amount);
+        originalDisplayAmount.value = displayAmount.value;
       }
     }
   },
@@ -108,6 +112,13 @@ function onDateSelected(date: Date | Date[] | null) {
  */
 async function onSubmit(event: SubmitEventPromise) {
   handleBlur();
+
+  // Sync parsed display amount back into localTransaction only if the user
+  // actually changed the amount field (displayAmount differs from original)
+  if (localTransaction.value && displayAmount.value !== originalDisplayAmount.value) {
+    localTransaction.value.amount = transaction.value.amount;
+  }
+
   const { valid } = await event;
   if (!valid || !localTransaction.value || !model.value) {
     logValidation(t("common.invalidAmount"), {
