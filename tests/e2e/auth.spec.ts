@@ -58,7 +58,7 @@ test.describe("Logout", () => {
 // Register
 // -------------------------------------------------------------------------
 test.describe("Register", () => {
-  test("shows success message after registration", async ({ page }) => {
+  test("registration redirects to home when auto-confirmed", async ({ page }) => {
     const email = generateTestEmail();
     const password = "TestPassword123";
 
@@ -67,10 +67,8 @@ test.describe("Register", () => {
     await page.locator('[data-testid="password-field"] input').fill(password);
     await page.locator('[data-testid="confirm-password-field"] input').fill(password);
     await page.getByRole("button", { name: "SIGN UP" }).click();
-
-    // Should stay on register page and show success message
-    await expect(page).toHaveURL(/MoneyTracker\/register/, { timeout: 10000 });
-    await expect(page.getByText(/check your email/i)).toBeVisible({ timeout: 5000 });
+    await expect(page).toHaveURL(/MoneyTracker\/$/, { timeout: 10000 });
+    await logout(page);
   });
 
   test("shows error for duplicate email", async ({ page }) => {
