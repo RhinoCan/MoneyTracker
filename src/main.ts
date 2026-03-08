@@ -10,7 +10,6 @@ import { logException } from "./lib/Logger";
 
 import "./assets/style.css";
 import "vuetify/styles";
-import "@mdi/font/css/materialdesignicons.css";
 
 import App from "./App.vue";
 import TrackerHeader from "@/components/TrackerHeader.vue";
