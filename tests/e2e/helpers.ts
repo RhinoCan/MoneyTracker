@@ -6,7 +6,7 @@ import { type Page, expect } from '@playwright/test';
 // -------------------------------------------------------------------------
 export const TEST_USER = {
   email: 'foo@foobar.com',
-  password: 'foobar',
+  password: 'foobar!!',
 };
 
 // -------------------------------------------------------------------------
@@ -51,10 +51,9 @@ export async function register(page: Page, email: string, password: string) {
   await page.locator('[data-testid="password-field"] input').fill(password);
   await page.locator('[data-testid="confirm-password-field"] input').fill(password);
   await page.getByRole('button', { name: 'SIGN UP' }).click();
-
-  // Auto-confirm enabled in Supabase — signUp creates a session immediately
-  // and App.vue's session watcher redirects to home rather than login.
-  await expect(page).toHaveURL(/MoneyTracker\/(login)?$/, { timeout: 10000 });
+  // With email confirmation enabled, the app stays on the register page
+  // and shows a success message
+  await expect(page).toHaveURL(/MoneyTracker\/register/, { timeout: 10000 });
 }
 
 // -------------------------------------------------------------------------

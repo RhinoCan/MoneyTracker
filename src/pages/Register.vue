@@ -59,10 +59,12 @@ async function handleRegister() {
       notificationStore.showMessage(t("register.fail"), "error");
       return;
     }
-
-    if (data.user) {
+    if (data.session) {
+      // Auto-confirm is enabled — session created immediately, redirect to home
+      router.push("/");
+    } else if (data.user) {
+      // Email confirmation required — show message, stay on register page
       notificationStore.showMessage(t("register.success_check_email"), "success");
-      router.push('/');
     }
   } catch (err) {
     logException(err, {
@@ -126,7 +128,9 @@ async function handleRegister() {
           <v-btn color="primary" block size="large" type="submit" :loading="loading" class="mt-4">
             {{ t("register.button") }}
           </v-btn>
-          <v-card-text class="text-medium-emphasis text-center text-caption px-4 pt-0">{{ t('register.caution') }}</v-card-text>
+          <v-card-text class="text-medium-emphasis text-center text-caption px-4 pt-0">{{
+            t("register.caution")
+          }}</v-card-text>
         </v-form>
       </v-card-text>
 

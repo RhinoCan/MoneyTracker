@@ -58,34 +58,30 @@ test.describe("Logout", () => {
 // Register
 // -------------------------------------------------------------------------
 test.describe("Register", () => {
-  test("creates a new account and redirects to login or home", async ({ page }) => {
+  test("shows success message after registration", async ({ page }) => {
     const email = generateTestEmail();
     const password = "TestPassword123";
 
-    await register(page, email, password);
+    await page.goto(ROUTES.register);
+    await page.getByLabel(/email address/i).fill(email);
+    await page.locator('[data-testid="password-field"] input').fill(password);
+    await page.locator('[data-testid="confirm-password-field"] input').fill(password);
+    await page.getByRole("button", { name: "SIGN UP" }).click();
 
-    const url = page.url();
-    if (url.includes("login")) {
-      await expect(page.getByRole("button", { name: "SIGN IN" })).toBeVisible({ timeout: 8000 });
-    } else {
-      await expect(page.getByText(email, { exact: false })).toBeVisible({ timeout: 8000 });
-      await logout(page);
-    }
+    // Should stay on register page and show success message
+    await expect(page).toHaveURL(/MoneyTracker\/register/, { timeout: 10000 });
+    await expect(page.getByText(/check your email/i)).toBeVisible({ timeout: 5000 });
   });
 
-  test("registered account can log in", async ({ page }) => {
-    const email = generateTestEmail();
-    const password = "TestPassword123";
+  test("shows error for duplicate email", async ({ page }) => {
+    // Use a known existing account rather than registering a new one
+    await page.goto(ROUTES.register);
+    await page.getByLabel(/email address/i).fill(TEST_USER.email);
+    await page.locator('[data-testid="password-field"] input').fill("TestPassword123");
+    await page.locator('[data-testid="confirm-password-field"] input').fill("TestPassword123");
+    await page.getByRole("button", { name: "SIGN UP" }).click();
 
-    await register(page, email, password);
-
-    if (!page.url().includes("login")) {
-      await logout(page);
-    }
-
-    await login(page, email, password);
-    await expect(page.getByText(email, { exact: false })).toBeVisible({ timeout: 10000 });
-    await logout(page);
+    await expect(page.getByText(/could not complete registration/i)).toBeVisible({ timeout: 5000 });
   });
 
   test("shows mismatch error when passwords do not match", async ({ page }) => {
