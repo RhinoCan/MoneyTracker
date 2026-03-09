@@ -178,6 +178,10 @@ describe("Register.vue", () => {
       );
     });
     it("redirects to home on success", async () => {
+      mockSignUp.mockResolvedValue({
+        data: { user: { id: "u1" }, session: { access_token: "token" } },
+        error: null,
+      });
       wrapper = mountComponent();
       wrapper.vm.email = "a@b.com";
       wrapper.vm.password = "secret12";

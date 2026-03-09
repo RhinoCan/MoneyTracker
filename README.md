@@ -100,7 +100,7 @@ npm run test
 npm run test:coverage
 ```
 
-Current coverage: **99.28% statement**, **95.62% branch** across 559 tests in 31 files.
+Current coverage: **99.28% statement**, **95.62% branch** across 562 tests in 31 files.
 
 ### E2E Tests (Playwright)
 
@@ -117,7 +117,7 @@ npx playwright show-report
 
 E2E tests require the dev server to be running and a valid test account (`rhinocan@outlook.com` / `rschl0chA`) to exist in your Supabase project.
 
-Current E2E status: **41/41 passing** across 5 spec files (accessibility, auth, transactions, locales, dataManagement).
+Current E2E status: **44/44 passing** across 5 spec files (accessibility, auth, transactions, locales, dataManagement).
 
 #### Running against the live site
 
