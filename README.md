@@ -115,9 +115,9 @@ npx playwright test --project=chromium tests/e2e/transactions.spec.ts
 npx playwright show-report
 ```
 
-E2E tests require the dev server to be running and a valid test account (`foo@foobar.com` / `foobar`) to exist in your Supabase project.
+E2E tests require the dev server to be running and a valid test account (`rhinocan@outlook.com` / `rschl0chA`) to exist in your Supabase project.
 
-Current E2E status: **31/31 passing** across 4 spec files (auth, transactions, locales, dataManagement).
+Current E2E status: **41/41 passing** across 5 spec files (accessibility, auth, transactions, locales, dataManagement).
 
 #### Running against the live site
 
@@ -178,4 +178,4 @@ This project started as a follow-along with a Brad Traversy course and was incre
 
 ## Acknowledgements
 
-Built with significant assistance from [Claude](https://claude.ai) (Anthropic), [ChatGPT](https://chat.openai.com) (OpenAI), and [Gemini](https://gemini.google.com) (Google) — each contributed at various points throughout development. Thanks also to Brad Traversy for the original course project that served as the starting point.
+Built with significant assistance from [Claude](https://claude.ai) (Anthropic), [ChatGPT](https://chat.openai.com) (OpenAI), and [Gemini](https://gemini.google.com) (Google) — each contributed at various points throughout development, particularly Claude. Thanks also to Brad Traversy for the original course project that served as the starting point.

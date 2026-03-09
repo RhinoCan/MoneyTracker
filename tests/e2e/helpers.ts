@@ -5,8 +5,8 @@ import { type Page, expect } from '@playwright/test';
 // Credentials
 // -------------------------------------------------------------------------
 export const TEST_USER = {
-  email: 'foo@foobar.com',
-  password: 'foobar!!',
+  email: 'rhinocan@outlook.com',
+  password: 'rschl0chA',
 };
 
 // -------------------------------------------------------------------------
@@ -126,5 +126,5 @@ export async function addTransaction(
 // generateTestEmail
 // -------------------------------------------------------------------------
 export function generateTestEmail(): string {
-  return `foo+test${Date.now()}@foobar.com`;
+  return `+test${Date.now()}@outlook.com`;
 }

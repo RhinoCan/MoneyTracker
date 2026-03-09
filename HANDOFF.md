@@ -3,16 +3,16 @@
 ## Current Status
 
 ### Version
-**1.7.2** — deployed to https://rhinocan.github.io/MoneyTracker/
+**1.7.5** — deployed to https://rhinocan.github.io/MoneyTracker/
 
 ### Unit Tests
-- **561 tests passing** across 31 files
+- **562 tests passing** across 31 files
 - **99.29% statement coverage**, **95.63% branch coverage**
 - All passes complete and stable
 
 ### E2E Tests (Playwright)
 - **44 tests** across 5 spec files, 0 skipped
-- **Status: 34/34 + 10/10 accessibility tests passing — all green**
+- **Status: 44/44 passing — all green locally and in CI**
 - Browser: Chromium only for local dev (Firefox/WebKit commented out in config)
 - Run with: `npx playwright test --project=chromium` or `npm run test:e2e`
 - View results: `npx playwright show-report`
@@ -292,8 +292,8 @@ These axe rules are suppressed in `accessibility.spec.ts` — unfixable without 
 ## Remaining Work
 
 ### All Phases Complete ✅
-- Unit tests: 557/557 passing
-- E2E tests: 31/31 passing
+- Unit tests: 562/562 passing
+- E2E tests: 44/44 passing locally and in CI
 - Accessibility tests: 10/10 passing
 - Visual QA: complete across 6 locales
 
@@ -363,3 +363,11 @@ These axe rules are suppressed in `accessibility.spec.ts` — unfixable without 
 48. NIST SP 800-63B recommends minimum 8 characters, maximum 64+ characters, and NO complexity rules (no required uppercase/numbers/symbols) — password rules enforced on Register only, not Login, to avoid blocking existing accounts
 49. `.v-card-title` needs `color: rgba(0,0,0,0.87) !important` in global CSS — on Login/Register pages the card sits on `bg-grey-lighten-4` (#f0f0f0) which is lighter than the main surface color, causing inherited title color to fail contrast
 50. `.text-medium-emphasis` needs `color: #616161 !important; opacity: 1 !important` in global CSS — the CSS variable `--v-medium-emphasis-opacity` alone does not win on all pages
+51. Vuetify's internal translation keys (e.g. `$vuetify.input.clear`, `$vuetify.input.appendAction`) must be provided via `createVueI18nAdapter` in `vuetify.ts` — import per-locale strings from `vuetify/locale` and merge them under `$vuetify` in each locale's messages in `i18n/index.ts`. Hindi (`hi`) is not available in Vuetify's locale exports — use English (`en`) as fallback
+52. MDI icons should be loaded via CDN in `index.html` only — do not also import `@mdi/font/css/materialdesignicons.css` in `main.ts` or reference it in `vite.config.ts` `optimizeDeps.include`. The npm package is not a declared dependency and will fail in CI on a clean install
+53. `UpdateTransaction.vue` uses `displayAmount` (formatted string) bound to the amount field, but the diff comparison uses `localTransaction.value.amount` (numeric). Sync `transaction.value.amount` into `localTransaction.value.amount` in `onSubmit` only when `displayAmount` differs from `originalDisplayAmount` — tracked via a ref set during the `watch` initialisation
+54. CI runs against a dedicated **MoneyTrackerTest** Supabase project with email confirmation disabled — production Supabase is never touched by CI. Test credentials stored as `VITE_SUPABASE_URL_TEST` and `VITE_SUPABASE_ANON_KEY_TEST` GitHub Actions secrets, passed to the runner as `VITE_SUPABASE_URL` and `VITE_SUPABASE_ANON_KEY` in `playwright.yml`
+55. Supabase free tier allows 2 active projects — one production, one test/CI
+56. Supabase email rate limit on free tier is 1 email/hour and is read-only (cannot be changed). With email confirmation enabled, duplicate email registrations silently return success (intentional enumeration attack prevention) — the "shows error for duplicate email" test is not reliably testable
+57. Register.vue checks `data.session` (not `data.user`) after `signUp` — `data.session` is null when email confirmation is required, non-null when auto-confirmed. Show "check your email" message and stay on register page when `data.session` is null; redirect to home when non-null
+58. GitHub Actions secrets are required for CI to access Supabase — the `.env` file is in `.gitignore` and never reaches the CI runner. Local development uses `.env`; CI uses GitHub Secrets
