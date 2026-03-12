@@ -126,5 +126,5 @@ export async function addTransaction(
 // generateTestEmail
 // -------------------------------------------------------------------------
 export function generateTestEmail(): string {
-  return `+test${Date.now()}@outlook.com`;
+  return `rhinocan+test${Date.now()}@outlook.com`;
 }
