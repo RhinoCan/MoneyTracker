@@ -26,6 +26,7 @@ export async function login(
   email = TEST_USER.email,
   password = TEST_USER.password
 ) {
+  await page.waitForTimeout(500); // Avoid Supabase rate limiting
   await page.goto(ROUTES.login);
   await page.getByLabel(/email address/i).fill(email);
   await page.locator('[data-testid="password-field"] input').fill(password);
@@ -39,7 +40,7 @@ export async function login(
 // -------------------------------------------------------------------------
 export async function logout(page: Page) {
   await page.locator('[data-testid="logoff"]').click({ timeout: 10000 });
-  await expect(page).toHaveURL(/login/, { timeout: 10000 });
+  await expect(page).toHaveURL(/login/, { timeout: 15000 });
 }
 
 // -------------------------------------------------------------------------

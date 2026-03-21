@@ -112,14 +112,32 @@ export const useUserStore = defineStore("user", () => {
    * signOut
    * Ends the Supabase session. Cleanup is handled by the onAuthStateChange listener.
    */
-  async function signOut() {
+async function signOut() {
+  try {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
+  } catch (error: unknown) {
+    // If session is already missing, clean up local state manually
+    // since SIGNED_OUT event won't fire
+    if ((error as { name?: string })?.name === 'AuthSessionMissingError') {
+      posthog.reset();
+      isInitialized.value = false;
+      user.value = null;
+      session.value = null;
 
-    // Local state clear as a secondary safety measure
-    user.value = null;
-    session.value = null;
+      const transactionStore = useTransactionStore();
+      transactionStore.transactions = [];
+
+      const settingsStore = useSettingsStore();
+      settingsStore.restoreDefaults();
+      return; // Don't rethrow — we've handled it
+    }
+    throw error; // Rethrow other errors for handleLogout to catch
   }
+
+  user.value = null;
+  session.value = null;
+}
 
   return {
     user,

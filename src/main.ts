@@ -1,6 +1,7 @@
 // @/main.ts
 import { createApp } from "vue";
 import { createPinia } from "pinia";
+import { watch } from "vue";
 import { i18n } from "./i18n/index";
 import router from "./router";
 import vuetify from "./plugins/vuetify";
@@ -55,5 +56,9 @@ app.use(pinia);
 app.use(i18n);
 app.use(router);
 app.use(vuetify);
+
+watch (i18n.global.locale, (newLocale) => {
+  document.documentElement.lang = newLocale as string;
+}, { immediate: true});
 
 app.mount("#app");

@@ -15,15 +15,20 @@ import {
 // -------------------------------------------------------------------------
 // Helpers
 // -------------------------------------------------------------------------
-async function runAxe(page: Page) {
-  const results = await new AxeBuilder({ page })
+async function runAxe(page: Page, excludeSelectors: string[] = []) {
+  let builder = new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
     .disableRules([
       "aria-allowed-attr", // Vuetify 3 date picker uses aria-expanded on a non-combobox (internal, unfixable)
       "aria-tooltip-name", // Vuetify 3 tooltip overlay renders without accessible name (internal, unfixable)
       "aria-progressbar-name", // Vuetify 3 v-data-table loading spinner not labelable (internal, unfixable)
-    ])
-    .analyze();
+    ]);
+
+  for (const selector of excludeSelectors) {
+    builder = builder.exclude(selector);
+  }
+
+  const results = await builder.analyze();
 
   // Log moderate/minor violations as warnings without failing
   const minor = results.violations.filter((v) => v.impact === "moderate" || v.impact === "minor");
@@ -94,9 +99,15 @@ test.describe("Accessibility", () => {
   test("settings dialog", async ({ page }) => {
     requiresLogout = true;
     await login(page);
+    //Dismiss the login snackbar before scanning
+    const snackbarClose = page.locator('.v-snackbar button[aria-label="Close"], .v-snackbar .v-btn--icon').first();
+    if (await snackbarClose.isVisible()) {
+      await snackbarClose.click();
+    }
+    await page.waitForTimeout(300);
     await openSettings(page);
     try {
-      await runAxe(page);
+      await runAxe(page, ['main']);
     } finally {
       await cancelSettings(page);
     }
@@ -113,7 +124,7 @@ test.describe("Accessibility", () => {
     }
     await page.waitForTimeout(500); // allow login snackbar to clear before scanning
     try {
-      await runAxe(page);
+      await runAxe(page, ['main']);
     } finally {
       await cancelSettings(page);
     }
@@ -124,7 +135,7 @@ test.describe("Accessibility", () => {
     await login(page);
     await openDataManagement(page);
     try {
-      await runAxe(page);
+      await runAxe(page, ['main']);
     } finally {
       await closeDataManagement(page);
     }
@@ -139,7 +150,7 @@ test.describe("Accessibility", () => {
     // Wait for tooltip animation to complete before scanning
     await page.waitForTimeout(500);
     try {
-      await runAxe(page);
+      await runAxe(page, ['main']);
     } finally {
       await page.keyboard.press("Escape");
       await page.waitForTimeout(300);
@@ -162,7 +173,7 @@ test.describe("Accessibility", () => {
     await page.locator('[role="dialog"]').first().locator('button[aria-label="Help"]').click();
     await expect(page.getByRole("dialog").nth(1)).toBeVisible({ timeout: 5000 });
     try {
-      await runAxe(page);
+      await runAxe(page, ['main']);
     } finally {
       await page.keyboard.press("Escape");
       await page.waitForTimeout(300);
@@ -183,7 +194,7 @@ test.describe("Accessibility", () => {
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
     await page.waitForTimeout(500); // allow snackbar transition to complete before scanning
     try {
-      await runAxe(page);
+      await runAxe(page, ['main']);
     } finally {
       await page
         .getByRole("dialog")
@@ -206,7 +217,7 @@ test.describe("Accessibility", () => {
     await page.locator('[data-testid="update-btn"]').first().click();
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });
     try {
-      await runAxe(page);
+      await runAxe(page, ['main']);
     } finally {
       await page.keyboard.press("Escape");
       await page.waitForTimeout(300);

@@ -26,15 +26,17 @@ const appEnvironment = computed(() => {
 async function handleLogout() {
   try {
     await userStore.signOut();
-    router.push("/login");
   } catch (error) {
     logException(error, {
       module: "TrackerHeader",
       action: "handleLogout",
       slug: "header.logout_failed",
     });
+    // If session is already missing, the user is effectively logged out
+    // so redirect to login regardless
   }
-}
+  router.push("/login");
+};
 
 const showSettings = ref(false);
 const showDataManagement = ref(false);

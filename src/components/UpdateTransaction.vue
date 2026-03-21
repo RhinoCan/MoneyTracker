@@ -342,4 +342,9 @@ async function onSubmit(event: SubmitEventPromise) {
 .money-field.money-minus :deep(.v-field__input) {
   color: #e74c3c !important;
 }
+
+:deep(.v-card-title .v-field-label--floating) {
+  color: rgba(255, 255, 255, 0.87) !important;
+}
+
 </style>
