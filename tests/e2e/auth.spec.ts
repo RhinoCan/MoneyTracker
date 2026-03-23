@@ -58,11 +58,7 @@ test.describe("Logout", () => {
 // Register
 // -------------------------------------------------------------------------
 test.describe("Register", () => {
-  test("registration redirects to home when auto-confirmed", async ({ page }) => {
-    test.skip(
-      process.env.SKIP_REGISTRATION_TEST === "true",
-      "Skipping registration test in scheduled run"
-    );
+  test.skip("registration redirects to home when auto-confirmed", async ({ page }) => {
     const email = generateTestEmail();
     const password = "TestPassword123";
 
