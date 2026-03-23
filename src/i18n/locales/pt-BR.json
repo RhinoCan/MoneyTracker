@@ -222,5 +222,26 @@
   },
   "localeList": {
     "intl_supported_values_failed": "Erro ao carregar lista de idiomas."
+  },
+  "forgotPassword": {
+    "title": "Esqueci a Senha",
+    "instruction": "Digite seu endereço de e-mail e enviaremos um link de redefinição de senha.",
+    "emailLabel": "Endereço de E-mail",
+    "submitButton": "Enviar Link de Redefinição",
+    "successMessage": "E-mail de redefinição de senha enviado. Por favor, verifique sua caixa de entrada.",
+    "backToLogin": "Voltar ao Login",
+    "errorMessage": "Ocorreu um erro. Por favor, tente novamente."
+  },
+  "resetPassword": {
+    "title": "Redefinir Senha",
+    "instruction": "Digite sua nova senha abaixo.",
+    "passwordLabel": "Nova Senha",
+    "confirmPasswordLabel": "Confirmar Nova Senha",
+    "submitButton": "Redefinir Senha",
+    "successMessage": "Senha redefinida com sucesso. Por favor, faça login com sua nova senha.",
+    "mismatchError": "As senhas não coincidem.",
+    "shortError": "A senha deve ter pelo menos 8 caracteres.",
+    "errorMessage": "Ocorreu um erro. Por favor, tente novamente.",
+    "invalidToken": "Este link de redefinição de senha é inválido ou expirou. Por favor, solicite um novo."
   }
 }

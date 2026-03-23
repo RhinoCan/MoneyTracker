@@ -42,4 +42,5 @@ export type SupportedLocale =
   | "ar-SA"
   | "ru-RU"
   | "pt-BR"
-  | "it-IT";
+  | "it-IT"
+  | "ta-IN";

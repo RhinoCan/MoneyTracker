@@ -117,7 +117,9 @@ describe("TrackerHeader.vue", () => {
     it("calls userStore.signOut on logout", async () => {
       mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
       const wrapper = mountInLayout();
-      const logoutBtn = wrapper.findAll(".v-btn").find((b) => b.text().toLowerCase().includes("log"));
+      const logoutBtn = wrapper
+        .findAll(".v-btn")
+        .find((b) => b.text().toLowerCase().includes("log"));
       await logoutBtn!.trigger("click");
       expect(mockSignOut).toHaveBeenCalled();
     });
@@ -125,20 +127,24 @@ describe("TrackerHeader.vue", () => {
     it("redirects to /login after successful logout", async () => {
       mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
       const wrapper = mountInLayout();
-      const logoutBtn = wrapper.findAll(".v-btn").find((b) => b.text().toLowerCase().includes("log"));
+      const logoutBtn = wrapper
+        .findAll(".v-btn")
+        .find((b) => b.text().toLowerCase().includes("log"));
       await logoutBtn!.trigger("click");
       await wrapper.vm.$nextTick();
       expect(mockPush).toHaveBeenCalledWith("/login");
     });
 
-    it("does not redirect if signOut throws", async () => {
+    it("redirects to login even if signOut throws", async () => {
       mockSignOut.mockRejectedValueOnce(new Error("Sign out failed"));
       mockUserStore({ isAuthenticated: true, userEmail: "user@example.com" });
       const wrapper = mountInLayout();
-      const logoutBtn = wrapper.findAll(".v-btn").find((b) => b.text().toLowerCase().includes("log"));
+      const logoutBtn = wrapper
+        .findAll(".v-btn")
+        .find((b) => b.text().toLowerCase().includes("log"));
       await logoutBtn!.trigger("click");
       await wrapper.vm.$nextTick();
-      expect(mockPush).not.toHaveBeenCalled();
+      expect(mockPush).toHaveBeenCalledWith("/login");
     });
   });
 

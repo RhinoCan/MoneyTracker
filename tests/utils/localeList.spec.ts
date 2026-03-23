@@ -57,7 +57,7 @@ describe("generateLocaleList", () => {
   // -------------------------------------------------------------------------
   describe("supported language filtering", () => {
     it("only returns locales whose base language is in the supported list", () => {
-      const supported = ["en", "fr", "es", "de", "zh", "ja", "ko", "hi", "ar", "ru", "pt", "it"];
+      const supported = ["en", "fr", "es", "de", "zh", "ja", "ko", "hi", "ar", "ru", "pt", "it", "ta"];
       const result = generateLocaleList();
       result.forEach((item) => {
         const base = item.code.split("-")[0].toLowerCase();
@@ -122,7 +122,7 @@ describe("generateLocaleList", () => {
     });
 
     it("fallback list only contains supported language codes", () => {
-      const supported = ["en", "fr", "es", "de", "zh", "ja", "ko", "hi", "ar", "ru", "pt", "it"];
+      const supported = ["en", "fr", "es", "de", "zh", "ja", "ko", "hi", "ar", "ru", "pt", "it", "ta"];
       const result = generateLocaleList();
       result.forEach((item) => {
         const base = item.code.split("-")[0].toLowerCase();

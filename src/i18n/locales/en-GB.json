@@ -221,5 +221,26 @@
   },
   "localeList": {
     "intl_supported_values_failed": "Unable to load the language list. A default list will be used instead."
+  },
+  "forgotPassword": {
+    "title": "Forgot Password",
+    "instruction": "Enter your email address and we will send you a password reset link.",
+    "emailLabel": "Email Address",
+    "submitButton": "Send Reset Link",
+    "successMessage": "Password reset email sent. Please check your inbox.",
+    "backToLogin": "Back to Login",
+    "errorMessage": "An error occurred. Please try again."
+  },
+  "resetPassword": {
+    "title": "Reset Password",
+    "instruction": "Enter your new password below.",
+    "passwordLabel": "New Password",
+    "confirmPasswordLabel": "Confirm New Password",
+    "submitButton": "Reset Password",
+    "successMessage": "Password reset successful. Please log in with your new password.",
+    "mismatchError": "Passwords do not match.",
+    "shortError": "Password must be at least 8 characters.",
+    "errorMessage": "An error occurred. Please try again.",
+    "invalidToken": "This password reset link is invalid or has expired. Please request a new one."
   }
 }

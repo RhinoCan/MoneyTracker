@@ -70,6 +70,10 @@ describe("Login.vue", () => {
       wrapper = mountComponent();
       expect(wrapper.text()).toContain("Sign In");
     });
+    it("renders the Forgot Password button", () => {
+      wrapper = mountComponent();
+      expect(wrapper.text()).toContain("Forgot Password");
+    });
     it("renders the no account prompt", () => {
       wrapper = mountComponent();
       expect(wrapper.text()).toContain("Don't have an account?");
@@ -87,6 +91,12 @@ describe("Login.vue", () => {
       const btn = wrapper.findAll(".v-btn").find((b: any) => b.text().includes("Register"));
       await btn.trigger("click");
       expect(mockPush).toHaveBeenCalledWith({ name: "register" });
+    });
+    it("navigates to forgot-password when Forgot Password is clicked", async () => {
+      wrapper = mountComponent();
+      const btn = wrapper.findAll(".v-btn").find((b: any) => b.text().includes("Forgot Password"));
+      await btn.trigger("click");
+      expect(mockPush).toHaveBeenCalledWith({ name: "forgot-password" });
     });
   });
 

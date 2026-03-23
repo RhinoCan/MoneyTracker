@@ -19,6 +19,10 @@ const goToRegister = () => {
   router.push({ name: "register" });
 };
 
+const goToForgotPassword = () => {
+  router.push({ name: "forgot-password" });
+};
+
 async function handleLogin() {
   if (!email.value || !password.value) {
     notificationStore.showMessage(t("common.fill_all_fields"), "error");
@@ -108,8 +112,13 @@ async function handleLogin() {
           </v-btn>
         </v-form>
       </v-card-text>
-
       <v-card-actions class="justify-center mt-2">
+        <v-btn variant="text" color="secondary" class="ml-1" @click="goToForgotPassword">
+          {{ t("forgotPassword.title") }}
+        </v-btn>
+      </v-card-actions>
+
+      <v-card-actions class="justify-center">
         <span class="text-body-2 text-medium-emphasis">
           {{ t("login.no_account") }}
         </span>

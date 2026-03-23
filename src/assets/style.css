@@ -25,12 +25,14 @@
 
 .v-card-actions .v-btn:not(.v-btn--icon) {
   max-width: 100%;
+  min-height: 36px;
   height: auto;
   white-space: normal;
 }
 
 .v-card-text .v-btn:not(.v-btn--icon) {
   max-width: 100%;
+  min-height: 36px;
   height: auto;
   white-space: normal;
 }

@@ -25,7 +25,7 @@ export default defineConfig({
   ],
 
   webServer: {
-    command: 'npm run dev',
+    command: 'cross-env VITE_PLAYWRIGHT=true npm run dev',
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     stdout: 'ignore',

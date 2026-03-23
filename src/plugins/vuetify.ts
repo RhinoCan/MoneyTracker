@@ -21,7 +21,7 @@ const light: ThemeDefinition = {
     success: "#00695C",
     warning: "#616161",
     error: "#C62828",
-    "on-success": "#FFFFFF"
+    "on-success": "#1a3a35"
   },
 };
 

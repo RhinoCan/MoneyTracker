@@ -8,6 +8,12 @@ test.setTimeout(60000);
 // Helper — change locale via Settings dialog
 // -------------------------------------------------------------------------
 async function changeLocale(page: Page, localeCode: string) {
+  // Dismiss any lingering snackbar before opening settings
+  const snackbarClose = page.locator('.v-snackbar .v-btn--icon').first();
+  if (await snackbarClose.isVisible()) {
+    await snackbarClose.click();
+    await page.waitForTimeout(300);
+  }
   await openSettings(page);
   await selectLocale(page, localeCode);
   await saveSettings(page);

@@ -17,6 +17,7 @@ import arSA from "./locales/ar-SA.json";
 import ruRU from "./locales/ru-RU.json";
 import ptBR from "./locales/pt-BR.json";
 import itIT from "./locales/it-IT.json";
+import taIN from "./locales/ta-IN.json"
 
 // There are no Hindi translations for the native Vuetify messages so we have an English fallback for those words.
 export const i18n = createI18n({
@@ -40,5 +41,6 @@ export const i18n = createI18n({
     "ru-RU": { ...ruRU, $vuetify: ru },
     "pt-BR": { ...ptBR, $vuetify: pt },
     "it-IT": { ...itIT, $vuetify: it },
+    "ta-IN": { ...taIN, $vuetify: en }
   },
 });

@@ -222,5 +222,26 @@
   },
   "localeList": {
     "intl_supported_values_failed": "Impossibile caricare l'elenco lingue."
+  },
+  "forgotPassword": {
+    "title": "Password Dimenticata",
+    "instruction": "Inserisci il tuo indirizzo email e ti invieremo un link per reimpostare la password.",
+    "emailLabel": "Indirizzo Email",
+    "submitButton": "Invia Link di Reimpostazione",
+    "successMessage": "Email di reimpostazione password inviata. Controlla la tua casella di posta.",
+    "backToLogin": "Torna al Login",
+    "errorMessage": "Si è verificato un errore. Riprova."
+  },
+  "resetPassword": {
+    "title": "Reimposta Password",
+    "instruction": "Inserisci la tua nuova password qui sotto.",
+    "passwordLabel": "Nuova Password",
+    "confirmPasswordLabel": "Conferma Nuova Password",
+    "submitButton": "Reimposta Password",
+    "successMessage": "Reimpostazione password riuscita. Accedi con la tua nuova password.",
+    "mismatchError": "Le password non corrispondono.",
+    "shortError": "La password deve contenere almeno 8 caratteri.",
+    "errorMessage": "Si è verificato un errore. Riprova.",
+    "invalidToken": "Questo link di reimpostazione password non è valido o è scaduto. Richiedine uno nuovo."
   }
 }

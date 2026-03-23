@@ -48,6 +48,17 @@ describe("router navigation guard", () => {
       await router.push("/register");
       expect(router.currentRoute.value.name).toBe("register");
     });
+
+    // Inside "unauthenticated user (no session)"
+    it("allows access to forgot-password page", async () => {
+      await router.push("/forgot-password");
+      expect(router.currentRoute.value.name).toBe("forgot-password");
+    });
+
+    it("allows access to reset-password page", async () => {
+      await router.push("/reset-password");
+      expect(router.currentRoute.value.name).toBe("reset-password");
+    });
   });
 
   // --- AUTHENTICATED USER ---
@@ -57,6 +68,17 @@ describe("router navigation guard", () => {
         data: { session: { access_token: "tok", user: { id: "u1" } } },
         error: null,
       });
+    });
+
+    // Inside "authenticated user (active session)"
+    it("allows access to reset-password when authenticated", async () => {
+      await router.push("/reset-password");
+      expect(router.currentRoute.value.name).toBe("reset-password");
+    });
+
+    it("redirects away from forgot-password to home when authenticated", async () => {
+      await router.push("/forgot-password");
+      expect(router.currentRoute.value.name).toBe("home");
     });
 
     it("allows access to protected home route", async () => {

@@ -29,13 +29,11 @@ Sentry.init({
   dsn: import.meta.env.VITE_SENTRY_DSN as string,
   integrations: [
     Sentry.browserTracingIntegration({ router }),
-    Sentry.replayIntegration(),
+    ...(import.meta.env.VITE_PLAYWRIGHT ? [] : [Sentry.replayIntegration()]),
   ],
-  // Performance Monitoring
   tracesSampleRate: 1.0,
-  // Session Replay
-  replaysSessionSampleRate: 0.1,
-  replaysOnErrorSampleRate: 1.0,
+  replaysSessionSampleRate: import.meta.env.VITE_PLAYWRIGHT ? 0 : 0.1,
+  replaysOnErrorSampleRate: import.meta.env.VITE_PLAYWRIGHT ? 0 : 1.0,
 });
 
 // 3. GLOBAL ERROR HANDLER

@@ -14,6 +14,7 @@ export const localeToCurrency: Record<SupportedLocale, SupportedCurrency> = {
   "fr-CA": "CAD", "fr-CH": "CHF", "es-ES": "EUR", "de-DE": "EUR",
   "zh-CN": "CNY", "ja-JP": "JPY", "ko-KR": "KRW", "hi-IN": "INR",
   "ar-SA": "SAR", "ru-RU": "RUB", "pt-BR": "BRL", "it-IT": "EUR",
+  "ta-IN": "INR"
 };
 
 export const useSettingsStore = defineStore("settingsStore", () => {

@@ -23,6 +23,16 @@ const routes: Array<RouteRecordRaw> = [
     name: "register",
     component: () => import("@/pages/Register.vue"),
   },
+  {
+    path: "/forgot-password",
+    name: "forgot-password",
+    component: () => import("@/pages/ForgotPassword.vue"),
+  },
+  {
+    path: "/reset-password",
+    name: "reset-password",
+    component: () => import("@/pages/ResetPassword.vue"),
+  },
 ];
 
 const router = createRouter({
@@ -36,7 +46,7 @@ const router = createRouter({
  */
 router.beforeEach(async (to, from, next) => {
   try {
-    // Check session with Supabase
+
     const {
       data: { session },
       error,
@@ -51,23 +61,23 @@ router.beforeEach(async (to, from, next) => {
       return next({ name: "login" });
     }
 
-    // B. Public Page Access Control (Bounce logged-in users away from Login/Register)
-    const isAuthPage = to.name === "login" || to.name === "register";
+    // B. Public Page Access Control
+    const isAuthPage =
+      to.name === "login" ||
+      to.name === "register" ||
+      to.name === "forgot-password";
     if (isAuthPage && isLoggedIn) {
       return next({ name: "home" });
     }
 
-    // C. Proceed as normal
     next();
   } catch (error) {
-    // Log failures (network, session expiry, etc.)
     logException(error, {
       module: "Router",
       action: "navigationGuard",
       slug: "router.auth_check_failed",
     });
 
-    // Recovery: Send to login unless they are already trying to go there
     if (to.name === "login") {
       next();
     } else {

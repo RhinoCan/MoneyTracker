@@ -222,5 +222,26 @@
   },
   "localeList": {
     "intl_supported_values_failed": "Impossible de charger la liste des langues. Une liste par défaut sera utilisée à la place."
+  },
+  "forgotPassword": {
+    "title": "Mot de passe oublié",
+    "instruction": "Saisissez votre adresse e-mail et nous vous enverrons un lien de réinitialisation du mot de passe.",
+    "emailLabel": "Adresse e-mail",
+    "submitButton": "Envoyer le lien de réinitialisation",
+    "successMessage": "E-mail de réinitialisation du mot de passe envoyé. Veuillez consulter votre boîte de réception.",
+    "backToLogin": "Retour à la connexion",
+    "errorMessage": "Une erreur s'est produite. Veuillez réessayer."
+  },
+  "resetPassword": {
+    "title": "Réinitialiser le mot de passe",
+    "instruction": "Saisissez votre nouveau mot de passe ci-dessous.",
+    "passwordLabel": "Nouveau mot de passe",
+    "confirmPasswordLabel": "Confirmer le nouveau mot de passe",
+    "submitButton": "Réinitialiser le mot de passe",
+    "successMessage": "Réinitialisation du mot de passe réussie. Veuillez vous connecter avec votre nouveau mot de passe.",
+    "mismatchError": "Les mots de passe ne correspondent pas.",
+    "shortError": "Le mot de passe doit contenir au moins 8 caractères.",
+    "errorMessage": "Une erreur s'est produite. Veuillez réessayer.",
+    "invalidToken": "Ce lien de réinitialisation du mot de passe n'est pas valide ou a expiré. Veuillez en demander un nouveau."
   }
 }

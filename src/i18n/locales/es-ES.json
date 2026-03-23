@@ -222,5 +222,26 @@
   },
   "localeList": {
     "intl_supported_values_failed": "No se pudo cargar la lista de idiomas. Se usará una lista por defecto."
+  },
+  "forgotPassword": {
+    "title": "Olvidé mi contraseña",
+    "instruction": "Introduce tu dirección de correo electrónico y te enviaremos un enlace para restablecer la contraseña.",
+    "emailLabel": "Dirección de correo electrónico",
+    "submitButton": "Enviar enlace de restablecimiento",
+    "successMessage": "Correo electrónico de restablecimiento de contraseña enviado. Por favor, revisa tu bandeja de entrada.",
+    "backToLogin": "Volver al inicio de sesión",
+    "errorMessage": "Se ha producido un error. Por favor, inténtalo de nuevo."
+  },
+  "resetPassword": {
+    "title": "Restablecer contraseña",
+    "instruction": "Introduce tu nueva contraseña a continuación.",
+    "passwordLabel": "Nueva contraseña",
+    "confirmPasswordLabel": "Confirmar nueva contraseña",
+    "submitButton": "Restablecer contraseña",
+    "successMessage": "Contraseña restablecida correctamente. Por favor, inicia sesión con tu nueva contraseña.",
+    "mismatchError": "Las contraseñas no coinciden.",
+    "shortError": "La contraseña debe tener al menos 8 caracteres.",
+    "errorMessage": "Se ha producido un error. Por favor, inténtalo de nuevo.",
+    "invalidToken": "Este enlace de restablecimiento de contraseña no es válido o ha caducado. Por favor, solicita uno nuevo."
   }
 }

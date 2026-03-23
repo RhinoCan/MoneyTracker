@@ -17,7 +17,9 @@ const {
   mockFetchTransactions,
   mockTransactions,
 } = vi.hoisted(() => ({
-  mockOnAuthStateChange: vi.fn().mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
+  mockOnAuthStateChange: vi
+    .fn()
+    .mockReturnValue({ data: { subscription: { unsubscribe: vi.fn() } } }),
   mockGetSession: vi.fn().mockResolvedValue({ data: { session: null }, error: null }),
   mockSignOut: vi.fn().mockResolvedValue({ error: null }),
   mockPosthogIdentify: vi.fn(),
@@ -31,6 +33,10 @@ const {
 // -------------------------------------------------------------------------
 // Mocks
 // -------------------------------------------------------------------------
+vi.mock("@/router", () => ({
+  default: { push: vi.fn() },
+}));
+
 vi.mock("@/lib/supabase", () => ({
   supabase: {
     auth: {
@@ -223,9 +229,12 @@ describe("UserStore", () => {
     it("calls posthog.identify with the user id", async () => {
       const store = useUserStore();
       await store.initializeAuth();
-      expect(mockPosthogIdentify).toHaveBeenCalledWith("user-123", expect.objectContaining({
-        email: "test@example.com",
-      }));
+      expect(mockPosthogIdentify).toHaveBeenCalledWith(
+        "user-123",
+        expect.objectContaining({
+          email: "test@example.com",
+        })
+      );
     });
 
     it("calls loadSettings during initialization", async () => {
@@ -258,7 +267,10 @@ describe("UserStore", () => {
   // -------------------------------------------------------------------------
   describe("initializeAuth with getSession error", () => {
     it("sets loading to false even when getSession throws", async () => {
-      mockGetSession.mockResolvedValue({ data: { session: null }, error: { message: "auth error" } });
+      mockGetSession.mockResolvedValue({
+        data: { session: null },
+        error: { message: "auth error" },
+      });
 
       const store = useUserStore();
       await expect(store.initializeAuth()).rejects.toThrow();
@@ -322,9 +334,12 @@ describe("UserStore", () => {
       const newSession = makeSession("new-user-456", "new@example.com");
       await authCallback("SIGNED_IN", newSession);
 
-      expect(mockPosthogIdentify).toHaveBeenCalledWith("new-user-456", expect.objectContaining({
-        email: "new@example.com",
-      }));
+      expect(mockPosthogIdentify).toHaveBeenCalledWith(
+        "new-user-456",
+        expect.objectContaining({
+          email: "new@example.com",
+        })
+      );
       expect(mockLoadSettings).toHaveBeenCalled();
       expect(mockFetchTransactions).toHaveBeenCalled();
     });
@@ -373,6 +388,41 @@ describe("UserStore", () => {
 
       expect(store.user).toBeNull();
       expect(store.session).toBeNull();
+    });
+
+    // Inside "onAuthStateChange callback"
+    it("PASSWORD_RECOVERY event redirects to reset-password", async () => {
+      const { default: router } = await import("@/router");
+      const mockRouterPush = vi.mocked(router.push);
+
+      const store = useUserStore();
+      await store.initializeAuth();
+
+      const recoverySession = makeSession();
+      await authCallback("PASSWORD_RECOVERY", recoverySession);
+
+      expect(mockRouterPush).toHaveBeenCalledWith({ name: "reset-password" });
+    });
+
+    // Inside "signOut"
+    it("handles AuthSessionMissingError gracefully without throwing", async () => {
+      const authSessionError = new Error("Auth session missing!");
+      authSessionError.name = "AuthSessionMissingError";
+      mockSignOut.mockRejectedValueOnce(authSessionError);
+
+      const store = useUserStore();
+      // @ts-ignore
+      store.user = { id: "user-123", email: "test@example.com" };
+      // @ts-ignore
+      store.session = makeSession();
+      store.isInitialized = true;
+
+      await expect(store.signOut()).resolves.not.toThrow();
+      expect(store.user).toBeNull();
+      expect(store.session).toBeNull();
+      expect(store.isInitialized).toBe(false);
+      expect(mockPosthogReset).toHaveBeenCalled();
+      expect(mockRestoreDefaults).toHaveBeenCalled();
     });
   });
 

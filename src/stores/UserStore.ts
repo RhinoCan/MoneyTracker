@@ -3,6 +3,7 @@ import { ref, computed } from "vue";
 import { supabase } from "@/lib/supabase";
 import posthog from "posthog-js";
 import type { User, Session } from "@supabase/supabase-js";
+import router from "@/router";
 
 // --- ORCHESTRATION IMPORTS ---
 import { useSettingsStore } from "@/stores/SettingsStore";
@@ -41,11 +42,9 @@ export const useUserStore = defineStore("user", () => {
 
       const transactionStore = useTransactionStore();
       await transactionStore.fetchTransactions();
-
-      // Success is logged by the component/view calling this, or observed via state.
     } catch (error) {
-      isInitialized.value = false; // Allow retry on failure
-      throw error; // Propagate to caller
+      isInitialized.value = false;
+      throw error;
     }
   }
 
@@ -72,14 +71,16 @@ export const useUserStore = defineStore("user", () => {
         await runFullInitialization();
       }
 
-      // Listener for Login/Logout/Refresh events.
-      // The callback is not awaited by Supabase, so errors cannot propagate to a
-      // caller. Re-throwing from the async callback surfaces them as unhandled
-      // rejections, which are caught by the global handler registered in main.ts.
       supabase.auth.onAuthStateChange(async (event, newSession) => {
         const oldUserId = user.value?.id;
         session.value = newSession;
         user.value = newSession?.user ?? null;
+
+        if (event === "PASSWORD_RECOVERY") {
+          // Redirect to reset password page instead of treating as normal login
+          router.push({ name: "reset-password" });
+          return;
+        }
 
         if (newSession?.user) {
           if (newSession.user.id !== oldUserId) {
@@ -112,32 +113,32 @@ export const useUserStore = defineStore("user", () => {
    * signOut
    * Ends the Supabase session. Cleanup is handled by the onAuthStateChange listener.
    */
-async function signOut() {
-  try {
-    const { error } = await supabase.auth.signOut();
-    if (error) throw error;
-  } catch (error: unknown) {
-    // If session is already missing, clean up local state manually
-    // since SIGNED_OUT event won't fire
-    if ((error as { name?: string })?.name === 'AuthSessionMissingError') {
-      posthog.reset();
-      isInitialized.value = false;
-      user.value = null;
-      session.value = null;
+  async function signOut() {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+    } catch (error: unknown) {
+      // If session is already missing, clean up local state manually
+      // since SIGNED_OUT event won't fire
+      if ((error as { name?: string })?.name === "AuthSessionMissingError") {
+        posthog.reset();
+        isInitialized.value = false;
+        user.value = null;
+        session.value = null;
 
-      const transactionStore = useTransactionStore();
-      transactionStore.transactions = [];
+        const transactionStore = useTransactionStore();
+        transactionStore.transactions = [];
 
-      const settingsStore = useSettingsStore();
-      settingsStore.restoreDefaults();
-      return; // Don't rethrow — we've handled it
+        const settingsStore = useSettingsStore();
+        settingsStore.restoreDefaults();
+        return;
+      }
+      throw error;
     }
-    throw error; // Rethrow other errors for handleLogout to catch
-  }
 
-  user.value = null;
-  session.value = null;
-}
+    user.value = null;
+    session.value = null;
+  }
 
   return {
     user,

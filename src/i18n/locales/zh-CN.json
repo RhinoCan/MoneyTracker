@@ -222,5 +222,26 @@
   },
   "localeList": {
     "intl_supported_values_failed": "无法加载语言列表，将使用默认列表。"
+  },
+  "forgotPassword": {
+    "title": "忘记密码",
+    "instruction": "请输入您的电子邮箱地址，我们将向您发送密码重置链接。",
+    "emailLabel": "电子邮箱地址",
+    "submitButton": "发送重置链接",
+    "successMessage": "密码重置邮件已发送。请检查您的收件箱。",
+    "backToLogin": "返回登录",
+    "errorMessage": "发生错误。请重试。"
+  },
+  "resetPassword": {
+    "title": "重置密码",
+    "instruction": "请在下方输入您的新密码。",
+    "passwordLabel": "新密码",
+    "confirmPasswordLabel": "确认新密码",
+    "submitButton": "重置密码",
+    "successMessage": "密码重置成功。请使用新密码登录。",
+    "mismatchError": "密码不匹配。",
+    "shortError": "密码长度至少为8个字符。",
+    "errorMessage": "发生错误。请重试。",
+    "invalidToken": "此密码重置链接无效或已过期。请重新申请。"
   }
 }

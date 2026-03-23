@@ -291,9 +291,9 @@ describe("SettingsStore", () => {
       expect(localeToCurrency["de-DE"]).toBe("EUR");
     });
 
-    it("covers all 16 supported locales", async () => {
+    it("covers all 17 supported locales", async () => {
       const { localeToCurrency } = await import("@/stores/SettingsStore");
-      expect(Object.keys(localeToCurrency)).toHaveLength(16);
+      expect(Object.keys(localeToCurrency)).toHaveLength(17);
     });
   });
 });

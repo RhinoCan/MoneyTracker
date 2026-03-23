@@ -16,6 +16,8 @@ export const ROUTES = {
   home:     '/MoneyTracker/',
   login:    '/MoneyTracker/login',
   register: '/MoneyTracker/register',
+  forgotPassword: '/MoneyTracker/forgot-password',
+  resetPassword: '/MoneyTracker/reset-password',
 };
 
 // -------------------------------------------------------------------------
