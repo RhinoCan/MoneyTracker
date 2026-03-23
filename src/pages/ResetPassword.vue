@@ -92,14 +92,14 @@ async function handleResetPassword() {
 
 <template>
   <v-container class="d-flex justify-center align-center fill-height bg-grey-lighten-4">
-    <v-card width="400" elevation="2" class="pa-4" style="background-color:  #ffffff !important;">
+    <v-card width="400" elevation="2" class="pa-4" style="background-color:  #ffffff !important; color: rgba(0,0,0,87);">
       <v-card-title class="text-h5 text-center mb-4">
         {{ t("resetPassword.title") }}
       </v-card-title>
 
       <v-card-text>
         <div v-if="!tokenValid">
-          <p class="text-body-2 text-medium-emphasis mb-4">
+          <p class="text-body-2 text-medium-emphasis mb-4" style="color: rgba(0,0,0,0.87);">
             {{ t("resetPassword.invalidToken") }}
           </p>
           <v-btn block color="primary" @click="router.push({ name: 'login' })">

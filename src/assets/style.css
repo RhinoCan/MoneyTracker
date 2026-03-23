@@ -10,10 +10,10 @@
   opacity: 1 !important;
 }
 
-.v-snackbar__wrapper.bg-success .v-snackbar__content {
+.v-snackbar__wrapper.bg-success .v-snackbar__content,
+.v-snackbar__wrapper.bg-success .v-snackbar__content * {
   color: #ffffff !important;
 }
-
 .v-field__input {
   opacity: 1 !important;
 }
