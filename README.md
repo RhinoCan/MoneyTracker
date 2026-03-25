@@ -100,7 +100,7 @@ npm run test
 npm run test:coverage
 ```
 
-Current coverage: **99.28% statement**, **95.62% branch** across 562 tests in 31 files.
+Current coverage: **99.28% statement**, **93.93% branch** across 612 tests in 33 files.
 
 ### E2E Tests (Playwright)
 
@@ -111,13 +111,17 @@ npx playwright test --project=chromium
 # Run a single spec file
 npx playwright test --project=chromium tests/e2e/transactions.spec.ts
 
+[Exception: forgotPassword and auth have their own separate projects so they are invoked via:
+npx playwright test --project=forgotPassword-tests
+npx playwright test --project=auth-tests]
+
 # View the HTML report from the last run
 npx playwright show-report
 ```
 
 E2E tests require the dev server to be running and a valid test account (`rhinocan@outlook.com` / `rschl0chA`) to exist in your Supabase project.
 
-Current E2E status: **44/44 passing** across 5 spec files (accessibility, auth, transactions, locales, dataManagement).
+Current E2E status: *60/63 passing (3 skipped)** across 6 spec files (accessibility, auth, dataManagement, forgotPassword,  locales, transactions).
 
 #### Running against the live site
 
@@ -146,14 +150,15 @@ This project started as a follow-along with a Brad Traversy course and was incre
 
 - Replaced `localStorage` with Supabase for persistent, per-user data
 - Replaced plain JavaScript with TypeScript throughout
-- Replaced hand-rolled components with Vuetify 3
+- Replaced Vue components with Vuetify 3
 - Replaced prop drilling with Pinia stores
 - Added Vue Router with authenticated route guards
-- Added vue-i18n with 16 locales and RTL support
+- Added vue-i18n with 17 locales and RTL support
 - Added a full unit test suite (Vitest) with >99% statement coverage
-- Added a full E2E test suite (Playwright) with 31 passing tests
+- Added a full E2E test suite (Playwright) with 60 passing tests
 - Added Sentry for error logging and PostHog for analytics
 - Added CSV export and a data management screen
+- Add Playwright auth state caching to speed up the E2E suite
 
 ---
 
@@ -166,7 +171,6 @@ This project started as a follow-along with a Brad Traversy course and was incre
 
 ## Future Enhancements
 
-- Playwright auth state caching to speed up the E2E suite (currently each test authenticates fresh against Supabase)
 - Category tagging and filtering for transactions
 - Charts and spending trend visualisation
 - Recurring transaction support
