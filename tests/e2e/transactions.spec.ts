@@ -1,13 +1,10 @@
 // tests/e2e/transactions.spec.ts
 import { test, expect } from '@playwright/test';
-import { login, logout, addTransaction } from './helpers';
+import { addTransaction, ROUTES } from './helpers';
+
 
 test.beforeEach(async ({ page }) => {
-  await login(page);
-});
-
-test.afterEach(async ({ page }) => {
-  await logout(page);
+  await page.goto(ROUTES.home);
 });
 
 // -------------------------------------------------------------------------

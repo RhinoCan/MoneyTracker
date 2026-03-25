@@ -16,12 +16,34 @@ export default defineConfig({
 
   projects: [
     {
-      name: 'chromium',
-      use: { ...devices['Desktop Chrome'] },
+      name: 'setup',
+      testMatch: '**/setup/auth.setup.ts',
     },
-    // Uncomment for full cross-browser runs:
-    // { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
-    // { name: 'webkit',  use: { ...devices['Desktop Safari'] } },
+    {
+      name: 'auth-tests',
+      testMatch: '**/auth.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        // No storageState - auth tests manage their own sessions
+      },
+    },
+    {
+      name: 'forgotPassword-tests',
+      testMatch: '**/forgotPassword.spec.ts',
+      use: {
+        ...devices['Desktop Chrome'],
+        // No storageState - forgotPassword tests manage their own sessions
+      },
+    },
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        storageState: 'tests/e2e/.auth/user.json',
+      },
+      testIgnore: ['**/auth.spec.ts', '**/forgotPassword.spec.ts'],
+      dependencies: ['setup'],
+    },
   ],
 
   webServer: {

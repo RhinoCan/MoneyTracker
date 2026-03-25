@@ -1,67 +1,92 @@
 # MoneyTracker — Session Handoff Document
-**Date:** March 22, 2026
+**Date:** March 23, 2026
 
 ---
 
 ## Work Completed This Session
 
-### Sentry Replay Fix
-- **`src/main.ts`** — wrapped `replayIntegration()` and replay sample rates in `import.meta.env.VITE_PLAYWRIGHT` check to prevent Playwright test runs from consuming Sentry replay quota
-- **`playwright.config.ts`** — updated `webServer.command` to use `cross-env VITE_PLAYWRIGHT=true npm run dev`
+### Visual Contrast Fixes
+- **`src/plugins/vuetify.ts`** — changed `on-success` back to `#FFFFFF` (was `#1a3a35`)
+- **`src/assets/style.css`** — updated success snackbar rule to ensure white text always wins:
+  `.v-snackbar__wrapper.bg-success .v-snackbar__content, .v-snackbar__wrapper.bg-success .v-snackbar__content *`
+- **`src/pages/ResetPassword.vue`** — added `style="color: rgba(0,0,0,0.87);"` to `v-card-title` and invalid token paragraph to fix contrast against grey page background
+- **`src/components/TrackerHeader.vue`** — chip contrast issue identified (on-warning not defined); to be addressed if axe catches it
 
-### Translation Keys — All 15 Remaining Locales
-Added `forgotPassword` and `resetPassword` keys to all 15 non-English locale files (en-CA, en-GB, fr-FR, fr-CA, fr-CH, es-ES, de-DE, zh-CN, ja-JP, ko-KR, hi-IN, ar-SA, ru-RU, pt-BR, it-IT) using a Claude-powered translation artifact.
+### storageState Implementation (Playwright)
+Implemented Playwright session reuse to eliminate repeated Supabase login calls:
 
-### Tamil (ta-IN) Locale — Full Translation
-Added complete Tamil translation for all keys (translated in chunks to stay within token limits). Also assigned Indian Rupee (INR) as the default currency for ta-IN.
+- **`tests/e2e/setup/auth.setup.ts`** — new file, logs in once and saves session to `tests/e2e/.auth/user.json`
+- **`playwright.config.ts`** — added `setup` project (runs `auth.setup.ts` first), added `auth-tests` project (runs `auth.spec.ts` without storageState), updated `chromium` project to use storageState and ignore `auth.spec.ts`
+- **`.gitignore`** — added `tests/e2e/.auth/` entry
+- **`tests/e2e/accessibility.spec.ts`** — fully updated: removed `login()`/`logout()`, added `page.goto(ROUTES.home)` to all logged-in tests, removed `requiresLogout` flag and `afterEach` logout block, removed login snackbar dismissal code
+- **`tests/e2e/locales.spec.ts`** — fully updated: removed `login()`/`logout()`, added `beforeEach` with `page.goto(ROUTES.home)`, kept snackbar dismissal in `changeLocale()`
 
-### Playwright Suite — Now 60/60 Passing (2 skipped)
-Fixed the following failures:
-- **`ResetPassword.vue` contrast** — `bg-white` class wasn't overriding Vuetify theme; replaced with `style="background-color: #ffffff !important;"`
-- **`accessibility.spec.ts` — update transaction dialog** — success snackbar `on-success` text color had insufficient contrast against the success green background; fixed in Vuetify theme config
-- **`auth.spec.ts` — registration test** — marked as `test.skip` (hits Supabase rate limit on new account creation; creates real accounts on every run)
-- **`locales.spec.ts` — German locale test** — lingering snackbar scrim was blocking the locale dropdown click; fixed by adding snackbar dismissal to `changeLocale()` helper
-
-### Password Reset During Testing
-Test user password was changed during a forgot password test cycle and updated in `helpers.ts` to match.
+### Test Results So Far
+- `accessibility.spec.ts` — 11/11 passing ✓
+- `locales.spec.ts` — all passing ✓
+- `auth.spec.ts` — not yet verified after storageState changes
+- `dataManagement.spec.ts` — failing (needs `page.goto(ROUTES.home)` treatment)
+- `transactions.spec.ts` — failing (needs `page.goto(ROUTES.home)` treatment)
+- `forgotPassword.spec.ts` — not yet re-run after storageState changes
 
 ---
 
-## Outstanding Items
+## Outstanding Items — storageState Migration (High Priority)
 
-### High Priority
-- **`storageState`** — implement Playwright session reuse to eliminate repeated Supabase login calls across the test suite. Currently 60 tests each call `login()` individually, which is fragile against rate limiting. Core work: create `tests/e2e/setup/auth.setup.ts`, add setup project to `playwright.config.ts`, add `storageState` to tests that need auth.
-- **Translation keys** — all 16 locales now have `forgotPassword` and `resetPassword` keys ✓
+The following spec files still need to be updated to remove `login()`/`logout()` calls and add `page.goto(ROUTES.home)` where needed. The pattern is the same as what was done for `accessibility.spec.ts` and `locales.spec.ts`:
+
+1. **`tests/e2e/dataManagement.spec.ts`** — remove `login()` from `beforeEach`, remove `logout()` from `afterEach` (or remove entire `afterEach` if logout is the only thing in it), add `page.goto(ROUTES.home)` to `beforeEach`
+2. **`tests/e2e/transactions.spec.ts`** — same treatment as dataManagement
+
+**`auth.spec.ts`** should NOT be changed — it runs in its own project without storageState and must continue calling `login()`/`logout()` directly.
+
+**`forgotPassword.spec.ts`** should NOT be changed — it manages its own navigation and doesn't use storageState.
+
+### Pattern for each file needing update:
+- Remove `login` and `logout` from imports
+- Add `ROUTES` to imports if not already there
+- Remove `await login(page)` from `beforeEach`
+- Remove `await logout(page)` from `afterEach` (delete entire block if it's the only line)
+- Add `await page.goto(ROUTES.home)` to `beforeEach`
+
+---
+
+## Other Outstanding Items
 
 ### Medium Priority
-- **i18n Meetup presentation** — pick up where we left off; remaining topics include `Intl` number/currency formatting demo and Temporal date examples
-- **Tamil (ta-IN) locale** — added this session ✓
+- **i18n Meetup presentation** — Number/Currency section not yet started; need to sync with co-presenter on topic split before building more
+- **`on-warning` contrast** — chip in TrackerHeader uses `warning` color; `on-warning` not defined in theme so Vuetify defaults may cause contrast issues. Run axe to confirm before fixing.
 
 ### Low Priority
-- **Password visibility toggle tests** — uncovered branch in Login, ForgotPassword and ResetPassword (showPassword ternaries); not critical
-- **Skipped Playwright tests** — two submission tests in `forgotPassword.spec.ts` skipped due to Supabase rate limiting; one registration test skipped for same reason. These can be run manually in isolation.
+- **Password visibility toggle tests** — uncovered branches in Login, ForgotPassword, ResetPassword
+- **Skipped Playwright tests** — two forgotPassword submission tests and one registration test permanently skipped; run manually when needed
 
 ---
 
 ## Known Constraints
-- Supabase free tier rate limits auth operations — do not run the full Playwright suite multiple times in quick succession
-- `SKIP_REGISTRATION_TEST=true` must be set when running Playwright via `run-playwright.bat`
-- `Temporal.ZonedDateTime` cannot be passed to `Intl.DateTimeFormat` — use `toInstant()` workaround per TC39 designer's StackOverflow answer
-- Two forgotPassword submission tests and one registration test are permanently skipped in the suite; run manually when needed
+- Supabase rate limits auth operations — storageState reduces but doesn't eliminate login calls (auth.spec.ts still calls login directly)
+- `tests/e2e/.auth/user.json` is gitignored — CI needs to regenerate it each run via the setup project (this should work automatically since `setup` runs before `chromium`)
+- `SKIP_REGISTRATION_TEST=true` must be set in `run-playwright.bat`
+- Two forgotPassword submission tests and one registration test are permanently skipped
 
 ---
 
 ## Coverage Summary (unit tests)
-Overall: 99.28% statements, 93.93% branches — 612/612 passing
-- `UserStore.ts` — 100%
-- `router/index.ts` — 98.87% (line 82 uncovered, minor edge case)
-- `posthog.ts` — 0% (intentionally mocked everywhere)
+612/612 passing, coverage unchanged from previous session.
 
-## Playwright Suite
-60/60 passing, 2 skipped (forgotPassword submission tests)
+## Playwright Suite Status
+- Total tests: 74 (was 62 — auth-tests project adds its own count)
+- accessibility.spec.ts: ✓ all passing
+- locales.spec.ts: ✓ all passing
+- auth.spec.ts: needs verification
+- dataManagement.spec.ts: failing — needs storageState migration
+- transactions.spec.ts: failing — needs storageState migration
+- forgotPassword.spec.ts: needs re-run
 
 ---
 
 ## Next Session Priorities
-1. i18n Meetup presentation — Intl number/currency formatting demo and Temporal date examples
-2. storageState implementation for Playwright
+1. Update `dataManagement.spec.ts` and `transactions.spec.ts` per the pattern above
+2. Run full Playwright suite and confirm all tests pass
+3. Commit and deploy
+4. Resume i18n Meetup presentation — Number/Currency formatting section

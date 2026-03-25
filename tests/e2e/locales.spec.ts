@@ -1,6 +1,6 @@
 // tests/e2e/locales.spec.ts
 import { test, expect, type Page } from '@playwright/test';
-import { login, logout, openSettings, saveSettings, cancelSettings, selectLocale, addTransaction } from './helpers';
+import { openSettings, saveSettings, cancelSettings, selectLocale, addTransaction, ROUTES } from './helpers';
 
 test.setTimeout(60000);
 
@@ -31,12 +31,11 @@ async function resetToEnglish(page: Page) {
 // Setup / teardown
 // -------------------------------------------------------------------------
 test.beforeEach(async ({ page }) => {
-  await login(page);
+  await page.goto(ROUTES.home);
 });
 
 test.afterEach(async ({ page }) => {
   await resetToEnglish(page);
-  await logout(page);
 });
 
 // -------------------------------------------------------------------------
@@ -127,9 +126,9 @@ test.describe('RTL layout — Arabic (ar-SA)', () => {
     expect(htmlDir).toBe('rtl');
   });
 
-// Skipped: app bug — amount field rejects numeric input in ar-SA locale
-// See: currencyParser does not handle Arabic locale input
-test('can add and delete a transaction in Arabic locale', async ({ page }) => {
+  // Skipped: app bug — amount field rejects numeric input in ar-SA locale
+  // See: currencyParser does not handle Arabic locale input
+  test('can add and delete a transaction in Arabic locale', async ({ page }) => {
     await changeLocale(page, 'ar-SA');
 
     const description = `AR Test ${Date.now()}`;
