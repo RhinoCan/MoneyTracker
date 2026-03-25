@@ -12,6 +12,14 @@
       rel="stylesheet"
     />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      const p = new URLSearchParams(window.location.search);
+      if (p.has("p")) {
+        const path = decodeURIComponent(p.get("p"));
+        const hash = p.has("h") ? "#" + decodeURIComponent(p.get("h")) : "";
+        window.history.replaceState(null, "", "/MoneyTracker" + path + hash);
+      }
+    </script>
     <title>MoneyTracker</title>
   </head>
   <body>
