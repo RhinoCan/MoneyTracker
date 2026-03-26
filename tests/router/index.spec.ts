@@ -76,9 +76,9 @@ describe("router navigation guard", () => {
       expect(router.currentRoute.value.name).toBe("reset-password");
     });
 
-    it("redirects away from forgot-password to home when authenticated", async () => {
+    it("allows access to forgot-password when authenticated", async () => {
       await router.push("/forgot-password");
-      expect(router.currentRoute.value.name).toBe("home");
+      expect(router.currentRoute.value.name).toBe("forgot-password");
     });
 
     it("allows access to protected home route", async () => {

@@ -29,9 +29,10 @@ vi.mock("@/lib/supabase", () => ({
 
 vi.mock("@/lib/Logger", () => ({
   logWarning: vi.fn(),
+  logValidation: vi.fn(),
 }));
 
-import { logWarning } from "@/lib/Logger";
+import { logWarning, logValidation } from "@/lib/Logger";
 import { useNotificationStore } from "@/stores/NotificationStore";
 
 describe("ResetPassword.vue", () => {
@@ -178,7 +179,9 @@ describe("ResetPassword.vue", () => {
       wrapper.vm.confirmPassword = "newpassword123";
       await wrapper.vm.handleResetPassword();
       await flushPromises();
-      expect(notificationStore.text).toBe("Password reset successful. Please log in with your new password.");
+      expect(notificationStore.text).toBe(
+        "Password reset successful. Please log in with your new password."
+      );
     });
     it("redirects to login on success", async () => {
       wrapper = await mountWithSession();
@@ -218,6 +221,41 @@ describe("ResetPassword.vue", () => {
       await wrapper.vm.handleResetPassword();
       await flushPromises();
       expect(logWarning).toHaveBeenCalled();
+      expect(logValidation).not.toHaveBeenCalled();
+    });
+    it("calls logValidation when the new password matches the previous password", async () => {
+      wrapper = await mountWithSession();
+      mockUpdateUser.mockResolvedValue({
+        error: { message: "New password should be different from the old password." },
+      });
+      wrapper.vm.password = "previouspassword123";
+      wrapper.vm.confirmPassword = "previouspassword123";
+      await wrapper.vm.handleResetPassword();
+      await flushPromises();
+      expect(logValidation).toHaveBeenCalledWith(
+        "resetPassword.reusedPasswordError",
+        expect.objectContaining({
+          module: "ResetPassword",
+          action: "handleResetPassword",
+          slug: "reset_password.reused_password",
+        })
+      );
+      expect(logWarning).not.toHaveBeenCalled();
+    });
+    it("does not show a separate snackbar when password is reused (logValidation handles it)", async () => {
+      wrapper = await mountWithSession();
+      const notificationStore = useNotificationStore();
+      // Clear any prior messages
+      notificationStore.text = "";
+      mockUpdateUser.mockResolvedValue({
+        error: { message: "New password should be different from the old password." },
+      });
+      wrapper.vm.password = "previouspassword123";
+      wrapper.vm.confirmPassword = "previouspassword123";
+      await wrapper.vm.handleResetPassword();
+      await flushPromises();
+      // logValidation drives the snackbar — the component must not call showMessage separately
+      expect(notificationStore.text).not.toBe("An error occurred. Please try again.");
     });
     it("does not redirect on error", async () => {
       wrapper = await mountWithSession();

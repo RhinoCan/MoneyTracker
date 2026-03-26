@@ -241,6 +241,7 @@
     "mismatchError": "Passwords do not match.",
     "shortError": "Password must be at least 8 characters.",
     "errorMessage": "An error occurred. Please try again.",
-    "invalidToken": "This password reset link is invalid or has expired. Please request a new one."
+    "invalidToken": "This password reset link is invalid or has expired. Please request a new one.",
+    "reusedPasswordError": "The new password must be different from your previous password."
   }
 }

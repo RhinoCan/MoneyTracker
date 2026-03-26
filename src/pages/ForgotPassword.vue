@@ -26,8 +26,10 @@ async function handleForgotPassword() {
   loading.value = true;
 
   try {
+    const redirectTo = `${window.location.origin}/MoneyTracker/reset-password`;
+
     const { error } = await supabase.auth.resetPasswordForEmail(email.value, {
-      redirectTo: `${window.location.origin}/MoneyTracker/reset-password`,
+      redirectTo,
     });
 
     if (error) {

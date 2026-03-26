@@ -100,7 +100,7 @@ npm run test
 npm run test:coverage
 ```
 
-Current coverage: **99.28% statement**, **93.93% branch** across 612 tests in 33 files.
+Current coverage: **99.28% statement**, **93.93% branch** across 614 tests in 33 files.
 
 ### E2E Tests (Playwright)
 

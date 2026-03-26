@@ -242,6 +242,7 @@
     "mismatchError": "密码不匹配。",
     "shortError": "密码长度至少为8个字符。",
     "errorMessage": "发生错误。请重试。",
-    "invalidToken": "此密码重置链接无效或已过期。请重新申请。"
+    "invalidToken": "此密码重置链接无效或已过期。请重新申请。",
+    "reusedPasswordError": "新密码必须与您之前的密码不同。"
   }
 }

@@ -1,92 +1,141 @@
-# MoneyTracker — Session Handoff Document
-**Date:** March 23, 2026
+# Session Handoff — MoneyTracker Vue 3 App
+
+## Where We Left Off
+
+The session was fixing a chain of issues discovered after adding Forgot Password / Reset Password pages to a Vue 3 + Supabase + Sentry + PostHog app deployed on GitHub Pages.
 
 ---
 
-## Work Completed This Session
+## Immediate Next Step (Blocking)
 
-### Visual Contrast Fixes
-- **`src/plugins/vuetify.ts`** — changed `on-success` back to `#FFFFFF` (was `#1a3a35`)
-- **`src/assets/style.css`** — updated success snackbar rule to ensure white text always wins:
-  `.v-snackbar__wrapper.bg-success .v-snackbar__content, .v-snackbar__wrapper.bg-success .v-snackbar__content *`
-- **`src/pages/ResetPassword.vue`** — added `style="color: rgba(0,0,0,0.87);"` to `v-card-title` and invalid token paragraph to fix contrast against grey page background
-- **`src/components/TrackerHeader.vue`** — chip contrast issue identified (on-warning not defined); to be addressed if axe catches it
+**Fix the invalid Supabase anon key for the test project.**
 
-### storageState Implementation (Playwright)
-Implemented Playwright session reuse to eliminate repeated Supabase login calls:
+In `.env`, `VITE_SUPABASE_ANON_KEY_TEST` is currently a copy of `VITE_SUPABASE_ANON_KEY` (the live key). This causes a 401 Unauthorized error when the dev environment tries to call the test Supabase project.
 
-- **`tests/e2e/setup/auth.setup.ts`** — new file, logs in once and saves session to `tests/e2e/.auth/user.json`
-- **`playwright.config.ts`** — added `setup` project (runs `auth.setup.ts` first), added `auth-tests` project (runs `auth.spec.ts` without storageState), updated `chromium` project to use storageState and ignore `auth.spec.ts`
-- **`.gitignore`** — added `tests/e2e/.auth/` entry
-- **`tests/e2e/accessibility.spec.ts`** — fully updated: removed `login()`/`logout()`, added `page.goto(ROUTES.home)` to all logged-in tests, removed `requiresLogout` flag and `afterEach` logout block, removed login snackbar dismissal code
-- **`tests/e2e/locales.spec.ts`** — fully updated: removed `login()`/`logout()`, added `beforeEach` with `page.goto(ROUTES.home)`, kept snackbar dismissal in `changeLocale()`
+**Fix:** Go to the Supabase dashboard for the **MoneyTrackerTest** project:
+`https://supabase.com/dashboard/project/kczwixuibuahpcazksae`
+→ Project Settings → API → copy the `anon public` key
+→ Paste it as the value of `VITE_SUPABASE_ANON_KEY_TEST` in `.env`
 
-### Test Results So Far
-- `accessibility.spec.ts` — 11/11 passing ✓
-- `locales.spec.ts` — all passing ✓
-- `auth.spec.ts` — not yet verified after storageState changes
-- `dataManagement.spec.ts` — failing (needs `page.goto(ROUTES.home)` treatment)
-- `transactions.spec.ts` — failing (needs `page.goto(ROUTES.home)` treatment)
-- `forgotPassword.spec.ts` — not yet re-run after storageState changes
+The corrected `.env` structure should be:
+```dotenv
+VITE_APP_ENV=                          # blank = dev, "live" = production
+VITE_SUPABASE_URL=https://ituznmllvohqnqlvwwhv.supabase.co        # Live project
+VITE_SUPABASE_ANON_KEY=<live anon key>
+VITE_SUPABASE_URL_TEST=https://kczwixuibuahpcazksae.supabase.co   # Test project
+VITE_SUPABASE_ANON_KEY_TEST=<CORRECT test anon key — get from dashboard>
+```
 
 ---
 
-## Outstanding Items — storageState Migration (High Priority)
+## Two Cleanup Tasks Remaining
 
-The following spec files still need to be updated to remove `login()`/`logout()` calls and add `page.goto(ROUTES.home)` where needed. The pattern is the same as what was done for `accessibility.spec.ts` and `locales.spec.ts`:
+Once the anon key is fixed and the forgot password cycle works end-to-end in dev:
 
-1. **`tests/e2e/dataManagement.spec.ts`** — remove `login()` from `beforeEach`, remove `logout()` from `afterEach` (or remove entire `afterEach` if logout is the only thing in it), add `page.goto(ROUTES.home)` to `beforeEach`
-2. **`tests/e2e/transactions.spec.ts`** — same treatment as dataManagement
+1. **Remove the console.log from `ForgotPassword.vue`** (line added for debugging):
+   ```typescript
+   console.log("[ForgotPassword] redirectTo:", redirectTo);
+   ```
 
-**`auth.spec.ts`** should NOT be changed — it runs in its own project without storageState and must continue calling `login()`/`logout()` directly.
-
-**`forgotPassword.spec.ts`** should NOT be changed — it manages its own navigation and doesn't use storageState.
-
-### Pattern for each file needing update:
-- Remove `login` and `logout` from imports
-- Add `ROUTES` to imports if not already there
-- Remove `await login(page)` from `beforeEach`
-- Remove `await logout(page)` from `afterEach` (delete entire block if it's the only line)
-- Add `await page.goto(ROUTES.home)` to `beforeEach`
+2. **Run the full test suite** (unit + Playwright) one final time before committing.
 
 ---
 
-## Other Outstanding Items
+## All Changes Made This Session
 
-### Medium Priority
-- **i18n Meetup presentation** — Number/Currency section not yet started; need to sync with co-presenter on topic split before building more
-- **`on-warning` contrast** — chip in TrackerHeader uses `warning` color; `on-warning` not defined in theme so Vuetify defaults may cause contrast issues. Run axe to confirm before fixing.
+### 1. `@/lib/supabase.ts`
+Added environment-aware Supabase client initialization so dev uses the test project and live uses the production project:
+```typescript
+const isLive = import.meta.env.VITE_APP_ENV === "live";
+const supabaseUrl = (isLive
+  ? import.meta.env.VITE_SUPABASE_URL
+  : import.meta.env.VITE_SUPABASE_URL_TEST) as string;
+const supabaseAnonKey = (isLive
+  ? import.meta.env.VITE_SUPABASE_ANON_KEY
+  : import.meta.env.VITE_SUPABASE_ANON_KEY_TEST) as string;
+export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);
+```
 
-### Low Priority
-- **Password visibility toggle tests** — uncovered branches in Login, ForgotPassword, ResetPassword
-- **Skipped Playwright tests** — two forgotPassword submission tests and one registration test permanently skipped; run manually when needed
+### 2. `@/pages/ResetPassword.vue`
+- Replaced `logWarning` with `logValidation` for the reused password case
+- Added `logValidation` import alongside `logWarning`
+- Removed inline `style="color: rgba(0,0,0,0.87) !important"` from `v-card` and invalid token `<p>`
+- Changed `text-medium-emphasis` to `text-high-emphasis` on the invalid token paragraph
+- Added `text-high-emphasis` to `v-card-title`
+
+### 3. `@/pages/ForgotPassword.vue`
+- Extracted `redirectTo` into its own variable before the Supabase call (cleaner code)
+- Added temporary `console.log` for debugging (still needs removal)
+
+### 4. `@/router/index.ts`
+- Removed `forgot-password` from the `isAuthPage` redirect list so authenticated users are no longer bounced away from the forgot/reset password flow
+
+### 5. `tests/router/index.spec.ts`
+- Updated the test "redirects away from forgot-password to home when authenticated" to assert the new correct behaviour (authenticated users are allowed through to forgot-password)
+
+### 6. `tests/unit/ResetPassword.spec.ts`
+- Added `logValidation` to the Logger mock
+- Added import of `logValidation`
+- Renamed "calls logWarning on supabase error" to "calls logWarning on a generic supabase error" and added `expect(logValidation).not.toHaveBeenCalled()`
+- Added new test: "calls logValidation when the new password matches the previous password"
+- Added new test: "does not show a separate snackbar when password is reused (logValidation handles it)"
+
+### 7. `tests/e2e/forgotPassword.spec.ts`
+- Added a new skipped describe block "Reset Password page — valid token state" documenting the reused password and successful reset scenarios that cannot be automated without live email interception
+
+### 8. `tests/e2e/accessibility.spec.ts`
+- Updated "update transaction dialog" test to dismiss any visible snackbar before running axe, avoiding a Vuetify `bg-success` contrast failure
+
+### 9. All i18n locale files
+Added `resetPassword.reusedPasswordError` translation key to all 17 locales:
+- `en-US`: "The new password must be different than your previous password."
+- `en-CA` / `en-GB`: "The new password must be different from your previous password."
+- `fr-FR` / `fr-CA` / `fr-CH`: "Le nouveau mot de passe doit être différent de votre mot de passe précédent."
+- `es-ES`: "La nueva contraseña debe ser diferente de tu contraseña anterior."
+- `de-DE`: "Das neue Passwort muss sich von Ihrem vorherigen Passwort unterscheiden."
+- `zh-CN`: "新密码必须与您之前的密码不同。"
+- `ja-JP`: "新しいパスワードは以前のパスワードと異なる必要があります。"
+- `ko-KR`: "새 비밀번호는 이전 비밀번호와 달라야 합니다."
+- `hi-IN`: "नया पासवर्ड आपके पिछले पासवर्ड से अलग होना चाहिए।"
+- `ar-SA`: "يجب أن تكون كلمة المرور الجديدة مختلفة عن كلمة المرور السابقة."
+- `ru-RU`: "Новый пароль должен отличаться от предыдущего."
+- `pt-BR`: "A nova senha deve ser diferente da sua senha anterior."
+- `it-IT`: "La nuova password deve essere diversa dalla password precedente."
+- `ta-IN`: "புதிய கடவுச்சொல் உங்கள் முந்தைய கடவுச்சொல்லிலிருந்து வேறுபட்டதாக இருக்க வேண்டும்."
+
+### 10. Supabase Dashboard — Both Projects
+- Updated email template from `{{ .ConfirmationURL }}` to `{{ .RedirectTo }}` in both MoneyTracker (live) and MoneyTrackerTest (dev) projects
+- Verified Site URL and Redirect URL are correctly configured in both projects
+- Live project Redirect URL corrected from `http://` to `https://`
 
 ---
 
-## Known Constraints
-- Supabase rate limits auth operations — storageState reduces but doesn't eliminate login calls (auth.spec.ts still calls login directly)
-- `tests/e2e/.auth/user.json` is gitignored — CI needs to regenerate it each run via the setup project (this should work automatically since `setup` runs before `chromium`)
-- `SKIP_REGISTRATION_TEST=true` must be set in `run-playwright.bat`
-- Two forgotPassword submission tests and one registration test are permanently skipped
+## Background Context
 
----
+### App Stack
+- Vue 3 + TypeScript + Vite
+- Vuetify 3 for UI components
+- Pinia for state management
+- Vue Router with `beforeEach` auth guard
+- Supabase for auth and data (two projects: live + test)
+- Sentry for error/warning tracking
+- PostHog for analytics
+- i18n with 17 locales
+- Vitest for unit tests
+- Playwright for e2e tests (including axe accessibility audits)
 
-## Coverage Summary (unit tests)
-612/612 passing, coverage unchanged from previous session.
+### Logger System (`@/lib/Logger.ts`)
+Five logging functions with distinct purposes:
+- `logException` — errors preventing task completion → Sentry (error) + PostHog + snackbar
+- `logWarning` — unexpected but recoverable app behaviour → Sentry (warning) + PostHog, no snackbar
+- `logValidation` — user-facing form/policy validation failures → PostHog + snackbar, no Sentry
+- `logInfo` — background system events → PostHog only
+- `logSuccess` — confirmed user-driven mutations → PostHog + snackbar
 
-## Playwright Suite Status
-- Total tests: 74 (was 62 — auth-tests project adds its own count)
-- accessibility.spec.ts: ✓ all passing
-- locales.spec.ts: ✓ all passing
-- auth.spec.ts: needs verification
-- dataManagement.spec.ts: failing — needs storageState migration
-- transactions.spec.ts: failing — needs storageState migration
-- forgotPassword.spec.ts: needs re-run
+### Two Supabase Projects
+- **MoneyTracker** (live): `ituznmllvohqnqlvwwhv` — GitHub Pages production
+- **MoneyTrackerTest** (dev): `kczwixuibuahpcazksae` — localhost dev server
 
----
+The app switches between them based on `VITE_APP_ENV`: blank = dev/test project, `"live"` = production project.
 
-## Next Session Priorities
-1. Update `dataManagement.spec.ts` and `transactions.spec.ts` per the pattern above
-2. Run full Playwright suite and confirm all tests pass
-3. Commit and deploy
-4. Resume i18n Meetup presentation — Number/Currency formatting section
+**Important:** Prior to this session, `supabase.ts` always used the live credentials regardless of environment. All dev/test data was therefore written to the live database. This has now been fixed.

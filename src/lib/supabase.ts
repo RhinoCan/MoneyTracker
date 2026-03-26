@@ -62,7 +62,14 @@ export type Database = {
   };
 };
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL as string;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY as string;
+const isLive = import.meta.env.VITE_APP_ENV === "live";
+
+const supabaseUrl = (isLive
+  ? import.meta.env.VITE_SUPABASE_URL
+  : import.meta.env.VITE_SUPABASE_URL_TEST) as string;
+
+const supabaseAnonKey = (isLive
+  ? import.meta.env.VITE_SUPABASE_ANON_KEY
+  : import.meta.env.VITE_SUPABASE_ANON_KEY_TEST) as string;
 
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey);

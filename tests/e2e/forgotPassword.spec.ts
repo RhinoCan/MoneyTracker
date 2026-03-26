@@ -188,3 +188,24 @@ test.describe("Reset Password page — invalid token state", () => {
     await runAxe(page);
   });
 });
+
+// -------------------------------------------------------------------------
+// Reset Password page — valid token state (skipped: requires live Supabase
+// recovery token delivered via email; not automatable without self-hosted
+// Supabase + Inbucket/Mailpit email interception)
+// -------------------------------------------------------------------------
+test.describe("Reset Password page — valid token state", () => {
+  test.skip("shows reused password validation message when new password matches previous", async ({ page }) => {
+    // To test manually:
+    // 1. Trigger a password reset email for your test account
+    // 2. Click the link in the email to land on /reset-password with a valid token
+    // 3. Enter the same password currently in use
+    // 4. Submit — expect a snackbar with "The new password must be different than your previous password."
+    // 5. Verify NO redirect to login occurs
+    // 6. Verify the snackbar is warning-coloured (not error-coloured)
+  });
+
+  test.skip("successfully resets password with a new unique password", async ({ page }) => {
+    // Covered by manual testing only — see note above.
+  });
+});

@@ -242,6 +242,7 @@
     "mismatchError": "Las contraseñas no coinciden.",
     "shortError": "La contraseña debe tener al menos 8 caracteres.",
     "errorMessage": "Se ha producido un error. Por favor, inténtalo de nuevo.",
-    "invalidToken": "Este enlace de restablecimiento de contraseña no es válido o ha caducado. Por favor, solicita uno nuevo."
+    "invalidToken": "Este enlace de restablecimiento de contraseña no es válido o ha caducado. Por favor, solicita uno nuevo.",
+    "reusedPasswordError": "La nueva contraseña debe ser diferente de tu contraseña anterior."
   }
 }

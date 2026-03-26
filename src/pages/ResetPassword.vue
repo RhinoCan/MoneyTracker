@@ -3,7 +3,7 @@ import { ref, onMounted, onUnmounted } from "vue";
 import { useRouter } from "vue-router";
 import { supabase } from "@/lib/supabase";
 import { useNotificationStore } from "@/stores/NotificationStore";
-import { logWarning } from "@/lib/Logger";
+import { logWarning, logValidation } from "@/lib/Logger";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
@@ -21,15 +21,18 @@ let authListener: { data: { subscription: { unsubscribe: () => void } } } | null
 
 onMounted(async () => {
   // Check if we already have a recovery session
+  //console.log("[ResetPassword] onMounted fired");
   const {
     data: { session },
   } = await supabase.auth.getSession();
+  //console.log("[ResetPassword] getSession result:", session);
   if (session) {
     tokenValid.value = true;
   }
 
   // Also listen for the event in case it fires after mount
   authListener = supabase.auth.onAuthStateChange((event) => {
+    //console.log("[ResetPassword] onAuthStateChange event:", event);
     if (event === "PASSWORD_RECOVERY" || event === "SIGNED_IN") {
       tokenValid.value = true;
     }
@@ -64,12 +67,22 @@ async function handleResetPassword() {
     });
 
     if (error) {
-      notificationStore.showMessage(t("resetPassword.errorMessage"), "error");
-      logWarning(error.message, {
-        module: "ResetPassword",
-        action: "handleResetPassword",
-        slug: "reset_password.update_failed",
-      });
+      const isReusedPassword = error.message.toLowerCase().includes("should be different");
+
+      if (isReusedPassword) {
+        logValidation("resetPassword.reusedPasswordError", {
+          module: "ResetPassword",
+          action: "handleResetPassword",
+          slug: "reset_password.reused_password",
+        });
+      } else {
+        logWarning(error.message, {
+          module: "ResetPassword",
+          action: "handleResetPassword",
+          slug: "reset_password.update_failed",
+        });
+        notificationStore.showMessage(t("resetPassword.errorMessage"), "error");
+      }
       return;
     }
 
@@ -92,14 +105,14 @@ async function handleResetPassword() {
 
 <template>
   <v-container class="d-flex justify-center align-center fill-height bg-grey-lighten-4">
-    <v-card width="400" elevation="2" class="pa-4" style="color: rgba(0,0,0,0.87) !important;">
-      <v-card-title class="text-h5 text-center mb-4">
+    <v-card width="400" elevation="2" class="pa-4">
+      <v-card-title class="text-h5 text-center mb-4 text-high-emphasis">
         {{ t("resetPassword.title") }}
       </v-card-title>
 
       <v-card-text>
         <div v-if="!tokenValid">
-          <p class="text-body-2 text-medium-emphasis mb-4" style="color: rgba(0,0,0,0.87) !important;">
+          <p class="text-body-2 text-high-emphasis mb-4">
             {{ t("resetPassword.invalidToken") }}
           </p>
           <v-btn block color="primary" @click="router.push({ name: 'login' })">

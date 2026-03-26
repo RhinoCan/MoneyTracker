@@ -16,11 +16,7 @@ import {
 async function runAxe(page: Page, excludeSelectors: string[] = []) {
   let builder = new AxeBuilder({ page })
     .withTags(["wcag2a", "wcag2aa", "wcag21a", "wcag21aa"])
-    .disableRules([
-      "aria-allowed-attr",
-      "aria-tooltip-name",
-      "aria-progressbar-name",
-    ]);
+    .disableRules(["aria-allowed-attr", "aria-tooltip-name", "aria-progressbar-name"]);
 
   for (const selector of excludeSelectors) {
     builder = builder.exclude(selector);
@@ -28,9 +24,7 @@ async function runAxe(page: Page, excludeSelectors: string[] = []) {
 
   const results = await builder.analyze();
 
-  const minor = results.violations.filter(
-    (v) => v.impact === "moderate" || v.impact === "minor"
-  );
+  const minor = results.violations.filter((v) => v.impact === "moderate" || v.impact === "minor");
   if (minor.length > 0) {
     console.warn(
       "Minor/moderate axe violations:",
@@ -189,6 +183,12 @@ test.describe("Accessibility", () => {
     const count = await rows.count();
     if (count === 0) {
       await addTransaction(page, "Accessibility test transaction", "42.00", "Expense");
+      // Dismiss snackbar before axe runs to avoid Vuetify bg-success contrast failure
+      const snackbar = page.locator(".v-snackbar");
+      if (await snackbar.isVisible()) {
+        await page.locator(".v-snackbar .v-btn").last().click();
+        await snackbar.waitFor({ state: "hidden", timeout: 5000 }).catch(() => {});
+      }
     }
     await page.locator('[data-testid="update-btn"]').first().click();
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 5000 });

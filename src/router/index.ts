@@ -64,8 +64,7 @@ router.beforeEach(async (to, from, next) => {
     // B. Public Page Access Control
     const isAuthPage =
       to.name === "login" ||
-      to.name === "register" ||
-      to.name === "forgot-password";
+      to.name === "register";
     if (isAuthPage && isLoggedIn) {
       return next({ name: "home" });
     }
