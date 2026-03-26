@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/MoneyTracker/favicon.ico" />
+    <link
+      href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;900&display=swap"
+      rel="stylesheet"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script>
+      const p = new URLSearchParams(window.location.search);
+      if (p.has("p")) {
+        const path = decodeURIComponent(p.get("p"));
+        const hash = p.has("h") ? "#" + decodeURIComponent(p.get("h")) : "";
+        window.history.replaceState(null, "", "/MoneyTracker" + path + hash);
+      }
+    </script>
+    <title>MoneyTracker</title>
+    <script type="module" crossorigin src="/MoneyTracker/assets/index-4yIRTcAE.js"></script>
+    <link rel="stylesheet" crossorigin href="/MoneyTracker/assets/index-DiU0A7Gj.css">
+  </head>
+  <body>
+    <div id="app"></div>
+  </body>
+</html>
